@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  name           String
+  hashedPassword String
+  phone          String?
+  businessName   String?
+  businessType   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  autoReplies    AutoReply[]
+  contacts       Contact[]
+  messages       Message[]
+  reminders      Reminder[]
+  broadcasts     Broadcast[]
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  phone     String
+  name      String
+  tags      String?
+  notes     String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+  reminders Reminder[]
+
+  @@unique([userId, phone])
+}
+
+model AutoReply {
+  id        String   @id @default(cuid())
+  trigger   String
+  response  String
+  isActive  Boolean  @default(true)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  direction String
+  status    String   @default("sent")
+  phone     String
+  userId    String
+  contactId String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact   Contact? @relation(fields: [contactId], references: [id])
+}
+
+model Reminder {
+  id          String   @id @default(cuid())
+  message     String
+  scheduledAt DateTime
+  status      String   @default("pending")
+  userId      String
+  contactId   String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+}
+
+model Broadcast {
+  id         String   @id @default(cuid())
+  name       String
+  message    String
+  targetTags String?
+  sentCount  Int      @default(0)
+  status     String   @default("draft")
+  userId     String
+  createdAt  DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
