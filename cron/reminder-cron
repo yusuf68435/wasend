@@ -1,0 +1,2 @@
+# WaSend - Hatirlatici cron job (her dakika)
+* * * * * curl -s -H "Authorization: Bearer NEXTAUTH_SECRET_PLACEHOLDER" http://localhost:3000/api/cron/reminders > /var/log/wasend-cron.log 2>&1
