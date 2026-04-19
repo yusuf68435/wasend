@@ -5,6 +5,7 @@ import { verifyMetaSignature } from "@/lib/webhook-security";
 import { isOptOutMessage, OPT_OUT_CONFIRMATION } from "@/lib/opt-out";
 import { isInBusinessHours } from "@/lib/timezone";
 import { matchesTrigger, mergeTags } from "@/lib/autoreply-match";
+import { generateAIReply, fetchRecentHistory } from "@/lib/ai-agent";
 
 // WhatsApp webhook verification (GET)
 export async function GET(request: NextRequest) {
@@ -180,8 +181,31 @@ export async function POST(request: NextRequest) {
     );
 
     let replyText: string | null = null;
-    if (matchedReply) replyText = matchedReply.response;
-    else if (!inHours && user.offHoursReply) replyText = user.offHoursReply;
+    let aiHandoff = false;
+    if (matchedReply) {
+      replyText = matchedReply.response;
+    } else if (user.aiEnabled) {
+      const history = await fetchRecentHistory(user.id, contact.id, 10);
+      const ai = await generateAIReply(user, messageText, history);
+      if (ai) {
+        replyText = ai.text;
+        aiHandoff = ai.handoff;
+      } else if (!inHours && user.offHoursReply) {
+        replyText = user.offHoursReply;
+      }
+    } else if (!inHours && user.offHoursReply) {
+      replyText = user.offHoursReply;
+    }
+
+    if (aiHandoff) {
+      const merged = mergeTags(contact.tags, "needs-human");
+      if (merged !== contact.tags) {
+        await prisma.contact.update({
+          where: { id: contact.id },
+          data: { tags: merged },
+        });
+      }
+    }
 
     if (replyText && apiToken && phoneNumberId) {
       try {

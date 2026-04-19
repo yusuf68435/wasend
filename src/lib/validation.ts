@@ -128,6 +128,11 @@ export const settingsUpdateSchema = z.object({
     .optional()
     .nullable(),
   offHoursReply: z.string().max(1000).optional().nullable(),
+  aiEnabled: z.boolean().optional(),
+  aiProvider: z.enum(["anthropic"]).optional(),
+  aiModel: z.string().max(100).optional(),
+  aiSystemPrompt: z.string().max(4000).optional().nullable(),
+  aiDailyTokenLimit: z.number().int().positive().max(10_000_000).optional(),
 });
 
 export type ZodIssueLike = { path: (string | number)[]; message: string };

@@ -14,6 +14,10 @@ export default function SettingsPage() {
   const [businessHoursEnd, setBusinessHoursEnd] = useState("");
   const [workDays, setWorkDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [offHoursReply, setOffHoursReply] = useState("");
+  const [aiEnabled, setAiEnabled] = useState(false);
+  const [aiModel, setAiModel] = useState("claude-haiku-4-5");
+  const [aiSystemPrompt, setAiSystemPrompt] = useState("");
+  const [aiDailyTokenLimit, setAiDailyTokenLimit] = useState(100000);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -29,6 +33,11 @@ export default function SettingsPage() {
         setBusinessHoursStart(data.businessHoursStart || "");
         setBusinessHoursEnd(data.businessHoursEnd || "");
         setOffHoursReply(data.offHoursReply || "");
+        setAiEnabled(!!data.aiEnabled);
+        if (data.aiModel) setAiModel(data.aiModel);
+        setAiSystemPrompt(data.aiSystemPrompt || "");
+        if (typeof data.aiDailyTokenLimit === "number")
+          setAiDailyTokenLimit(data.aiDailyTokenLimit);
         if (data.workDays) {
           const parsed = String(data.workDays)
             .split(",")
@@ -60,6 +69,10 @@ export default function SettingsPage() {
         businessHoursEnd: businessHoursEnd || null,
         workDays: workDays.length ? workDays.join(",") : null,
         offHoursReply: offHoursReply || null,
+        aiEnabled,
+        aiModel,
+        aiSystemPrompt: aiSystemPrompt || null,
+        aiDailyTokenLimit: Number(aiDailyTokenLimit) || 100000,
       }),
     });
     if (!res.ok) {
@@ -259,6 +272,78 @@ export default function SettingsPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
                 placeholder="Şu an kapalıyız. 09:00-18:00 saatleri arasında size dönüş yapacağız."
               />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition"
+            >
+              Kaydet
+            </button>
+          </div>
+        </form>
+
+        <form onSubmit={handleSaveProfile} className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="font-semibold text-gray-900 mb-4">AI Otomatik Cevap (Opsiyonel)</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Keyword eşleşmesi bulunmadığında Claude AI ile otomatik cevap üretilir.
+            Anahtar için <code className="bg-gray-100 px-1 rounded">ANTHROPIC_API_KEY</code> env değişkeni zorunludur.
+          </p>
+
+          <div className="space-y-4">
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={aiEnabled}
+                onChange={(e) => setAiEnabled(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              <span className="text-sm font-medium text-gray-700">AI fallback&apos;i aktif et</span>
+            </label>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                <select
+                  value={aiModel}
+                  onChange={(e) => setAiModel(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="claude-haiku-4-5">Claude Haiku 4.5 (hızlı & ucuz)</option>
+                  <option value="claude-sonnet-4-6">Claude Sonnet 4.6 (daha yetenekli)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Günlük Token Limiti
+                </label>
+                <input
+                  type="number"
+                  min={1000}
+                  max={10000000}
+                  value={aiDailyTokenLimit}
+                  onChange={(e) => setAiDailyTokenLimit(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Sistem Prompt (opsiyonel)
+              </label>
+              <textarea
+                value={aiSystemPrompt}
+                onChange={(e) => setAiSystemPrompt(e.target.value)}
+                rows={4}
+                placeholder="Boş bırakılırsa varsayılan Türkçe müşteri hizmetleri prompt'u kullanılır."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                AI belirsiz bir soruya çarparsa <code className="bg-gray-100 px-1 rounded">#handoff</code>{" "}
+                yazarak kişiye otomatik olarak <code className="bg-gray-100 px-1 rounded">needs-human</code>{" "}
+                etiketi eklenir.
+              </p>
             </div>
 
             <button

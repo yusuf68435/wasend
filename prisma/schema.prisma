@@ -20,6 +20,12 @@ model User {
   businessHoursEnd    String?
   workDays            String?
   offHoursReply       String?
+  role                String    @default("OWNER")
+  aiEnabled           Boolean   @default(false)
+  aiProvider          String    @default("anthropic")
+  aiModel             String    @default("claude-haiku-4-5")
+  aiSystemPrompt      String?
+  aiDailyTokenLimit   Int       @default(100000)
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -30,6 +36,12 @@ model User {
   broadcasts     Broadcast[]
   templates      Template[]
   segments       Segment[]
+  flows          Flow[]
+  flowSessions   FlowSession[]
+  aiUsages       AIUsage[]
+  dailyMetrics   DailyMetric[]
+  quickReplies   QuickReply[]
+  teamInvites    TeamInvite[]
 }
 
 model Contact {
@@ -170,4 +182,107 @@ model Segment {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model Flow {
+  id           String        @id @default(cuid())
+  name         String
+  trigger      String
+  triggerValue String?
+  nodes        String
+  isActive     Boolean       @default(true)
+  userId       String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions     FlowSession[]
+
+  @@index([userId])
+  @@index([userId, isActive])
+}
+
+model FlowSession {
+  id             String   @id @default(cuid())
+  flowId         String
+  contactId      String
+  currentNodeId  String
+  state          String
+  expiresAt      DateTime
+  userId         String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  flow           Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AIUsage {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String
+  tokens    Int      @default(0)
+  costUsd   Float    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model DailyMetric {
+  id             String   @id @default(cuid())
+  userId         String
+  date           String
+  sent           Int      @default(0)
+  delivered      Int      @default(0)
+  read           Int      @default(0)
+  failed         Int      @default(0)
+  incomingCount  Int      @default(0)
+  newContacts    Int      @default(0)
+  optOuts        Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+
+model QuickReply {
+  id        String   @id @default(cuid())
+  shortcut  String
+  content   String
+  mediaUrl  String?
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shortcut])
+  @@index([userId])
+}
+
+model TeamInvite {
+  id         String    @id @default(cuid())
+  userId     String
+  email      String
+  role       String    @default("AGENT")
+  token      String    @unique
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([email])
 }

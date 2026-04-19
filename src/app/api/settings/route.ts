@@ -24,6 +24,11 @@ export async function GET() {
       businessHoursEnd: true,
       workDays: true,
       offHoursReply: true,
+      aiEnabled: true,
+      aiProvider: true,
+      aiModel: true,
+      aiSystemPrompt: true,
+      aiDailyTokenLimit: true,
     },
   });
 
@@ -58,6 +63,11 @@ export async function PUT(request: Request) {
       businessHoursEnd: true,
       workDays: true,
       offHoursReply: true,
+      aiEnabled: true,
+      aiProvider: true,
+      aiModel: true,
+      aiSystemPrompt: true,
+      aiDailyTokenLimit: true,
     },
   });
 

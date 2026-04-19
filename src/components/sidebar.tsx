@@ -14,10 +14,12 @@ import {
   LogOut,
   FileText,
   Filter,
+  BarChart3,
 } from "lucide-react";
 
 const links = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+  { href: "/dashboard/analytics", label: "Analitik", icon: BarChart3 },
   { href: "/dashboard/messages", label: "Mesajlar", icon: MessageSquare },
   { href: "/dashboard/contacts", label: "Kişiler", icon: Users },
   { href: "/dashboard/segments", label: "Segmentler", icon: Filter },

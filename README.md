@@ -28,6 +28,7 @@ Açılış: [http://localhost:3000](http://localhost:3000)
 | `WHATSAPP_APP_SECRET` | ⚠️ | Webhook imza doğrulaması. Boş bırakılırsa imza kontrolü atlanır (prod'da MUTLAKA ayarlayın) |
 | `CRON_SECRET` | ⚠️ | Cron auth için ayrı secret. Yoksa `NEXTAUTH_SECRET` fallback olarak kullanılır |
 | `WHATSAPP_WABA_ID` | ⚠️ | WhatsApp Business Account ID. Template'leri Meta'ya onaya göndermek için gerekli (yoksa yalnızca lokal kayıt) |
+| `ANTHROPIC_API_KEY` | ⚠️ | AI fallback aktifse zorunlu. [console.anthropic.com](https://console.anthropic.com)'dan alınır |
 
 ## Cron Jobs (Vercel)
 
@@ -36,6 +37,7 @@ Açılış: [http://localhost:3000](http://localhost:3000)
 - `/api/cron/reminders` — dakikada bir, vadesi gelmiş pending reminder'ları gönderir
 - `/api/cron/broadcasts` — dakikada bir, `scheduled` statüsündeki broadcast'leri işler
 - `/api/cron/templates-sync` — saat başı, Meta'daki template onay durumlarını çeker
+- `/api/cron/aggregate` — her gün 01:00 UTC, günlük metrikleri (gönderim/teslim/okuma/gelen/yeni kontak/opt-out) `DailyMetric`'e yazar
 
 Hepsi `Authorization: Bearer $CRON_SECRET` bekler.
 
