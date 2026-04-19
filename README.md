@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WaSend — WhatsApp Business Automation
 
-## Getting Started
+Next.js 16 + Prisma + NextAuth tabanlı WhatsApp Business otomasyon platformu.
+İşletmeler için otomatik cevap, randevu hatırlatma, toplu mesaj, iş saati yönetimi
+ve opt-out uyumu.
 
-First, run the development server:
+## Kurulum
 
 ```bash
+npm install
+npx prisma migrate deploy
+npx prisma generate
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Açılış: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Ortam Değişkenleri
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Değişken | Zorunlu | Açıklama |
+|---|---|---|
+| `DATABASE_URL` | ✅ | Dev: `file:./dev.db`. Prod: Postgres URL (bkz. aşağıda) |
+| `NEXTAUTH_SECRET` | ✅ | NextAuth JWT imza anahtarı. `openssl rand -base64 32` |
+| `NEXTAUTH_URL` | ✅ (prod) | Deploy URL'i |
+| `WHATSAPP_API_TOKEN` | ✅ | Meta Cloud API erişim token'ı |
+| `WHATSAPP_PHONE_NUMBER_ID` | ✅ | Meta Phone Number ID |
+| `WHATSAPP_VERIFY_TOKEN` | ✅ | Meta webhook doğrulama token'ı (serbest seçim) |
+| `WHATSAPP_APP_SECRET` | ⚠️ | Webhook imza doğrulaması. Boş bırakılırsa imza kontrolü atlanır (prod'da MUTLAKA ayarlayın) |
+| `CRON_SECRET` | ⚠️ | Cron auth için ayrı secret. Yoksa `NEXTAUTH_SECRET` fallback olarak kullanılır |
 
-## Learn More
+## Cron Jobs (Vercel)
 
-To learn more about Next.js, take a look at the following resources:
+`vercel.json` iki cron tanımlar:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/api/cron/reminders` — dakikada bir, vadesi gelmiş pending reminder'ları gönderir
+- `/api/cron/broadcasts` — dakikada bir, `scheduled` statüsündeki broadcast'leri işler
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+İkisi de `Authorization: Bearer $CRON_SECRET` bekler.
 
-## Deploy on Vercel
+## Üretim Veritabanı — Postgres'e Geçiş
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+SQLite (`dev.db`) yalnızca geliştirme içindir. Vercel serverless ortamı dosya
+sistemini kalıcı tutmadığı için üretimde **Postgres zorunludur**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Adımlar
+
+1. **Postgres instance'ı sağlayın** (Neon, Supabase, Vercel Postgres).
+   `DATABASE_URL` değerini kopyalayın (örn. `postgresql://user:pass@host/db?sslmode=require`).
+
+2. **Schema provider'ı değiştirin** — `prisma/schema.prisma`:
+   ```prisma
+   datasource db {
+     provider = "postgresql"
+     url      = env("DATABASE_URL")
+   }
+   ```
+
+3. **Migration'ları sıfırlayın** (dev veri kaybı olur, prod'da zaten veri yok):
+   ```bash
+   rm -rf prisma/migrations
+   DATABASE_URL="<postgres-url>" npx prisma migrate dev --name init
+   ```
+   Bu Postgres-uyumlu yeni bir baseline migration oluşturur.
+
+4. **Vercel env**: Project Settings → Environment Variables altına `DATABASE_URL`,
+   `NEXTAUTH_SECRET`, `WHATSAPP_*`, `CRON_SECRET` değerlerini ekleyin.
+
+5. **Deploy**: `vercel --prod`. Build sırasında `prisma generate` otomatik çalışır;
+   `prisma migrate deploy` ilk istekte veya build script'e eklenerek tetiklenebilir.
+
+Geçişten önce mevcut SQLite içindeki kritik veriyi CSV olarak dışa aktarmak
+isterseniz `sqlite3 dev.db ".mode csv" ".once file.csv" "SELECT ..."` kullanın.
+
+## Özellikler
+
+- **Opt-out**: "stop", "dur", "iptal", "çık" vb. kelimelerle gelen mesaj
+  contact'ı otomatik opted-out yapar; broadcast, reminder ve manuel gönderim
+  bu contact'ları atlar.
+- **Webhook imza doğrulaması**: Meta `X-Hub-Signature-256` HMAC-SHA256.
+- **Delivery receipts**: Meta `statuses` webhook event'i `delivered`/`read`/`failed`
+  alanlarını günceller (`waMessageId` unique key ile).
+- **Rate-limited broadcast**: `rateLimit` alanı dakika başı mesaj sınırı
+  (varsayılan 80 — Meta Tier 1).
+- **Scheduled broadcast**: `scheduledAt` set edilirse broadcast `scheduled`
+  statüsüne girer ve cron tarafından vade zamanında işlenir.
+- **İş saati + saat dilimi**: User tablosunda `timezone`, `businessHoursStart`,
+  `businessHoursEnd`, `workDays`. İş saati dışında keyword eşleşmesi yoksa
+  `offHoursReply` gönderilir.
+- **Input validation**: Tüm API route'ları zod ile doğrulanır; hatalar 400 +
+  structured issues döner.

@@ -2,10 +2,23 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  autoReplyCreateSchema,
+  autoReplyUpdateSchema,
+  formatZodError,
+} from "@/lib/validation";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
   return (session?.user as { id: string } | undefined)?.id;
+}
+
+async function parseJson(request: Request) {
+  try {
+    return { ok: true as const, data: await request.json() };
+  } catch {
+    return { ok: false as const };
+  }
 }
 
 export async function GET() {
@@ -23,13 +36,16 @@ export async function POST(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
-  const { trigger, response } = await request.json();
-  if (!trigger || !response) {
-    return NextResponse.json({ error: "Tetikleyici ve cevap zorunlu" }, { status: 400 });
+  const body = await parseJson(request);
+  if (!body.ok) return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
+
+  const parsed = autoReplyCreateSchema.safeParse(body.data);
+  if (!parsed.success) {
+    return NextResponse.json(formatZodError(parsed.error), { status: 400 });
   }
 
   const reply = await prisma.autoReply.create({
-    data: { trigger, response, userId },
+    data: { ...parsed.data, userId },
   });
   return NextResponse.json(reply);
 }
@@ -38,11 +54,18 @@ export async function PUT(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
-  const { id, trigger, response, isActive } = await request.json();
+  const body = await parseJson(request);
+  if (!body.ok) return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
+
+  const parsed = autoReplyUpdateSchema.safeParse(body.data);
+  if (!parsed.success) {
+    return NextResponse.json(formatZodError(parsed.error), { status: 400 });
+  }
+  const { id, ...data } = parsed.data;
 
   const reply = await prisma.autoReply.updateMany({
     where: { id, userId },
-    data: { trigger, response, isActive },
+    data,
   });
   return NextResponse.json(reply);
 }

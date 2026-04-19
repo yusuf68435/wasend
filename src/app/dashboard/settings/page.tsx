@@ -3,29 +3,70 @@
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 
+const DAY_LABELS = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
+
 export default function SettingsPage() {
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [phone, setPhone] = useState("");
+  const [timezone, setTimezone] = useState("Europe/Istanbul");
+  const [businessHoursStart, setBusinessHoursStart] = useState("");
+  const [businessHoursEnd, setBusinessHoursEnd] = useState("");
+  const [workDays, setWorkDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [offHoursReply, setOffHoursReply] = useState("");
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/settings")
       .then((r) => r.json())
       .then((data) => {
+        if (!data) return;
         setBusinessName(data.businessName || "");
         setBusinessType(data.businessType || "");
         setPhone(data.phone || "");
+        setTimezone(data.timezone || "Europe/Istanbul");
+        setBusinessHoursStart(data.businessHoursStart || "");
+        setBusinessHoursEnd(data.businessHoursEnd || "");
+        setOffHoursReply(data.offHoursReply || "");
+        if (data.workDays) {
+          const parsed = String(data.workDays)
+            .split(",")
+            .map((s: string) => Number(s.trim()))
+            .filter((n: number) => !Number.isNaN(n));
+          if (parsed.length) setWorkDays(parsed);
+        }
       });
   }, []);
 
+  function toggleDay(d: number) {
+    setWorkDays((cur) =>
+      cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d].sort(),
+    );
+  }
+
   async function handleSaveProfile(e: React.FormEvent) {
     e.preventDefault();
-    await fetch("/api/settings", {
+    setError(null);
+    const res = await fetch("/api/settings", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ businessName, businessType, phone }),
+      body: JSON.stringify({
+        businessName,
+        businessType,
+        phone,
+        timezone,
+        businessHoursStart: businessHoursStart || null,
+        businessHoursEnd: businessHoursEnd || null,
+        workDays: workDays.length ? workDays.join(",") : null,
+        offHoursReply: offHoursReply || null,
+      }),
     });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data?.error || "Kaydedilemedi");
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   }
@@ -83,6 +124,11 @@ export default function SettingsPage() {
               Ayarlar kaydedildi!
             </div>
           )}
+          {error && (
+            <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-4">
             <div>
@@ -135,6 +181,95 @@ export default function SettingsPage() {
           </div>
         </form>
 
+        <form onSubmit={handleSaveProfile} className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Saat Dilimi ve İş Saatleri</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            Hatırlatmalar bu saat dilimine göre zamanlanır. İş saati dışı otomatik cevap
+            mesajı, keyword eşleşmesi olmadığında gönderilir.
+          </p>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Saat Dilimi</label>
+              <input
+                type="text"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Europe/Istanbul"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                IANA formatı (örn. Europe/Istanbul, Europe/Berlin)
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Açılış Saati</label>
+                <input
+                  type="time"
+                  value={businessHoursStart}
+                  onChange={(e) => setBusinessHoursStart(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Kapanış Saati</label>
+                <input
+                  type="time"
+                  value={businessHoursEnd}
+                  onChange={(e) => setBusinessHoursEnd(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Çalışma Günleri</label>
+              <div className="flex gap-2 flex-wrap">
+                {DAY_LABELS.map((label, idx) => {
+                  const active = workDays.includes(idx);
+                  return (
+                    <button
+                      type="button"
+                      key={idx}
+                      onClick={() => toggleDay(idx)}
+                      className={
+                        "px-3 py-1.5 rounded-lg text-sm border transition " +
+                        (active
+                          ? "bg-green-600 text-white border-green-600"
+                          : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50")
+                      }
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                İş Saati Dışı Otomatik Cevap (opsiyonel)
+              </label>
+              <textarea
+                value={offHoursReply}
+                onChange={(e) => setOffHoursReply(e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500"
+                placeholder="Şu an kapalıyız. 09:00-18:00 saatleri arasında size dönüş yapacağız."
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition"
+            >
+              Kaydet
+            </button>
+          </div>
+        </form>
+
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Webhook URL</h3>
           <p className="text-sm text-gray-500 mb-3">
@@ -144,7 +279,10 @@ export default function SettingsPage() {
             https://SITENIZ.vercel.app/api/webhook
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            Deploy ettikten sonra &quot;SITENIZ&quot; kısmı gerçek domain ile değişecek
+            Deploy ettikten sonra &quot;SITENIZ&quot; kısmı gerçek domain ile değişecek.
+            Güvenlik için <code className="bg-gray-100 px-1 rounded">WHATSAPP_APP_SECRET</code>{" "}
+            ve <code className="bg-gray-100 px-1 rounded">WHATSAPP_VERIFY_TOKEN</code> env
+            değişkenlerini ayarlayın.
           </p>
         </div>
       </div>

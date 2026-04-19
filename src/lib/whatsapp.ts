@@ -7,12 +7,17 @@ interface SendMessageParams {
   apiToken: string;
 }
 
+export interface SendMessageResult {
+  waMessageId: string | null;
+  raw: unknown;
+}
+
 export async function sendWhatsAppMessage({
   to,
   message,
   phoneNumberId,
   apiToken,
-}: SendMessageParams) {
+}: SendMessageParams): Promise<SendMessageResult> {
   const url = `${WHATSAPP_API_URL}/${phoneNumberId}/messages`;
 
   const response = await fetch(url, {
@@ -36,7 +41,8 @@ export async function sendWhatsAppMessage({
     throw new Error(data.error?.message || "WhatsApp mesaj gönderilemedi");
   }
 
-  return data;
+  const waMessageId: string | null = data?.messages?.[0]?.id ?? null;
+  return { waMessageId, raw: data };
 }
 
 export async function sendWhatsAppTemplate({
@@ -51,7 +57,7 @@ export async function sendWhatsAppTemplate({
   languageCode?: string;
   phoneNumberId: string;
   apiToken: string;
-}) {
+}): Promise<SendMessageResult> {
   const url = `${WHATSAPP_API_URL}/${phoneNumberId}/messages`;
 
   const response = await fetch(url, {
@@ -77,5 +83,6 @@ export async function sendWhatsAppTemplate({
     throw new Error(data.error?.message || "Template gönderilemedi");
   }
 
-  return data;
+  const waMessageId: string | null = data?.messages?.[0]?.id ?? null;
+  return { waMessageId, raw: data };
 }

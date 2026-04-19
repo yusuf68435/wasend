@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { broadcastCreateSchema, formatZodError } from "@/lib/validation";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -23,13 +24,31 @@ export async function POST(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
-  const { name, message, targetTags } = await request.json();
-  if (!name || !message) {
-    return NextResponse.json({ error: "İsim ve mesaj zorunlu" }, { status: 400 });
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
   }
 
+  const parsed = broadcastCreateSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(formatZodError(parsed.error), { status: 400 });
+  }
+  const { name, message, targetTags, scheduledAt, rateLimit } = parsed.data;
+
+  const status = scheduledAt ? "scheduled" : "draft";
+
   const broadcast = await prisma.broadcast.create({
-    data: { name, message, targetTags, userId },
+    data: {
+      name,
+      message,
+      targetTags: targetTags ?? null,
+      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      rateLimit: rateLimit ?? 80,
+      status,
+      userId,
+    },
   });
   return NextResponse.json(broadcast);
 }

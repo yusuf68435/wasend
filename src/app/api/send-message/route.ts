@@ -3,16 +3,25 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { sendMessageSchema, formatZodError } from "@/lib/validation";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id: string } | undefined)?.id;
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
-  const { contactId, message } = await request.json();
-  if (!contactId || !message) {
-    return NextResponse.json({ error: "Kişi ve mesaj zorunlu" }, { status: 400 });
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
   }
+
+  const parsed = sendMessageSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(formatZodError(parsed.error), { status: 400 });
+  }
+  const { contactId, message } = parsed.data;
 
   const contact = await prisma.contact.findFirst({
     where: { id: contactId, userId },
@@ -21,18 +30,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kişi bulunamadı" }, { status: 404 });
   }
 
+  if (contact.optedOut) {
+    return NextResponse.json(
+      { error: "Bu kişi mesaj almaktan çıktı (opt-out)." },
+      { status: 403 },
+    );
+  }
+
   const apiToken = process.env.WHATSAPP_API_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
 
   if (!apiToken || !phoneNumberId) {
     return NextResponse.json(
       { error: "WhatsApp API ayarları eksik. Ayarlar sayfasından yapılandırın." },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
-    await sendWhatsAppMessage({
+    const result = await sendWhatsAppMessage({
       to: contact.phone,
       message,
       phoneNumberId,
@@ -47,6 +63,7 @@ export async function POST(request: Request) {
         userId,
         contactId: contact.id,
         status: "sent",
+        waMessageId: result.waMessageId,
       },
     });
 
