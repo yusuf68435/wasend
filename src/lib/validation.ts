@@ -94,6 +94,45 @@ export const segmentCreateSchema = z.object({
   }, "rules geçerli JSON olmalı ({mode, rules[]})"),
 });
 
+export const flowCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  trigger: z.enum(["keyword", "new_contact"]),
+  triggerValue: z.string().max(200).optional().nullable(),
+  isActive: z.boolean().optional().default(true),
+  nodes: z.string().min(2).refine((v) => {
+    try {
+      const p = JSON.parse(v);
+      return (
+        p &&
+        Array.isArray(p.nodes) &&
+        typeof p.startId === "string" &&
+        p.nodes.length > 0
+      );
+    } catch {
+      return false;
+    }
+  }, "nodes geçerli FlowGraph JSON olmalı"),
+});
+
+export const flowUpdateSchema = flowCreateSchema.partial().extend({
+  id: z.string().min(1),
+});
+
+export const quickReplyCreateSchema = z.object({
+  shortcut: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9_-]+$/, "Küçük harf, rakam, tire/alt çizgi"),
+  content: z.string().min(1).max(4000),
+  mediaUrl: z.string().url().optional().nullable(),
+});
+
+export const teamInviteSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(["ADMIN", "AGENT", "VIEWER"]),
+});
+
 export const contactImportRowSchema = z.object({
   name: z.string().min(1).max(200),
   phone: phoneSchema,

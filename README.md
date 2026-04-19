@@ -104,3 +104,14 @@ isterseniz `sqlite3 dev.db ".mode csv" ".once file.csv" "SELECT ..."` kullanın.
   `?mode=update` güncelle, `?mode=skip` atla (default).
 - **Tag auto-assignment**: AutoReply'da `assignTags` + `priority` + `matchType`
   (contains/exact/regex). Match'te contact'a etiket atanır.
+- **AI fallback**: Claude Haiku 4.5 (ayarlanabilir). Keyword match yoksa AI
+  yanıt üretir; `#handoff` algılanırsa kontağa `needs-human` etiketi eklenir.
+  Günlük token limiti ve AIUsage tablosu ile maliyet kontrolü.
+- **Analitik**: `/dashboard/analytics` — mesaj akışı line chart, kontak
+  büyümesi bar chart, KPI kartları, en çok tetiklenen kurallar. Günlük metrikler
+  `aggregate` cron'u ile `DailyMetric`'e yazılır; bugünün verileri canlı sayılır.
+- **Visual Flow Builder**: `/dashboard/flows` — xyflow tabanlı canvas editor.
+  Düğüm tipleri: message, question, condition, action (tag), handoff, end.
+  Tetikleyici: keyword veya new_contact. Question düğümünde gelen cevap
+  değişken olarak saklanır. FlowSession 24 saat TTL, süre dolunca temizlenir.
+  Priority sırası: Flow session/trigger → AutoReply → AI → off-hours fallback.

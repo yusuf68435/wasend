@@ -15,6 +15,7 @@ import {
   FileText,
   Filter,
   BarChart3,
+  Zap,
 } from "lucide-react";
 
 const links = [
@@ -24,6 +25,7 @@ const links = [
   { href: "/dashboard/contacts", label: "Kişiler", icon: Users },
   { href: "/dashboard/segments", label: "Segmentler", icon: Filter },
   { href: "/dashboard/auto-replies", label: "Otomatik Cevap", icon: Bot },
+  { href: "/dashboard/flows", label: "Akışlar", icon: Zap },
   { href: "/dashboard/templates", label: "Şablonlar", icon: FileText },
   { href: "/dashboard/broadcasts", label: "Toplu Mesaj", icon: Megaphone },
   { href: "/dashboard/reminders", label: "Hatırlatmalar", icon: Clock },

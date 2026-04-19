@@ -6,6 +6,7 @@ import { isOptOutMessage, OPT_OUT_CONFIRMATION } from "@/lib/opt-out";
 import { isInBusinessHours } from "@/lib/timezone";
 import { matchesTrigger, mergeTags } from "@/lib/autoreply-match";
 import { generateAIReply, fetchRecentHistory } from "@/lib/ai-agent";
+import { runFlows } from "@/lib/flow-engine";
 
 // WhatsApp webhook verification (GET)
 export async function GET(request: NextRequest) {
@@ -69,6 +70,7 @@ export async function POST(request: NextRequest) {
       where: { userId: user.id, phone: senderPhone },
     });
 
+    let isNewContact = false;
     if (!contact) {
       const senderName = value.contacts?.[0]?.profile?.name || senderPhone;
       contact = await prisma.contact.create({
@@ -78,6 +80,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
         },
       });
+      isNewContact = true;
     }
 
     // Idempotency: skip if we already saved this Meta message id
@@ -147,6 +150,22 @@ export async function POST(request: NextRequest) {
     // Never auto-reply to opted-out contacts
     if (contact.optedOut) {
       return NextResponse.json({ status: "contact opted out" });
+    }
+
+    // Active flow sessions / flow triggers take priority over auto-replies.
+    if (apiToken && phoneNumberId) {
+      const flowResult = await runFlows({
+        userId: user.id,
+        contactId: contact.id,
+        contactPhone: senderPhone,
+        incomingText: messageText,
+        apiToken,
+        phoneNumberId,
+        newContact: isNewContact,
+      });
+      if (flowResult.handled) {
+        return NextResponse.json({ status: "flow handled" });
+      }
     }
 
     // Check auto-reply rules — ordered by priority desc, then createdAt asc
