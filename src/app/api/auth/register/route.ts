@@ -4,12 +4,12 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name, businessName } = await request.json();
+    const { email, password, name, businessName, inviteToken } = await request.json();
 
     if (!email || !password || !name) {
       return NextResponse.json(
         { error: "Email, şifre ve isim zorunludur" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -17,15 +17,51 @@ export async function POST(request: Request) {
     if (existingUser) {
       return NextResponse.json(
         { error: "Bu email zaten kayıtlı" },
-        { status: 400 }
+        { status: 400 },
       );
+    }
+
+    let role = "OWNER";
+    let invite: { id: string; email: string; role: string; expiresAt: Date } | null =
+      null;
+    if (inviteToken) {
+      invite = await prisma.teamInvite.findUnique({
+        where: { token: inviteToken },
+        select: { id: true, email: true, role: true, expiresAt: true },
+      });
+      if (!invite) {
+        return NextResponse.json(
+          { error: "Davet bulunamadı" },
+          { status: 400 },
+        );
+      }
+      if (invite.expiresAt < new Date()) {
+        return NextResponse.json(
+          { error: "Davetin süresi dolmuş" },
+          { status: 400 },
+        );
+      }
+      if (invite.email.toLowerCase() !== String(email).toLowerCase()) {
+        return NextResponse.json(
+          { error: "Bu davet başka bir e-posta için oluşturulmuş" },
+          { status: 400 },
+        );
+      }
+      role = invite.role;
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
-      data: { email, hashedPassword, name, businessName },
+      data: { email, hashedPassword, name, businessName, role },
     });
+
+    if (invite) {
+      await prisma.teamInvite.update({
+        where: { id: invite.id },
+        data: { usedAt: new Date() },
+      });
+    }
 
     return NextResponse.json({ id: user.id, email: user.email, name: user.name });
   } catch {

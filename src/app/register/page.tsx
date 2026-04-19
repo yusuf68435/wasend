@@ -1,11 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams?.get("invite") ?? null;
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -15,12 +17,13 @@ export default function RegisterPage() {
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const data = {
+    const data: Record<string, unknown> = {
       name: formData.get("name"),
       email: formData.get("email"),
       password: formData.get("password"),
       businessName: formData.get("businessName"),
     };
+    if (inviteToken) data.inviteToken = inviteToken;
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -43,7 +46,14 @@ export default function RegisterPage() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-green-600">WaSend</h1>
-          <p className="text-gray-500 mt-2">Ücretsiz hesap oluştur</p>
+          <p className="text-gray-500 mt-2">
+            {inviteToken ? "Ekip davetini kabul et" : "Ücretsiz hesap oluştur"}
+          </p>
+          {inviteToken && (
+            <p className="text-xs text-gray-400 mt-1">
+              Rol davetinizle birlikte atanacak.
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,5 +122,13 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-gray-400">Yükleniyor...</div>}>
+      <RegisterForm />
+    </Suspense>
   );
 }

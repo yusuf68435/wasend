@@ -16,6 +16,8 @@ import {
   Filter,
   BarChart3,
   Zap,
+  Sparkles,
+  UserPlus,
 } from "lucide-react";
 
 const links = [
@@ -29,6 +31,8 @@ const links = [
   { href: "/dashboard/templates", label: "Şablonlar", icon: FileText },
   { href: "/dashboard/broadcasts", label: "Toplu Mesaj", icon: Megaphone },
   { href: "/dashboard/reminders", label: "Hatırlatmalar", icon: Clock },
+  { href: "/dashboard/quick-replies", label: "Hızlı Cevaplar", icon: Sparkles },
+  { href: "/dashboard/team", label: "Ekip", icon: UserPlus },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
 ];
 

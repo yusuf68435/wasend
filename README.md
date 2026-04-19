@@ -115,3 +115,9 @@ isterseniz `sqlite3 dev.db ".mode csv" ".once file.csv" "SELECT ..."` kullanın.
   Tetikleyici: keyword veya new_contact. Question düğümünde gelen cevap
   değişken olarak saklanır. FlowSession 24 saat TTL, süre dolunca temizlenir.
   Priority sırası: Flow session/trigger → AutoReply → AI → off-hours fallback.
+- **Hızlı Cevaplar**: `/dashboard/quick-replies` — sık kullanılan cevapları
+  `shortcut` + `content` olarak saklar. API ile üçüncü taraf UI'larda kullanılır.
+- **Ekip & Roller**: `User.role` (OWNER/ADMIN/AGENT/VIEWER). `/dashboard/team`
+  sayfasında ADMIN+ davet linki oluşturur (7 gün TTL). Register sayfası
+  `?invite=...` ile davet tokenı kabul eder; kabul edilen rol yeni kullanıcıya
+  atanır. Not: tam ekip/workspace izolasyonu ileriki fazlarda.
