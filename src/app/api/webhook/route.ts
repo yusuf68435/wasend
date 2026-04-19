@@ -7,6 +7,7 @@ import { isInBusinessHours } from "@/lib/timezone";
 import { matchesTrigger, mergeTags } from "@/lib/autoreply-match";
 import { generateAIReply, fetchRecentHistory } from "@/lib/ai-agent";
 import { runFlows } from "@/lib/flow-engine";
+import { dispatchWebhook } from "@/lib/outgoing-webhook";
 
 // WhatsApp webhook verification (GET)
 export async function GET(request: NextRequest) {
@@ -111,6 +112,26 @@ export async function POST(request: NextRequest) {
       data: { lastMessageAt: new Date() },
     });
 
+    dispatchWebhook({
+      userId: user.id,
+      event: "message.received",
+      data: {
+        contactId: contact.id,
+        phone: senderPhone,
+        content: messageText,
+        waMessageId: waIncomingId,
+        isNewContact,
+      },
+    });
+
+    if (isNewContact) {
+      dispatchWebhook({
+        userId: user.id,
+        event: "contact.created",
+        data: { id: contact.id, phone: contact.phone, name: contact.name },
+      });
+    }
+
     const apiToken = process.env.WHATSAPP_API_TOKEN;
 
     // Opt-out handling — always processed, even if already opted out
@@ -119,6 +140,11 @@ export async function POST(request: NextRequest) {
         await prisma.contact.update({
           where: { id: contact.id },
           data: { optedOut: true, optOutAt: new Date() },
+        });
+        dispatchWebhook({
+          userId: user.id,
+          event: "contact.opted_out",
+          data: { contactId: contact.id, phone: contact.phone },
         });
       }
       if (apiToken && phoneNumberId) {
@@ -279,10 +305,25 @@ async function handleStatuses(statuses: MetaStatus[]) {
     }
 
     try {
-      await prisma.message.update({
+      const msg = await prisma.message.update({
         where: { waMessageId: s.id },
         data,
+        select: { id: true, userId: true, phone: true },
       });
+
+      const eventMap: Record<string, "message.delivered" | "message.read" | "message.failed"> = {
+        delivered: "message.delivered",
+        read: "message.read",
+        failed: "message.failed",
+      };
+      const event = eventMap[s.status];
+      if (event) {
+        dispatchWebhook({
+          userId: msg.userId,
+          event,
+          data: { messageId: msg.id, waMessageId: s.id, phone: msg.phone },
+        });
+      }
     } catch {
       // Message not found locally — Meta may deliver status for an unknown id.
       // Silently skip.

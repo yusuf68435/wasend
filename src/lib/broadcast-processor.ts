@@ -6,6 +6,7 @@ import {
 } from "@/lib/whatsapp";
 import { sleep } from "@/lib/rate-limit";
 import { parseRules, resolveSegmentContacts } from "@/lib/segment-resolver";
+import { dispatchWebhook } from "@/lib/outgoing-webhook";
 
 const MEDIA_TYPES: readonly MediaType[] = [
   "image",
@@ -161,6 +162,18 @@ export async function processBroadcast(
   await prisma.broadcast.update({
     where: { id: broadcastId },
     data: { status: "sent", sentCount, failedCount },
+  });
+
+  dispatchWebhook({
+    userId: broadcast.userId,
+    event: "broadcast.completed",
+    data: {
+      broadcastId,
+      name: broadcast.name,
+      sentCount,
+      failedCount,
+      total: contacts.length,
+    },
   });
 
   return { sentCount, failedCount, total: contacts.length };

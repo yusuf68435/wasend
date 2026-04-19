@@ -133,6 +133,38 @@ export const teamInviteSchema = z.object({
   role: z.enum(["ADMIN", "AGENT", "VIEWER"]),
 });
 
+export const apiKeyCreateSchema = z.object({
+  name: z.string().min(1).max(100),
+  expiresInDays: z.number().int().positive().max(3650).optional().nullable(),
+});
+
+export const outgoingWebhookSchema = z.object({
+  name: z.string().min(1).max(100),
+  url: z.string().url(),
+  events: z.string().min(1).max(500),
+  isActive: z.boolean().optional().default(true),
+});
+
+export const v1SendMessageSchema = z.object({
+  to: z.string().min(1),
+  message: z.string().min(1).max(4000),
+  mediaType: z.enum(["image", "document", "video", "audio"]).optional(),
+  mediaUrl: z.string().url().optional(),
+});
+
+export const v1ContactCreateSchema = z.object({
+  phone: phoneSchema,
+  name: z.string().min(1).max(200),
+  tags: z.string().max(500).optional(),
+  language: z.string().max(10).optional(),
+  source: z.string().max(100).optional(),
+});
+
+export const v1FlowTriggerSchema = z.object({
+  flowId: z.string().min(1),
+  contactId: z.string().min(1),
+});
+
 export const contactImportRowSchema = z.object({
   name: z.string().min(1).max(200),
   phone: phoneSchema,

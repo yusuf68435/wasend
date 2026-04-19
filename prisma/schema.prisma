@@ -26,6 +26,9 @@ model User {
   aiModel             String    @default("claude-haiku-4-5")
   aiSystemPrompt      String?
   aiDailyTokenLimit   Int       @default(100000)
+  plan                String    @default("STARTER")
+  stripeCustomerId    String?
+  stripeSubscriptionId String?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -42,6 +45,8 @@ model User {
   dailyMetrics   DailyMetric[]
   quickReplies   QuickReply[]
   teamInvites    TeamInvite[]
+  apiKeys        ApiKey[]
+  outgoingWebhooks OutgoingWebhook[]
 }
 
 model Contact {
@@ -285,4 +290,36 @@ model TeamInvite {
 
   @@index([userId])
   @@index([email])
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  name       String
+  prefix     String
+  hash       String    @unique
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  userId     String
+  createdAt  DateTime  @default(now())
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model OutgoingWebhook {
+  id          String   @id @default(cuid())
+  name        String
+  url         String
+  secret      String
+  events      String
+  isActive    Boolean  @default(true)
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

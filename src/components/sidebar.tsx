@@ -18,6 +18,8 @@ import {
   Zap,
   Sparkles,
   UserPlus,
+  Key,
+  Webhook,
 } from "lucide-react";
 
 const links = [
@@ -33,6 +35,8 @@ const links = [
   { href: "/dashboard/reminders", label: "Hatırlatmalar", icon: Clock },
   { href: "/dashboard/quick-replies", label: "Hızlı Cevaplar", icon: Sparkles },
   { href: "/dashboard/team", label: "Ekip", icon: UserPlus },
+  { href: "/dashboard/api-keys", label: "API Anahtarları", icon: Key },
+  { href: "/dashboard/webhooks", label: "Webhook'lar", icon: Webhook },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
 ];
 
