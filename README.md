@@ -41,7 +41,76 @@ Açılış: [http://localhost:3000](http://localhost:3000)
 
 Hepsi `Authorization: Bearer $CRON_SECRET` bekler.
 
-## Üretim Veritabanı — Postgres'e Geçiş
+## VPS Deploy (Ubuntu 22.04/24.04)
+
+Tek komutla kurulum — reverse proxy + Postgres + systemd + cron + Let's Encrypt dahil.
+
+**1. VPS'de sudo yetkili bir kullanıcıyla:**
+
+```bash
+# Domain varsa:
+DOMAIN=panel.ornek.com EMAIL=admin@ornek.com ./deploy.sh
+
+# Git repo'dan çekmek istersen (yerel kopya yoksa):
+REPO_URL=https://github.com/KULLANICI/wasend.git BRANCH=main \
+  DOMAIN=panel.ornek.com EMAIL=admin@ornek.com ./deploy.sh
+
+# Domain yoksa (sadece IP, Meta webhook çalışmaz):
+./deploy.sh
+```
+
+**Script ne yapar:**
+- Node 20 + Postgres 16 + Nginx + certbot + cron kurar
+- `wasend` sistem kullanıcısı oluşturur
+- Postgres DB + kullanıcı + güçlü parola üretir (`/etc/wasend_pg_password`)
+- Kodu `/opt/wasend` altına kopyalar, `schema.prisma`'yı `postgresql` provider'a çevirir
+- SQLite migration'larını siler, `prisma db push` ile baseline kurar
+- `.env` üretir (`NEXTAUTH_SECRET`, `CRON_SECRET` otomatik random)
+- `next build` çalıştırır, systemd servisi kurar ve başlatır
+- Nginx reverse proxy + `certbot --nginx` ile HTTPS
+- `/etc/cron.d/wasend` içine tüm cron job'ları yazar (reminders, broadcasts,
+  templates-sync, aggregate)
+- UFW firewall'u açıp SSH + Nginx Full izinlerini set eder
+
+**2. Kurulum sonrası:**
+
+```bash
+sudo nano /opt/wasend/.env   # WHATSAPP_* ve opsiyonel ANTHROPIC_API_KEY doldur
+sudo systemctl restart wasend
+sudo systemctl status wasend
+tail -f /var/log/wasend.log
+```
+
+**3. Meta Developer panelinde webhook:**
+- URL: `https://panel.ornek.com/api/webhook`
+- Verify token: `.env`'deki `WHATSAPP_VERIFY_TOKEN` ile aynı
+- Events: `messages`, `message_statuses`
+
+**4. İlk müşteri hesabı:**
+- `https://panel.ornek.com/register` — OWNER olarak kayıt
+- Ek müşteriler için: `/dashboard/team` → davet link'i paylaş → `?invite=TOKEN` ile register
+
+**Yönetim komutları:**
+
+| Ne için | Komut |
+|---|---|
+| Durum | `sudo systemctl status wasend` |
+| Yeniden başlat | `sudo systemctl restart wasend` |
+| Log | `tail -f /var/log/wasend.log` |
+| Güncelleme | Tekrar `./deploy.sh` çalıştır (git pull + build + restart) |
+| DB yedek | `sudo -u postgres pg_dump wasend > backup.sql` |
+| DB geri yükle | `sudo -u postgres psql wasend < backup.sql` |
+| Cron logları | `grep CRON /var/log/syslog` veya `journalctl -u cron -f` |
+
+**Güvenlik notları:**
+- `.env` mode 600, sadece `wasend` user okur.
+- Systemd servisi `ProtectSystem=strict`, `PrivateTmp` vb. hardening açık.
+- Postgres sadece localhost'tan erişilebilir (default).
+- Let's Encrypt sertifikaları otomatik yenilenir (certbot systemd timer).
+
+---
+
+## Üretim Veritabanı — Postgres'e Geçiş (manuel, deploy.sh kullanmıyorsan)
 
 SQLite (`dev.db`) yalnızca geliştirme içindir. Vercel serverless ortamı dosya
 sistemini kalıcı tutmadığı için üretimde **Postgres zorunludur**.
