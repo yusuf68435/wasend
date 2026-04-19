@@ -21,10 +21,15 @@ export const contactCreateSchema = z.object({
 
 export const contactUpdateSchema = contactCreateSchema.partial();
 
+const matchTypeSchema = z.enum(["contains", "exact", "regex"]);
+
 export const autoReplyCreateSchema = z.object({
   trigger: z.string().min(1).max(200),
   response: z.string().min(1).max(4000),
   isActive: z.boolean().optional().default(true),
+  matchType: matchTypeSchema.optional().default("contains"),
+  assignTags: z.string().max(500).optional().nullable(),
+  priority: z.number().int().min(0).max(1000).optional().default(0),
 });
 
 export const autoReplyUpdateSchema = z.object({
@@ -32,6 +37,9 @@ export const autoReplyUpdateSchema = z.object({
   trigger: z.string().min(1).max(200).optional(),
   response: z.string().min(1).max(4000).optional(),
   isActive: z.boolean().optional(),
+  matchType: matchTypeSchema.optional(),
+  assignTags: z.string().max(500).optional().nullable(),
+  priority: z.number().int().min(0).max(1000).optional(),
 });
 
 export const reminderCreateSchema = z.object({
@@ -46,12 +54,53 @@ export const broadcastCreateSchema = z.object({
   name: z.string().min(1).max(200),
   message: z.string().min(1).max(4000),
   targetTags: z.string().max(500).optional().nullable(),
+  segmentId: z.string().optional().nullable(),
+  mediaType: z.enum(["image", "document", "video", "audio"]).optional().nullable(),
+  mediaUrl: z.string().url().optional().nullable(),
   scheduledAt: z
     .string()
     .refine((v) => !Number.isNaN(Date.parse(v)), "Geçerli tarih değil")
     .optional()
     .nullable(),
   rateLimit: z.number().int().positive().max(1000).optional(),
+});
+
+export const templateCreateSchema = z.object({
+  name: z
+    .string()
+    .min(1)
+    .max(100)
+    .regex(/^[a-z0-9_]+$/, "Sadece küçük harf, rakam, alt çizgi"),
+  language: z.string().min(2).max(10).default("tr"),
+  category: z.enum(["MARKETING", "UTILITY", "AUTHENTICATION"]).default("UTILITY"),
+  bodyText: z.string().min(1).max(1024),
+  variables: z.string().max(500).optional().nullable(),
+});
+
+export const segmentCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  rules: z.string().min(1).refine((v) => {
+    try {
+      const p = JSON.parse(v);
+      return (
+        p &&
+        typeof p === "object" &&
+        (p.mode === "and" || p.mode === "or") &&
+        Array.isArray(p.rules)
+      );
+    } catch {
+      return false;
+    }
+  }, "rules geçerli JSON olmalı ({mode, rules[]})"),
+});
+
+export const contactImportRowSchema = z.object({
+  name: z.string().min(1).max(200),
+  phone: phoneSchema,
+  tags: z.string().max(500).optional().nullable(),
+  notes: z.string().max(2000).optional().nullable(),
+  language: z.string().max(10).optional().nullable(),
+  source: z.string().max(100).optional().nullable(),
 });
 
 export const sendMessageSchema = z.object({

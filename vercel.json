@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/broadcasts",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/templates-sync",
+      "schedule": "0 * * * *"
     }
   ]
 }

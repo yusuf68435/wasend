@@ -45,6 +45,60 @@ export async function sendWhatsAppMessage({
   return { waMessageId, raw: data };
 }
 
+export type MediaType = "image" | "document" | "video" | "audio";
+
+export async function sendWhatsAppMedia({
+  to,
+  mediaType,
+  mediaUrl,
+  caption,
+  filename,
+  phoneNumberId,
+  apiToken,
+}: {
+  to: string;
+  mediaType: MediaType;
+  mediaUrl: string;
+  caption?: string;
+  filename?: string;
+  phoneNumberId: string;
+  apiToken: string;
+}): Promise<SendMessageResult> {
+  const url = `${WHATSAPP_API_URL}/${phoneNumberId}/messages`;
+
+  const mediaPayload: Record<string, unknown> = { link: mediaUrl };
+  if (caption && (mediaType === "image" || mediaType === "video" || mediaType === "document")) {
+    mediaPayload.caption = caption;
+  }
+  if (filename && mediaType === "document") {
+    mediaPayload.filename = filename;
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      messaging_product: "whatsapp",
+      recipient_type: "individual",
+      to: to.replace(/\D/g, ""),
+      type: mediaType,
+      [mediaType]: mediaPayload,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error?.message || "Medya mesaj gönderilemedi");
+  }
+
+  const waMessageId: string | null = data?.messages?.[0]?.id ?? null;
+  return { waMessageId, raw: data };
+}
+
 export async function sendWhatsAppTemplate({
   to,
   templateName,

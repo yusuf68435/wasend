@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { broadcastCreateSchema, formatZodError } from "@/lib/validation";
+import { segmentCreateSchema, formatZodError } from "@/lib/validation";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -13,11 +13,11 @@ export async function GET() {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
-  const broadcasts = await prisma.broadcast.findMany({
+  const segments = await prisma.segment.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
-  return NextResponse.json(broadcasts);
+  return NextResponse.json(segments);
 }
 
 export async function POST(request: Request) {
@@ -31,47 +31,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
   }
 
-  const parsed = broadcastCreateSchema.safeParse(raw);
+  const parsed = segmentCreateSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(formatZodError(parsed.error), { status: 400 });
   }
-  const {
-    name,
-    message,
-    targetTags,
-    segmentId,
-    mediaType,
-    mediaUrl,
-    scheduledAt,
-    rateLimit,
-  } = parsed.data;
 
-  const status = scheduledAt ? "scheduled" : "draft";
-
-  if (segmentId) {
-    const seg = await prisma.segment.findFirst({
-      where: { id: segmentId, userId },
-    });
-    if (!seg) {
-      return NextResponse.json({ error: "Segment bulunamadı" }, { status: 404 });
-    }
-  }
-
-  const broadcast = await prisma.broadcast.create({
-    data: {
-      name,
-      message,
-      targetTags: targetTags ?? null,
-      segmentId: segmentId ?? null,
-      mediaType: mediaType ?? null,
-      mediaUrl: mediaUrl ?? null,
-      scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
-      rateLimit: rateLimit ?? 80,
-      status,
-      userId,
-    },
+  const seg = await prisma.segment.create({
+    data: { ...parsed.data, userId },
   });
-  return NextResponse.json(broadcast);
+  return NextResponse.json(seg);
 }
 
 export async function DELETE(request: Request) {
@@ -82,6 +50,6 @@ export async function DELETE(request: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
 
-  await prisma.broadcast.deleteMany({ where: { id, userId } });
+  await prisma.segment.deleteMany({ where: { id, userId } });
   return NextResponse.json({ success: true });
 }

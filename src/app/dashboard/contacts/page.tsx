@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users, Plus, Trash2, Search } from "lucide-react";
+import { Users, Plus, Trash2, Search, Upload, Download } from "lucide-react";
 
 interface Contact {
   id: string;
@@ -9,6 +9,15 @@ interface Contact {
   phone: string;
   tags: string | null;
   notes: string | null;
+  optedOut?: boolean;
+}
+
+interface ImportResult {
+  inserted: number;
+  updated: number;
+  skipped: number;
+  total: number;
+  errors?: Array<{ row: number; message: string }>;
 }
 
 export default function ContactsPage() {
@@ -16,6 +25,44 @@ export default function ContactsPage() {
   const [showForm, setShowForm] = useState(false);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [importing, setImporting] = useState(false);
+
+  async function reloadContacts() {
+    const res = await fetch("/api/contacts");
+    if (res.ok) setContacts(await res.json());
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = "";
+    setImporting(true);
+    setImportResult(null);
+
+    const mode = confirm(
+      "Aynı telefon numarasıyla eşleşen kayıtlar için:\n" +
+        "Tamam = mevcudu güncelle\n" +
+        "İptal = atla",
+    )
+      ? "update"
+      : "skip";
+
+    const text = await file.text();
+    const res = await fetch(`/api/contacts/import?mode=${mode}`, {
+      method: "POST",
+      headers: { "Content-Type": "text/csv" },
+      body: text,
+    });
+    const data = await res.json();
+    setImporting(false);
+    if (!res.ok) {
+      alert(data.error || "İçe aktarma hatası");
+      return;
+    }
+    setImportResult(data);
+    await reloadContacts();
+  }
 
   useEffect(() => {
     fetch("/api/contacts")
@@ -62,13 +109,50 @@ export default function ContactsPage() {
           <h2 className="text-2xl font-bold text-gray-900">Kişiler</h2>
           <p className="text-gray-500 text-sm mt-1">{contacts.length} kişi kayıtlı</p>
         </div>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
-        >
-          <Plus size={18} /> Kişi Ekle
-        </button>
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 border border-gray-300 px-3 py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-50 cursor-pointer">
+            <Upload size={16} />
+            {importing ? "İçe aktarılıyor..." : "CSV İçe Aktar"}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={handleImport}
+              disabled={importing}
+            />
+          </label>
+          <a
+            href="/api/contacts/export"
+            className="flex items-center gap-2 border border-gray-300 px-3 py-2.5 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <Download size={16} />
+            Dışa Aktar
+          </a>
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
+          >
+            <Plus size={18} /> Kişi Ekle
+          </button>
+        </div>
       </div>
+
+      {importResult && (
+        <div className="bg-blue-50 text-blue-800 border border-blue-200 p-3 rounded-lg text-sm mb-4">
+          İçe aktarma tamamlandı: {importResult.inserted} eklendi,{" "}
+          {importResult.updated} güncellendi, {importResult.skipped} atlandı
+          (toplam {importResult.total}).
+          {importResult.errors && importResult.errors.length > 0 && (
+            <ul className="mt-2 list-disc pl-5 text-xs text-red-700">
+              {importResult.errors.map((e, i) => (
+                <li key={i}>
+                  Satır {e.row}: {e.message}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {showForm && (
         <form onSubmit={handleAdd} className="bg-white rounded-xl border border-gray-200 p-6 mb-6">

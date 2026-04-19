@@ -27,6 +27,7 @@ Açılış: [http://localhost:3000](http://localhost:3000)
 | `WHATSAPP_VERIFY_TOKEN` | ✅ | Meta webhook doğrulama token'ı (serbest seçim) |
 | `WHATSAPP_APP_SECRET` | ⚠️ | Webhook imza doğrulaması. Boş bırakılırsa imza kontrolü atlanır (prod'da MUTLAKA ayarlayın) |
 | `CRON_SECRET` | ⚠️ | Cron auth için ayrı secret. Yoksa `NEXTAUTH_SECRET` fallback olarak kullanılır |
+| `WHATSAPP_WABA_ID` | ⚠️ | WhatsApp Business Account ID. Template'leri Meta'ya onaya göndermek için gerekli (yoksa yalnızca lokal kayıt) |
 
 ## Cron Jobs (Vercel)
 
@@ -34,8 +35,9 @@ Açılış: [http://localhost:3000](http://localhost:3000)
 
 - `/api/cron/reminders` — dakikada bir, vadesi gelmiş pending reminder'ları gönderir
 - `/api/cron/broadcasts` — dakikada bir, `scheduled` statüsündeki broadcast'leri işler
+- `/api/cron/templates-sync` — saat başı, Meta'daki template onay durumlarını çeker
 
-İkisi de `Authorization: Bearer $CRON_SECRET` bekler.
+Hepsi `Authorization: Bearer $CRON_SECRET` bekler.
 
 ## Üretim Veritabanı — Postgres'e Geçiş
 
@@ -88,3 +90,15 @@ isterseniz `sqlite3 dev.db ".mode csv" ".once file.csv" "SELECT ..."` kullanın.
   `offHoursReply` gönderilir.
 - **Input validation**: Tüm API route'ları zod ile doğrulanır; hatalar 400 +
   structured issues döner.
+- **Medya mesajları**: `sendWhatsAppMedia` ile image/document/video/audio
+  gönderimi (URL tabanlı, Meta `link` yöntemi). Broadcast'lerde caption olarak
+  mesaj metni kullanılır.
+- **Template yönetimi**: `/dashboard/templates`'de UTILITY/MARKETING/AUTHENTICATION
+  şablonlar. `WHATSAPP_WABA_ID` ayarlıysa Meta'ya onaya gönderilir; `templates-sync`
+  cron'u onay durumunu günceller.
+- **Segmentler**: JSON kural seti (tag/optedOut/language/source/lastMessageAt/createdAt)
+  ile dinamik kişi grupları. Broadcast'ler tag yerine `segmentId` alabilir.
+- **CSV import/export**: Kişileri toplu ekleyin/güncelleyin. Duplicate davranışı:
+  `?mode=update` güncelle, `?mode=skip` atla (default).
+- **Tag auto-assignment**: AutoReply'da `assignTags` + `priority` + `matchType`
+  (contains/exact/regex). Match'te contact'a etiket atanır.

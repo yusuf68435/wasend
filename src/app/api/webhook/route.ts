@@ -4,6 +4,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { verifyMetaSignature } from "@/lib/webhook-security";
 import { isOptOutMessage, OPT_OUT_CONFIRMATION } from "@/lib/opt-out";
 import { isInBusinessHours } from "@/lib/timezone";
+import { matchesTrigger, mergeTags } from "@/lib/autoreply-match";
 
 // WhatsApp webhook verification (GET)
 export async function GET(request: NextRequest) {
@@ -100,6 +101,12 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Track most recent activity
+    await prisma.contact.update({
+      where: { id: contact.id },
+      data: { lastMessageAt: new Date() },
+    });
+
     const apiToken = process.env.WHATSAPP_API_TOKEN;
 
     // Opt-out handling — always processed, even if already opted out
@@ -141,14 +148,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: "contact opted out" });
     }
 
-    // Check auto-reply rules
+    // Check auto-reply rules — ordered by priority desc, then createdAt asc
     const autoReplies = await prisma.autoReply.findMany({
       where: { userId: user.id, isActive: true },
+      orderBy: [{ priority: "desc" }, { createdAt: "asc" }],
     });
 
     const matchedReply = autoReplies.find((rule) =>
-      messageText.toLowerCase().includes(rule.trigger.toLowerCase()),
+      matchesTrigger(messageText, rule.trigger, rule.matchType),
     );
+
+    // Tag auto-assignment: apply assignTags from the matched rule
+    if (matchedReply?.assignTags) {
+      const merged = mergeTags(contact.tags, matchedReply.assignTags);
+      if (merged !== contact.tags) {
+        await prisma.contact.update({
+          where: { id: contact.id },
+          data: { tags: merged },
+        });
+      }
+    }
 
     // Business-hours fallback: if outside hours AND offHoursReply set AND no match,
     // reply with the off-hours message instead.

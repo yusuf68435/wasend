@@ -28,19 +28,25 @@ model User {
   messages       Message[]
   reminders      Reminder[]
   broadcasts     Broadcast[]
+  templates      Template[]
+  segments       Segment[]
 }
 
 model Contact {
-  id        String    @id @default(cuid())
-  phone     String
-  name      String
-  tags      String?
-  notes     String?
-  optedOut  Boolean   @default(false)
-  optOutAt  DateTime?
-  userId    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  phone          String
+  name           String
+  tags           String?
+  notes          String?
+  optedOut       Boolean   @default(false)
+  optOutAt       DateTime?
+  customFields   String?
+  language       String    @default("tr")
+  source         String?
+  lastMessageAt  DateTime?
+  userId         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
@@ -49,16 +55,20 @@ model Contact {
   @@unique([userId, phone])
   @@index([userId])
   @@index([userId, optedOut])
+  @@index([userId, lastMessageAt])
 }
 
 model AutoReply {
-  id        String   @id @default(cuid())
-  trigger   String
-  response  String
-  isActive  Boolean  @default(true)
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  trigger      String
+  response     String
+  isActive     Boolean  @default(true)
+  matchType    String   @default("contains")
+  assignTags   String?
+  priority     Int      @default(0)
+  userId       String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -75,6 +85,10 @@ model Message {
   deliveredAt  DateTime?
   readAt       DateTime?
   failedReason String?
+  mediaType    String?
+  mediaUrl     String?
+  mediaId      String?
+  caption      String?
   userId       String
   contactId    String?
   createdAt    DateTime  @default(now())
@@ -108,6 +122,9 @@ model Broadcast {
   name        String
   message     String
   targetTags  String?
+  segmentId   String?
+  mediaType   String?
+  mediaUrl    String?
   sentCount   Int       @default(0)
   failedCount Int       @default(0)
   rateLimit   Int       @default(80)
@@ -120,4 +137,37 @@ model Broadcast {
 
   @@index([userId])
   @@index([status, scheduledAt])
+}
+
+model Template {
+  id         String   @id @default(cuid())
+  name       String
+  language   String   @default("tr")
+  category   String   @default("UTILITY")
+  bodyText   String
+  variables  String?
+  status     String   @default("PENDING")
+  metaId     String?
+  rejection  String?
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name, language])
+  @@index([userId])
+}
+
+model Segment {
+  id         String   @id @default(cuid())
+  name       String
+  rules      String
+  userId     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

@@ -12,13 +12,17 @@ import {
   Clock,
   Settings,
   LogOut,
+  FileText,
+  Filter,
 } from "lucide-react";
 
 const links = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
   { href: "/dashboard/messages", label: "Mesajlar", icon: MessageSquare },
   { href: "/dashboard/contacts", label: "Kişiler", icon: Users },
+  { href: "/dashboard/segments", label: "Segmentler", icon: Filter },
   { href: "/dashboard/auto-replies", label: "Otomatik Cevap", icon: Bot },
+  { href: "/dashboard/templates", label: "Şablonlar", icon: FileText },
   { href: "/dashboard/broadcasts", label: "Toplu Mesaj", icon: Megaphone },
   { href: "/dashboard/reminders", label: "Hatırlatmalar", icon: Clock },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
