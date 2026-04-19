@@ -121,3 +121,16 @@ isterseniz `sqlite3 dev.db ".mode csv" ".once file.csv" "SELECT ..."` kullanın.
   sayfasında ADMIN+ davet linki oluşturur (7 gün TTL). Register sayfası
   `?invite=...` ile davet tokenı kabul eder; kabul edilen rol yeni kullanıcıya
   atanır. Not: tam ekip/workspace izolasyonu ileriki fazlarda.
+- **Public API v1**: `/api/v1/messages/send`, `/api/v1/contacts` (cursor
+  paginated), `/api/v1/flows/trigger`. Bearer auth ile API key — `ws_live_…`
+  önekli, SHA-256 hash'lenerek saklanır, plaintext sadece oluşturma anında
+  döner. `/dashboard/api-keys` ile yönetim.
+- **Giden webhook'lar**: `/dashboard/webhooks` — event aboneliği + HMAC-SHA256
+  imza (`X-Wasend-Signature`). Event'ler: `message.received|sent|delivered|read|failed`,
+  `contact.created|opted_out`, `broadcast.completed`, `flow.handoff`.
+- **Plan sınırları**: `STARTER` / `PRO` / `BUSINESS` — kişi, aylık broadcast,
+  akış sayısı, AI token kotası. `/dashboard/billing` sayfası usage göstergeleri
+  + dev-mode plan değişikliği. Stripe iskeleti (`STRIPE_ENABLED=true` env ile
+  portal akışı gelecek).
+- **Health endpoint**: `/api/health` — DB ping + env check, 200 ok / 503
+  degraded.

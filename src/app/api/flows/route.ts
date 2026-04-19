@@ -7,6 +7,7 @@ import {
   flowUpdateSchema,
   formatZodError,
 } from "@/lib/validation";
+import { checkFlowQuota } from "@/lib/plan-limits";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -44,6 +45,14 @@ export async function POST(request: Request) {
     return NextResponse.json(formatZodError(parsed.error), { status: 400 });
   }
   const { name, trigger, triggerValue, nodes, isActive } = parsed.data;
+
+  const quota = await checkFlowQuota(userId);
+  if (!quota.allowed) {
+    return NextResponse.json(
+      { error: quota.reason, limit: quota.limit, used: quota.used },
+      { status: 402 },
+    );
+  }
 
   const flow = await prisma.flow.create({
     data: {

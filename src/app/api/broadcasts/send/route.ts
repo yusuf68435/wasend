@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { processBroadcast } from "@/lib/broadcast-processor";
+import { checkBroadcastQuota } from "@/lib/plan-limits";
 
 export const maxDuration = 300;
 
@@ -28,6 +29,14 @@ export async function POST(request: Request) {
   });
   if (!broadcast) {
     return NextResponse.json({ error: "Kampanya bulunamadı" }, { status: 404 });
+  }
+
+  const quota = await checkBroadcastQuota(userId);
+  if (!quota.allowed) {
+    return NextResponse.json(
+      { error: quota.reason, limit: quota.limit, used: quota.used },
+      { status: 402 },
+    );
   }
 
   try {
