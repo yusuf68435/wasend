@@ -1,41 +1,35 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { templateCreateSchema, formatZodError } from "@/lib/validation";
+import { templateCreateSchema } from "@/lib/validation";
+import { requireUserId, isResponse } from "@/lib/api-auth";
+import { withErrorHandling, ValidationError } from "@/lib/api-error";
 import { prismaErrorToResponse } from "@/lib/prisma-errors";
 
-async function getUserId() {
-  const session = await getServerSession(authOptions);
-  return (session?.user as { id: string } | undefined)?.id;
+async function readJson(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    throw new ValidationError("Geçersiz JSON");
+  }
 }
 
-export async function GET() {
-  const userId = await getUserId();
-  if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+export const GET = withErrorHandling(async () => {
+  const userId = await requireUserId();
+  if (isResponse(userId)) return userId;
 
   const templates = await prisma.template.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
   });
   return NextResponse.json(templates);
-}
+});
 
-export async function POST(request: Request) {
-  const userId = await getUserId();
-  if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+export const POST = withErrorHandling(async (request: Request) => {
+  const userId = await requireUserId();
+  if (isResponse(userId)) return userId;
 
-  let raw: unknown;
-  try {
-    raw = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
-  }
-
-  const parsed = templateCreateSchema.safeParse(raw);
-  if (!parsed.success) {
-    return NextResponse.json(formatZodError(parsed.error), { status: 400 });
-  }
+  const parsed = templateCreateSchema.safeParse(await readJson(request));
+  if (!parsed.success) throw parsed.error; // ZodError → handleError → 400
 
   try {
     const template = await prisma.template.create({
@@ -51,19 +45,18 @@ export async function POST(request: Request) {
       uniqueMessage: "Bu isim + dil kombinasyonu zaten var",
     });
     if (prismaResp) return prismaResp;
-    const msg = error instanceof Error ? error.message : "Kaydedilemedi";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    throw error;
   }
-}
+});
 
-export async function DELETE(request: Request) {
-  const userId = await getUserId();
-  if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+export const DELETE = withErrorHandling(async (request: Request) => {
+  const userId = await requireUserId();
+  if (isResponse(userId)) return userId;
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
+  if (!id) throw new ValidationError("ID gerekli");
 
   await prisma.template.deleteMany({ where: { id, userId } });
   return NextResponse.json({ success: true });
-}
+});
