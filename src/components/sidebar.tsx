@@ -22,6 +22,7 @@ import {
   Webhook,
   CreditCard,
   Shield,
+  UserCircle,
 } from "lucide-react";
 
 const links = [
@@ -41,6 +42,7 @@ const links = [
   { href: "/dashboard/webhooks", label: "Webhook'lar", icon: Webhook },
   { href: "/dashboard/billing", label: "Faturalandırma", icon: CreditCard },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
+  { href: "/dashboard/account", label: "Hesap", icon: UserCircle },
 ];
 
 export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
