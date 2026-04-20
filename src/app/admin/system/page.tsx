@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Cpu, Database, Server, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
+import { Cpu, Database, Server, CheckCircle2, XCircle, AlertTriangle, Radio } from "lucide-react";
 
 interface SystemData {
   db: {
@@ -53,16 +53,41 @@ const ENV_LABEL: Record<string, string> = {
 
 export default function SystemPage() {
   const [data, setData] = useState<SystemData | null>(null);
+  const [live, setLive] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<number | null>(null);
 
   useEffect(() => {
-    const load = () => {
-      fetch("/api/admin/system")
-        .then((r) => (r.ok ? r.json() : null))
-        .then(setData);
+    if (typeof window === "undefined" || typeof EventSource === "undefined") {
+      // Fallback: polling (ilk yükleme + 15sn)
+      const load = () =>
+        fetch("/api/admin/system")
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (d) {
+              setData(d);
+              setLastUpdate(Date.now());
+            }
+          });
+      load();
+      const t = setInterval(load, 15000);
+      return () => clearInterval(t);
+    }
+
+    const es = new EventSource("/api/admin/system/stream");
+    es.addEventListener("snapshot", (e) => {
+      try {
+        const parsed = JSON.parse((e as MessageEvent).data) as SystemData;
+        setData(parsed);
+        setLive(true);
+        setLastUpdate(Date.now());
+      } catch {
+        // ignore malformed
+      }
+    });
+    es.onerror = () => {
+      setLive(false);
     };
-    load();
-    const t = setInterval(load, 15000);
-    return () => clearInterval(t);
+    return () => es.close();
   }, []);
 
   if (!data) return <div className="text-slate-400">Yükleniyor...</div>;
@@ -73,8 +98,20 @@ export default function SystemPage() {
         <h2 className="text-2xl font-bold text-slate-900 inline-flex items-center gap-2">
           <Cpu size={22} /> Sistem Sağlığı
         </h2>
-        <p className="text-slate-500 text-sm mt-1">
-          Canlı DB + host metrikleri (15sn&apos;de bir güncellenir).
+        <p className="text-slate-500 text-sm mt-1 inline-flex items-center gap-2">
+          {live ? (
+            <>
+              <Radio size={12} className="text-green-600 animate-pulse" />
+              <span>Canlı yayın — 5 saniyede güncelleniyor</span>
+            </>
+          ) : (
+            <span>DB + host metrikleri (yedek polling 15sn)</span>
+          )}
+          {lastUpdate && (
+            <span className="text-slate-400 text-xs">
+              · son: {new Date(lastUpdate).toLocaleTimeString("tr-TR")}
+            </span>
+          )}
         </p>
       </div>
 
