@@ -65,6 +65,7 @@ model User {
   auditLogs        AdminAuditLog[]    @relation("AdminActor")
   announcements    SystemAnnouncement[] @relation("AnnouncementAuthor")
   dismissedAnnouncements AnnouncementDismissal[]
+  payments         Payment[]
 }
 
 model Contact {
@@ -364,6 +365,28 @@ model AdminAuditLog {
   @@index([actorId, createdAt])
   @@index([action])
   @@index([targetType, targetId])
+}
+
+model Payment {
+  id                String    @id @default(cuid())
+  userId            String
+  plan              String
+  amount            Int
+  currency          String    @default("TRY")
+  status            String    @default("pending")
+  provider          String    @default("iyzico")
+  providerRefId     String?
+  providerToken     String?
+  errorMessage      String?
+  paidAt            DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([providerRefId])
 }
 
 model FeatureFlag {

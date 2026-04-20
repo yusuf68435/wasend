@@ -67,6 +67,24 @@ export default function BillingPage() {
     await load();
   }
 
+  async function payWithIyzico(plan: "PRO" | "BUSINESS") {
+    setChanging(true);
+    setError(null);
+    const res = await fetch("/api/billing/iyzico/init", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ plan }),
+    });
+    if (!res.ok) {
+      setChanging(false);
+      const d = await res.json().catch(() => ({}));
+      setError(d.error || "Ödeme başlatılamadı");
+      return;
+    }
+    const { paymentPageUrl } = await res.json();
+    window.location.assign(paymentPageUrl);
+  }
+
   if (!data) {
     return <div className="text-gray-400 p-8">Yükleniyor...</div>;
   }
@@ -181,18 +199,30 @@ export default function BillingPage() {
                 />
                 <FeatureLine value={`${limits.teamMembers} ekip üyesi`} />
               </ul>
-              <button
-                disabled={isCurrent || changing}
-                onClick={() => changePlan(plan)}
-                className={
-                  "w-full py-2 rounded-lg font-medium transition " +
-                  (isCurrent
-                    ? "bg-gray-100 text-gray-500 cursor-default"
-                    : "bg-green-600 text-white hover:bg-green-700")
-                }
-              >
-                {isCurrent ? "Mevcut Plan" : changing ? "..." : `${PLAN_LABELS[plan]}'a Geç`}
-              </button>
+              {isCurrent ? (
+                <button
+                  disabled
+                  className="w-full py-2 rounded-lg font-medium bg-gray-100 text-gray-500 cursor-default"
+                >
+                  Mevcut Plan
+                </button>
+              ) : plan === "STARTER" ? (
+                <button
+                  disabled={changing}
+                  onClick={() => changePlan(plan)}
+                  className="w-full py-2 rounded-lg font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+                >
+                  {changing ? "..." : "Downgrade"}
+                </button>
+              ) : (
+                <button
+                  disabled={changing}
+                  onClick={() => payWithIyzico(plan as "PRO" | "BUSINESS")}
+                  className="w-full py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                >
+                  {changing ? "..." : `iyzico ile Satın Al`}
+                </button>
+              )}
             </div>
           );
         })}

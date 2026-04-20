@@ -55,6 +55,11 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
 
+  // iyzico (Türkiye ödeme)
+  IYZICO_API_KEY: z.string().optional(),
+  IYZICO_SECRET_KEY: z.string().optional(),
+  IYZICO_BASE_URL: z.string().optional(),
+
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
 
   // i18n / impersonation / admin — bootstrap
