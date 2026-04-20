@@ -29,24 +29,65 @@ function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function getTodayTokens(userId: string): Promise<number> {
-  const rec = await prisma.aIUsage.findUnique({
-    where: { userId_date: { userId, date: todayKey() } },
+/** Rezervasyon: max_tokens + tipik input tahmini. AI çağrısı öncesi atomik
+ *  olarak bunu ekleriz; actual kullanım belli olunca delta ayarlanır. */
+const RESERVATION_TOKENS = 800;
+
+/**
+ * Token rezervasyonu — eşzamanlı iki istek aynı anda limit'i bypass edemesin
+ * diye UPSERT ile INCREMENT atomik yapılır. Eğer rezervasyon sonrası toplam
+ * limit'i aşarsa rezervasyon iade edilir ve null döner.
+ */
+async function reserveTokens(
+  userId: string,
+  limit: number,
+): Promise<{ ok: true } | { ok: false }> {
+  const date = todayKey();
+  const after = await prisma.aIUsage.upsert({
+    where: { userId_date: { userId, date } },
+    update: { tokens: { increment: RESERVATION_TOKENS } },
+    create: { userId, date, tokens: RESERVATION_TOKENS, costUsd: 0 },
   });
-  return rec?.tokens ?? 0;
+  if (after.tokens > limit) {
+    // Rezervasyon iade — başka bir concurrent isteğin hakkını yeme
+    await prisma.aIUsage.update({
+      where: { userId_date: { userId, date } },
+      data: { tokens: { decrement: RESERVATION_TOKENS } },
+    });
+    return { ok: false };
+  }
+  return { ok: true };
 }
 
-async function recordUsage(
+/**
+ * Actual usage belli olduktan sonra delta ayarla.
+ * actualTokens - RESERVATION_TOKENS kadar increment (negatifse decrement).
+ */
+async function settleUsage(
   userId: string,
-  tokens: number,
+  actualTokens: number,
   costUsd: number,
 ): Promise<void> {
   const date = todayKey();
-  await prisma.aIUsage.upsert({
+  const delta = actualTokens - RESERVATION_TOKENS;
+  await prisma.aIUsage.update({
     where: { userId_date: { userId, date } },
-    update: { tokens: { increment: tokens }, costUsd: { increment: costUsd } },
-    create: { userId, date, tokens, costUsd },
+    data: {
+      tokens: { increment: delta },
+      costUsd: { increment: costUsd },
+    },
   });
+}
+
+/** Rezervasyonun iadesi — AI çağrısı tamamen başarısız olursa kullanılır. */
+async function refundReservation(userId: string): Promise<void> {
+  const date = todayKey();
+  await prisma.aIUsage
+    .update({
+      where: { userId_date: { userId, date } },
+      data: { tokens: { decrement: RESERVATION_TOKENS } },
+    })
+    .catch(() => undefined);
 }
 
 function buildSystemPrompt(user: UserLike): string {
@@ -69,8 +110,9 @@ export async function generateAIReply(
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return null;
 
-  const usedToday = await getTodayTokens(user.id);
-  if (usedToday >= user.aiDailyTokenLimit) return null;
+  // Atomik rezervasyon — concurrent istekler limit'i delemez
+  const reservation = await reserveTokens(user.id, user.aiDailyTokenLimit);
+  if (!reservation.ok) return null;
 
   const client = new Anthropic({ apiKey });
 
@@ -105,7 +147,7 @@ export async function generateAIReply(
 
     // Haiku 4.5 rough pricing: $1/MTok input, $5/MTok output
     const costUsd = (inputTokens / 1_000_000) * 1 + (outputTokens / 1_000_000) * 5;
-    await recordUsage(user.id, inputTokens + outputTokens, costUsd);
+    await settleUsage(user.id, inputTokens + outputTokens, costUsd);
 
     const handoff = text.toLowerCase().includes(HANDOFF_MARKER);
     const cleanText = text.replaceAll(HANDOFF_MARKER, "").trim();
@@ -118,6 +160,7 @@ export async function generateAIReply(
     };
   } catch (e) {
     console.error("AI agent error:", e);
+    await refundReservation(user.id);
     return null;
   }
 }
