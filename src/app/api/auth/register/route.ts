@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { isBootstrapAdminEmail } from "@/lib/admin-guard";
 
 export async function POST(request: Request) {
   try {
@@ -52,8 +53,10 @@ export async function POST(request: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const isSuperAdmin = isBootstrapAdminEmail(email);
+
     const user = await prisma.user.create({
-      data: { email, hashedPassword, name, businessName, role },
+      data: { email, hashedPassword, name, businessName, role, isSuperAdmin },
     });
 
     if (invite) {

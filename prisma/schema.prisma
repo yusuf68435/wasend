@@ -29,6 +29,11 @@ model User {
   plan                String    @default("STARTER")
   stripeCustomerId    String?
   stripeSubscriptionId String?
+  isSuperAdmin        Boolean   @default(false)
+  suspended           Boolean   @default(false)
+  suspendedAt         DateTime?
+  suspendReason       String?
+  lastSeenAt          DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
 
@@ -47,6 +52,9 @@ model User {
   teamInvites    TeamInvite[]
   apiKeys        ApiKey[]
   outgoingWebhooks OutgoingWebhook[]
+  auditLogs        AdminAuditLog[]    @relation("AdminActor")
+  announcements    SystemAnnouncement[] @relation("AnnouncementAuthor")
+  dismissedAnnouncements AnnouncementDismissal[]
 }
 
 model Contact {
@@ -321,5 +329,54 @@ model OutgoingWebhook {
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String
+  action     String
+  targetType String?
+  targetId   String?
+  details    String?
+  ip         String?
+  createdAt  DateTime @default(now())
+
+  actor      User     @relation("AdminActor", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId, createdAt])
+  @@index([action])
+  @@index([targetType, targetId])
+}
+
+model SystemAnnouncement {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  level       String    @default("info")
+  audience    String    @default("all")
+  isActive    Boolean   @default(true)
+  startsAt    DateTime  @default(now())
+  endsAt      DateTime?
+  createdById String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  createdBy   User                  @relation("AnnouncementAuthor", fields: [createdById], references: [id], onDelete: Cascade)
+  dismissals  AnnouncementDismissal[]
+
+  @@index([isActive, startsAt])
+}
+
+model AnnouncementDismissal {
+  id             String   @id @default(cuid())
+  announcementId String
+  userId         String
+  dismissedAt    DateTime @default(now())
+
+  announcement   SystemAnnouncement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, userId])
   @@index([userId])
 }

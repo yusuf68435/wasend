@@ -19,6 +19,9 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) return null;
+        if (user.suspended) {
+          throw new Error("Hesap askıya alındı. Lütfen destek ile iletişime geçin.");
+        }
 
         const isValid = await bcrypt.compare(
           credentials.password,
@@ -26,6 +29,11 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isValid) return null;
+
+        // Fire-and-forget lastSeenAt update
+        prisma.user
+          .update({ where: { id: user.id }, data: { lastSeenAt: new Date() } })
+          .catch(() => undefined);
 
         return { id: user.id, email: user.email, name: user.name };
       },
