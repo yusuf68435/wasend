@@ -26,6 +26,9 @@ export async function GET() {
     aiSpend30d,
     byPlan,
     recentTenants,
+    signups30d,
+    messages30d,
+    topTenantsByMessages,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({ where: { lastSeenAt: { gte: weekAgo } } }),
@@ -56,7 +59,72 @@ export async function GET() {
         createdAt: true,
       },
     }),
+    // 30-day signup series (fetch raw + groupBy in JS — db-agnostic)
+    prisma.user.findMany({
+      where: { createdAt: { gte: monthAgo } },
+      select: { createdAt: true },
+    }),
+    prisma.message.findMany({
+      where: { createdAt: { gte: monthAgo } },
+      select: { createdAt: true },
+    }),
+    // Top 10 by 7-day message count
+    prisma.message.groupBy({
+      by: ["userId"],
+      where: { createdAt: { gte: weekAgo } },
+      _count: { _all: true },
+      orderBy: { _count: { userId: "desc" } },
+      take: 10,
+    }),
   ]);
+
+  // Build daily series: fill in zero days
+  function dailyBuckets(
+    items: Array<{ createdAt: Date }>,
+    days: number,
+  ): Array<{ date: string; count: number }> {
+    const buckets = new Map<string, number>();
+    for (let i = 0; i < days; i++) {
+      const d = new Date(now.getTime() - (days - 1 - i) * dayMs);
+      const key = d.toISOString().slice(0, 10);
+      buckets.set(key, 0);
+    }
+    for (const it of items) {
+      const key = it.createdAt.toISOString().slice(0, 10);
+      if (buckets.has(key)) buckets.set(key, (buckets.get(key) || 0) + 1);
+    }
+    return Array.from(buckets.entries()).map(([date, count]) => ({ date, count }));
+  }
+
+  const dailySignups = dailyBuckets(signups30d, 30);
+  const dailyMessages = dailyBuckets(messages30d, 30);
+
+  // Enrich top tenants with user details
+  const topTenantIds = topTenantsByMessages.map((t) => t.userId);
+  const topTenantUsers =
+    topTenantIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: topTenantIds } },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            businessName: true,
+            plan: true,
+          },
+        })
+      : [];
+  const topTenants = topTenantsByMessages.map((t) => {
+    const user = topTenantUsers.find((u) => u.id === t.userId);
+    return {
+      id: t.userId,
+      email: user?.email ?? "—",
+      name: user?.name ?? "—",
+      businessName: user?.businessName ?? null,
+      plan: user?.plan ?? "STARTER",
+      messages7d: t._count._all,
+    };
+  });
 
   // MRR estimate from plan counts
   let mrrTry = 0;
@@ -88,5 +156,8 @@ export async function GET() {
       costUsd30d: aiSpend30d._sum.costUsd ?? 0,
     },
     recentTenants,
+    dailySignups,
+    dailyMessages,
+    topTenants,
   });
 }
