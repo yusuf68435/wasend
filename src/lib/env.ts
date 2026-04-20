@@ -15,10 +15,6 @@ import { z } from "zod";
 
 const isProd = process.env.NODE_ENV === "production";
 
-// Required in production. Optional in development.
-const prodRequired = (schema: z.ZodString) =>
-  isProd ? schema.min(1, "required in production") : schema.optional();
-
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Users, Plus, Trash2, Search, Upload, Download, CheckSquare, Square, Tag } from "lucide-react";
+import { Users, Plus, Trash2, Search, Upload, Download, Tag } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { SkeletonTable } from "@/components/skeleton";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -343,17 +343,13 @@ function ContactsContent() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="px-3 py-3 w-10">
-                  <button
-                    onClick={toggleAllFiltered}
+                  <input
+                    type="checkbox"
+                    checked={filtered.length > 0 && filtered.every((c) => selected.has(c.id))}
+                    onChange={toggleAllFiltered}
                     aria-label="Tüm filtrelenmiş kişileri seç/bırak"
-                    className="text-gray-500 hover:text-gray-900"
-                  >
-                    {filtered.every((c) => selected.has(c.id)) && filtered.length > 0 ? (
-                      <CheckSquare size={16} />
-                    ) : (
-                      <Square size={16} />
-                    )}
-                  </button>
+                    className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
                 </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">İsim</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Telefon</th>
@@ -370,13 +366,13 @@ function ContactsContent() {
                     className={`hover:bg-gray-50 ${isSelected ? "bg-amber-50" : ""}`}
                   >
                     <td className="px-3 py-4">
-                      <button
-                        onClick={() => toggleOne(contact.id)}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleOne(contact.id)}
                         aria-label={isSelected ? "Seçimi kaldır" : "Seç"}
-                        className="text-gray-500 hover:text-gray-900"
-                      >
-                        {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
-                      </button>
+                        className="h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
                     </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{contact.name}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{contact.phone}</td>

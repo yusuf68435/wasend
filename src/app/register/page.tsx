@@ -13,10 +13,15 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [password, setPassword] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [emailSent, setEmailSent] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!termsAccepted) {
+      setError("Devam edebilmek için KVKK onayını işaretlemelisin.");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -196,25 +201,33 @@ function RegisterForm() {
             <PasswordStrengthMeter password={password} />
           </div>
 
+          <label className="flex items-start gap-2 text-xs text-gray-600">
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              required
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+            />
+            <span>
+              <Link href="/terms" className="underline hover:text-gray-900" target="_blank">
+                Kullanım Şartları
+              </Link>
+              &apos;nı ve{" "}
+              <Link href="/privacy" className="underline hover:text-gray-900" target="_blank">
+                Gizlilik Politikası
+              </Link>
+              &apos;nı okudum, kişisel verilerimin KVKK kapsamında işlenmesine açık rıza veriyorum.
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
+            disabled={loading || !termsAccepted}
+            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Kayıt yapılıyor..." : inviteToken ? "Daveti Kabul Et" : "Ücretsiz Başla"}
           </button>
-
-          <p className="text-xs text-gray-400 text-center mt-2">
-            Kayıt olarak{" "}
-            <Link href="/terms" className="underline hover:text-gray-600">
-              Kullanım Şartları
-            </Link>{" "}
-            ve{" "}
-            <Link href="/privacy" className="underline hover:text-gray-600">
-              Gizlilik Politikası
-            </Link>
-            &apos;nı kabul etmiş olursunuz.
-          </p>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">

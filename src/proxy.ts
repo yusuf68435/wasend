@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * CSP proxy — Next.js 16 convention ("middleware" → "proxy").
@@ -29,7 +29,7 @@ function buildCsp(): string {
   ].join("; ");
 }
 
-export function proxy(_request: NextRequest) {
+export function proxy() {
   const response = NextResponse.next();
   response.headers.set("content-security-policy", buildCsp());
   return response;

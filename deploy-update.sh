@@ -27,9 +27,12 @@ err()  { printf '\n\033[1;31m==>\033[0m %s\n' "$*" >&2; exit 1; }
 
 cd "$APP_DIR"
 
-# 1) Schema provider: postgresql
+# 1) Schema provider: postgresql (repo sqlite olarak commit'li — dev dostluğu için)
 log "Schema → PostgreSQL"
 sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/schema.prisma
+if [[ -f prisma/migrations/migration_lock.toml ]]; then
+  sed -i 's/provider = "sqlite"/provider = "postgresql"/' prisma/migrations/migration_lock.toml
+fi
 
 # 2) Ownership
 chown -R "$APP_USER":"$APP_USER" "$APP_DIR"

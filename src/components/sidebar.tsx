@@ -77,7 +77,7 @@ const GROUPS: NavGroup[] = [
   },
   {
     label: "Geliştirici",
-    defaultOpen: false,
+    defaultOpen: true,
     items: [
       { href: "/dashboard/api-keys", label: "API Anahtarları", icon: Key },
       { href: "/dashboard/webhooks", label: "Webhook'lar", icon: Webhook },
