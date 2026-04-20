@@ -1,8 +1,9 @@
-import { requireAuth } from "@/lib/auth-helper";
+import { requireAuth, getImpersonationState } from "@/lib/auth-helper";
 import { Sidebar } from "@/components/sidebar";
 import { AnnouncementBanner } from "@/components/announcement-banner";
 import { WelcomeModal } from "@/components/welcome-modal";
 import { CommandPalette } from "@/components/command-palette";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { getSuperAdminOrNull } from "@/lib/admin-guard";
 
 export default async function DashboardLayout({
@@ -12,14 +13,23 @@ export default async function DashboardLayout({
 }) {
   await requireAuth();
   const admin = await getSuperAdminOrNull();
+  const impersonation = await getImpersonationState();
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar isSuperAdmin={!!admin} />
-      <main className="flex-1 p-8">
-        <AnnouncementBanner />
-        {children}
-      </main>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+      {impersonation.active && (
+        <ImpersonationBanner
+          targetEmail={impersonation.targetEmail}
+          adminEmail={impersonation.adminEmail}
+        />
+      )}
+      <div className="flex">
+        <Sidebar isSuperAdmin={!!admin} />
+        <main className="flex-1 p-8">
+          <AnnouncementBanner />
+          {children}
+        </main>
+      </div>
       <WelcomeModal />
       <CommandPalette isSuperAdmin={!!admin} />
     </div>

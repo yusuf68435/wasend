@@ -12,6 +12,7 @@ import {
   Mail,
   Calendar,
   Activity,
+  UserCheck,
 } from "lucide-react";
 
 interface TenantDetail {
@@ -158,6 +159,29 @@ export default function TenantDetailPage() {
     load();
   }
 
+  async function impersonate() {
+    if (!data) return;
+    if (
+      !window.confirm(
+        `${data.user.email} hesabına geçici olarak impersonate olacaksınız. İşlemleriniz bu hesap adına kaydedilir. Devam?`,
+      )
+    )
+      return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/impersonate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: id }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setMsg(d.error || "Hata");
+      return;
+    }
+    router.push("/dashboard");
+  }
+
   if (!data)
     return <div className="text-slate-400">Yükleniyor...</div>;
 
@@ -253,6 +277,16 @@ export default function TenantDetailPage() {
                 </>
               )}
             </button>
+            {!u.isSuperAdmin && !u.suspended && (
+              <button
+                onClick={impersonate}
+                disabled={busy}
+                className="px-3 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-2 disabled:opacity-50"
+                title="Bu hesap adına geçici olarak panel kullan"
+              >
+                <UserCheck size={14} /> Impersonate
+              </button>
+            )}
           </div>
         </div>
 
