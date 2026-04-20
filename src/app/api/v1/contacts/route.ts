@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { verifyApiKey } from "@/lib/api-key";
 import { v1ContactCreateSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
+import { prismaErrorToResponse } from "@/lib/prisma-errors";
 
 export async function GET(request: Request) {
   const auth = await verifyApiKey(request.headers.get("authorization"));
@@ -74,13 +75,11 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(contact);
   } catch (error) {
+    const prismaResp = prismaErrorToResponse(error, {
+      uniqueMessage: "Bu telefon zaten kayıtlı",
+    });
+    if (prismaResp) return prismaResp;
     const msg = error instanceof Error ? error.message : "Eklenemedi";
-    if (msg.includes("Unique constraint")) {
-      return NextResponse.json(
-        { error: "Bu telefon zaten kayıtlı" },
-        { status: 409 },
-      );
-    }
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

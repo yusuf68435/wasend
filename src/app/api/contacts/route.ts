@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { contactCreateSchema, formatZodError } from "@/lib/validation";
 import { checkContactQuota } from "@/lib/plan-limits";
+import { prismaErrorToResponse } from "@/lib/prisma-errors";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -53,13 +54,11 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(contact);
   } catch (error) {
+    const prismaResp = prismaErrorToResponse(error, {
+      uniqueMessage: "Bu telefon numarası zaten kayıtlı",
+    });
+    if (prismaResp) return prismaResp;
     const msg = error instanceof Error ? error.message : "Kişi eklenemedi";
-    if (msg.includes("Unique constraint")) {
-      return NextResponse.json(
-        { error: "Bu telefon numarası zaten kayıtlı" },
-        { status: 409 },
-      );
-    }
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

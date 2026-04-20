@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { processBroadcast } from "@/lib/broadcast-processor";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 export const maxDuration = 300;
 
 // Triggers scheduled broadcasts whose scheduledAt is due.
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const expected = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!expected || authHeader !== `Bearer ${expected}`) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const auth = verifyCronAuth(request);
+  if (!auth.ok) return auth.response!;
 
   const now = new Date();
   const due = await prisma.broadcast.findMany({

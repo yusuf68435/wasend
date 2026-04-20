@@ -51,7 +51,8 @@ export async function POST(request: Request) {
       role = invite.role;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // OWASP 2024+ önerisi: bcrypt >= 12 round. Argon2id daha iyi; rotation sonra.
+    const hashedPassword = await bcrypt.hash(password, 12);
 
     const isSuperAdmin = isBootstrapAdminEmail(email);
 

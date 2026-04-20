@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 export const maxDuration = 60;
 
 // This endpoint should be called periodically (e.g., every minute via Vercel Cron)
 export async function GET(request: NextRequest) {
-  // Simple auth for cron - check for secret header.
-  // Prefers dedicated CRON_SECRET; falls back to NEXTAUTH_SECRET for backwards compatibility.
-  const authHeader = request.headers.get("authorization");
-  const expected = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!expected || authHeader !== `Bearer ${expected}`) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const auth = verifyCronAuth(request);
+  if (!auth.ok) return auth.response!;
 
   const apiToken = process.env.WHATSAPP_API_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;

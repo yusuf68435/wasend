@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { quickReplyCreateSchema, formatZodError } from "@/lib/validation";
+import { prismaErrorToResponse } from "@/lib/prisma-errors";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -46,13 +47,11 @@ export async function POST(request: Request) {
     });
     return NextResponse.json(item);
   } catch (error) {
+    const prismaResp = prismaErrorToResponse(error, {
+      uniqueMessage: "Bu kısayol zaten kullanılıyor",
+    });
+    if (prismaResp) return prismaResp;
     const msg = error instanceof Error ? error.message : "Eklenemedi";
-    if (msg.includes("Unique constraint")) {
-      return NextResponse.json(
-        { error: "Bu kısayol zaten kullanılıyor" },
-        { status: 409 },
-      );
-    }
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

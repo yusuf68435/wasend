@@ -28,8 +28,19 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
 
+    // Webhook signature doğrulaması — production'da ZORUNLU.
+    // WHATSAPP_APP_SECRET tanımlı değilse sadece dev'de (NODE_ENV !== "production") atlanır.
     const appSecret = process.env.WHATSAPP_APP_SECRET;
-    if (appSecret) {
+    if (!appSecret) {
+      if (process.env.NODE_ENV === "production") {
+        console.error("CRITICAL: WHATSAPP_APP_SECRET missing — webhook reddedildi");
+        return NextResponse.json(
+          { error: "Webhook not configured" },
+          { status: 500 },
+        );
+      }
+      console.warn("DEV: WHATSAPP_APP_SECRET yok, signature doğrulaması atlanıyor");
+    } else {
       const signature = request.headers.get("x-hub-signature-256");
       if (!verifyMetaSignature(rawBody, signature, appSecret)) {
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });

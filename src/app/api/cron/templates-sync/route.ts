@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { fetchTemplateStatus } from "@/lib/meta-templates";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 export const maxDuration = 60;
 
 // Polls Meta for pending template approval statuses. Schedule hourly in vercel.json.
 export async function GET(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-  const expected = process.env.CRON_SECRET || process.env.NEXTAUTH_SECRET;
-  if (!expected || authHeader !== `Bearer ${expected}`) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
-  }
+  const auth = verifyCronAuth(request);
+  if (!auth.ok) return auth.response!;
 
   if (!process.env.WHATSAPP_API_TOKEN) {
     return NextResponse.json({ processed: 0, note: "Meta API token yok" });

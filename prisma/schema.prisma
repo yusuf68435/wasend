@@ -122,6 +122,8 @@ model Message {
   contact   Contact? @relation(fields: [contactId], references: [id])
 
   @@index([userId, createdAt])
+  @@index([userId, status, createdAt])
+  @@index([userId, direction, createdAt])
   @@index([contactId])
 }
 
@@ -138,7 +140,7 @@ model Reminder {
   contact     Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   @@index([status, scheduledAt])
-  @@index([userId])
+  @@index([userId, status, scheduledAt])
   @@index([contactId])
 }
 

@@ -7,6 +7,9 @@ import { contactImportRowSchema } from "@/lib/validation";
 
 export const maxDuration = 60;
 
+const MAX_CSV_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_CSV_ROWS = 10_000;
+
 interface ImportRow {
   name?: string;
   phone?: string;
@@ -21,12 +24,28 @@ export async function POST(request: Request) {
   const userId = (session?.user as { id: string } | undefined)?.id;
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
+  // Content-Length kontrolü (erken reject)
+  const contentLength = Number(request.headers.get("content-length") || 0);
+  if (contentLength > MAX_CSV_BYTES) {
+    return NextResponse.json(
+      { error: `CSV çok büyük (max ${MAX_CSV_BYTES / 1024 / 1024} MB)` },
+      { status: 413 },
+    );
+  }
+
   const url = new URL(request.url);
   const mode = url.searchParams.get("mode") === "update" ? "update" : "skip";
 
   const csv = await request.text();
   if (!csv.trim()) {
     return NextResponse.json({ error: "CSV boş" }, { status: 400 });
+  }
+  // Header'ı spoof eden client için post-read safety check
+  if (csv.length > MAX_CSV_BYTES) {
+    return NextResponse.json(
+      { error: "CSV çok büyük" },
+      { status: 413 },
+    );
   }
 
   const parsed = Papa.parse<ImportRow>(csv, {
@@ -40,6 +59,15 @@ export async function POST(request: Request) {
       {
         error: "CSV ayrıştırma hatası",
         issues: parsed.errors.slice(0, 5).map((e) => e.message),
+      },
+      { status: 400 },
+    );
+  }
+
+  if (parsed.data.length > MAX_CSV_ROWS) {
+    return NextResponse.json(
+      {
+        error: `Max ${MAX_CSV_ROWS} satır destekleniyor (${parsed.data.length} satır geldi)`,
       },
       { status: 400 },
     );
