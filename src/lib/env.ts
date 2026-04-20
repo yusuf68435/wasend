@@ -31,11 +31,12 @@ const envSchema = z.object({
   // Cron — fallback NEXTAUTH_SECRET, bu yüzden opsiyonel
   CRON_SECRET: z.string().optional(),
 
-  // WhatsApp — prod'da zorunlu
-  WHATSAPP_API_TOKEN: prodRequired(z.string()),
-  WHATSAPP_PHONE_NUMBER_ID: prodRequired(z.string()),
-  WHATSAPP_VERIFY_TOKEN: prodRequired(z.string()),
-  WHATSAPP_APP_SECRET: prodRequired(z.string()),
+  // WhatsApp — opsiyonel (eksikse ilgili route'lar 500 döner, app boot eder).
+  // Kritik env (DATABASE_URL, NEXTAUTH_SECRET) zorunlu kalır.
+  WHATSAPP_API_TOKEN: z.string().optional(),
+  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  WHATSAPP_VERIFY_TOKEN: z.string().optional(),
+  WHATSAPP_APP_SECRET: z.string().optional(),
   WHATSAPP_WABA_ID: z.string().optional(),
 
   // Opsiyonel servisler — DSN/key yoksa ilgili özellik pasif
