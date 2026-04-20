@@ -18,9 +18,11 @@ export default function MessagesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/messages")
+    fetch("/api/messages?limit=200")
       .then((r) => r.json())
-      .then(setMessages)
+      .then((data) =>
+        setMessages(Array.isArray(data) ? data : data.messages || []),
+      )
       .finally(() => setLoading(false));
   }, []);
 

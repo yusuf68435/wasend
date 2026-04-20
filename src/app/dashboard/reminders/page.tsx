@@ -26,10 +26,10 @@ export default function RemindersPage() {
   useEffect(() => {
     Promise.all([
       fetch("/api/reminders").then((r) => r.json()),
-      fetch("/api/contacts").then((r) => r.json()),
+      fetch("/api/contacts?limit=500").then((r) => r.json()),
     ]).then(([rem, con]) => {
       setReminders(rem);
-      setContacts(con);
+      setContacts(Array.isArray(con) ? con : con.contacts || []);
       setLoading(false);
     });
   }, []);

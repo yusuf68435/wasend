@@ -29,8 +29,11 @@ export default function ContactsPage() {
   const [importing, setImporting] = useState(false);
 
   async function reloadContacts() {
-    const res = await fetch("/api/contacts");
-    if (res.ok) setContacts(await res.json());
+    const res = await fetch("/api/contacts?limit=500");
+    if (res.ok) {
+      const data = await res.json();
+      setContacts(Array.isArray(data) ? data : data.contacts || []);
+    }
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -65,9 +68,9 @@ export default function ContactsPage() {
   }
 
   useEffect(() => {
-    fetch("/api/contacts")
+    fetch("/api/contacts?limit=500")
       .then((r) => r.json())
-      .then(setContacts)
+      .then((data) => setContacts(Array.isArray(data) ? data : data.contacts || []))
       .finally(() => setLoading(false));
   }, []);
 

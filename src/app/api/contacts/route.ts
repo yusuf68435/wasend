@@ -11,15 +11,39 @@ async function getUserId() {
   return (session?.user as { id: string } | undefined)?.id;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
+  const url = new URL(request.url);
+  const limit = Math.min(
+    500,
+    Math.max(1, Number(url.searchParams.get("limit")) || 200),
+  );
+  const cursor = url.searchParams.get("cursor") || undefined;
+  const q = url.searchParams.get("q")?.trim();
+
+  const where: import("@prisma/client").Prisma.ContactWhereInput = { userId };
+  if (q) {
+    where.OR = [
+      { name: { contains: q } },
+      { phone: { contains: q } },
+      { tags: { contains: q } },
+    ];
+  }
+
   const contacts = await prisma.contact.findMany({
-    where: { userId },
+    where,
     orderBy: { createdAt: "desc" },
+    take: limit + 1,
+    ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
   });
-  return NextResponse.json(contacts);
+
+  const hasMore = contacts.length > limit;
+  const items = hasMore ? contacts.slice(0, limit) : contacts;
+  const nextCursor = hasMore ? items[items.length - 1].id : null;
+
+  return NextResponse.json({ contacts: items, nextCursor });
 }
 
 export async function POST(request: Request) {

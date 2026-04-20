@@ -47,6 +47,8 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
             .update(body)
             .digest("hex");
           try {
+            // 5 sn timeout — yavaş webhook endpoint broadcast processor'ı
+            // yavaşlatmasın (Promise.allSettled dış sarmalayıcısıyla birlikte)
             await fetch(h.url, {
               method: "POST",
               headers: {
@@ -55,9 +57,10 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
                 "X-Wasend-Signature": `sha256=${signature}`,
               },
               body,
+              signal: AbortSignal.timeout(5000),
             });
           } catch (e) {
-            console.error(`Outgoing webhook ${h.id} failed:`, e);
+            console.error(`Outgoing webhook ${h.id} failed:`, e instanceof Error ? e.name : String(e));
           }
         }),
     );

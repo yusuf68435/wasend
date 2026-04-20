@@ -10,28 +10,40 @@ export interface AdminUser {
   isSuperAdmin: boolean;
 }
 
+/**
+ * JWT'de isSuperAdmin cache'li. Her istekte DB'ye gitmez.
+ * 10 dakikada bir auth.ts jwt callback'inde tazelenir, ya da client `update()` çağırırsa.
+ */
 export async function requireSuperAdmin(): Promise<AdminUser> {
   const session = await getServerSession(authOptions);
-  const id = (session?.user as { id: string } | undefined)?.id;
-  if (!id) redirect("/login?next=/admin");
+  if (!session?.user?.id) redirect("/login?next=/admin");
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      isSuperAdmin: true,
-    },
-  });
+  if (!session.user.isSuperAdmin) redirect("/dashboard");
 
-  if (!user?.isSuperAdmin) redirect("/dashboard");
-  return user as AdminUser;
+  return {
+    id: session.user.id,
+    email: session.user.email || "",
+    name: session.user.name || "",
+    isSuperAdmin: true,
+  };
 }
 
 export async function getSuperAdminOrNull(): Promise<AdminUser | null> {
   const session = await getServerSession(authOptions);
-  const id = (session?.user as { id: string } | undefined)?.id;
+  if (!session?.user?.id || !session.user.isSuperAdmin) return null;
+  return {
+    id: session.user.id,
+    email: session.user.email || "",
+    name: session.user.name || "",
+    isSuperAdmin: true,
+  };
+}
+
+// Güvenlik hassasiyeti yüksek yerler için — DB'den taze okur (promote/demote
+// hemen etkin olmalıysa bu'yu kullan; normal admin page için getSuperAdminOrNull)
+export async function getSuperAdminFresh(): Promise<AdminUser | null> {
+  const session = await getServerSession(authOptions);
+  const id = session?.user?.id;
   if (!id) return null;
 
   const user = await prisma.user.findUnique({
@@ -43,7 +55,6 @@ export async function getSuperAdminOrNull(): Promise<AdminUser | null> {
       isSuperAdmin: true,
     },
   });
-
   if (!user?.isSuperAdmin) return null;
   return user as AdminUser;
 }
