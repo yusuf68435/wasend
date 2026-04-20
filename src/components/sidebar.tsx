@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
   LayoutDashboard,
@@ -28,6 +28,8 @@ import {
   LifeBuoy,
   ChevronDown,
   ChevronRight,
+  Menu,
+  X,
   type LucideIcon,
 } from "lucide-react";
 
@@ -99,6 +101,12 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
   const [openGroups, setOpenGroups] = useState<Set<string>>(
     () => new Set(GROUPS.filter((g) => g.defaultOpen).map((g) => g.label)),
   );
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Path değişince mobil menüyü kapat
+  useEffect(() => {
+    queueMicrotask(() => setMobileOpen(false));
+  }, [pathname]);
 
   function toggleGroup(label: string) {
     setOpenGroups((prev) => {
@@ -128,11 +136,45 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+    <>
+      {/* Mobile hamburger button */}
+      <button
+        onClick={() => setMobileOpen(true)}
+        aria-label="Menüyü aç"
+        className="md:hidden fixed top-3 left-3 z-40 p-2 bg-white rounded-lg border border-gray-200 shadow-sm text-gray-700"
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* Backdrop */}
+      {mobileOpen && (
+        <button
+          onClick={() => setMobileOpen(false)}
+          aria-label="Menüyü kapat"
+          className="md:hidden fixed inset-0 bg-black/40 z-40"
+        />
+      )}
+
+      <aside
+        className={`fixed md:sticky md:top-0 top-0 left-0 z-50 h-screen w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-2xl font-bold text-green-600">WaSend</h1>
-        <p className="text-xs text-gray-400 mt-1">WhatsApp Otomasyon</p>
-        <p className="text-xs text-gray-400 mt-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-green-600">WaSend</h1>
+            <p className="text-xs text-gray-400 mt-1">WhatsApp Otomasyon</p>
+          </div>
+          <button
+            onClick={() => setMobileOpen(false)}
+            aria-label="Menüyü kapat"
+            className="md:hidden text-gray-400 hover:text-gray-700"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <p className="hidden md:block text-xs text-gray-400 mt-3">
           <kbd className="bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 text-gray-600">
             ⌘K
           </kbd>{" "}
@@ -191,6 +233,7 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
           Çıkış Yap
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

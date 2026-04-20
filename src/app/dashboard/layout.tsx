@@ -25,7 +25,7 @@ export default async function DashboardLayout({
       )}
       <div className="flex">
         <Sidebar isSuperAdmin={!!admin} />
-        <main className="flex-1 p-8">
+        <main className="flex-1 min-w-0 p-4 md:p-8 pt-16 md:pt-8">
           <AnnouncementBanner />
           {children}
         </main>
