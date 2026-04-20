@@ -61,8 +61,8 @@ export default function QuickRepliesPage() {
           <Zap size={20} className="text-orange-500" /> Hızlı Cevaplar
         </h2>
         <p className="text-gray-500 text-sm mt-1">
-          Sık kullanılan cevapları kısayollarla hızlıca ekleyin. UI&apos;da
-          henüz entegre değil — şu an doğrudan API üzerinden kullanılabilir.
+          Sık kullanılan cevapları kısayollarla kaydedin. API üzerinden
+          entegrasyon için hazır; UI entegrasyonu yakında.
         </p>
       </div>
 

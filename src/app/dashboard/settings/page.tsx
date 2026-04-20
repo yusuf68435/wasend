@@ -355,22 +355,55 @@ export default function SettingsPage() {
           </div>
         </form>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Webhook URL</h3>
-          <p className="text-sm text-gray-500 mb-3">
-            Meta Developer panelinde webhook URL olarak aşağıdaki adresi girin:
-          </p>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-sm text-gray-700 break-all">
-            https://SITENIZ.vercel.app/api/webhook
-          </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Deploy ettikten sonra &quot;SITENIZ&quot; kısmı gerçek domain ile değişecek.
-            Güvenlik için <code className="bg-gray-100 px-1 rounded">WHATSAPP_APP_SECRET</code>{" "}
-            ve <code className="bg-gray-100 px-1 rounded">WHATSAPP_VERIFY_TOKEN</code> env
-            değişkenlerini ayarlayın.
-          </p>
-        </div>
+        <WebhookUrlCard />
       </div>
+    </div>
+  );
+}
+
+function WebhookUrlCard() {
+  const [url, setUrl] = useState<string>("https://wasend.tech/api/webhook");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      if (typeof window !== "undefined") {
+        setUrl(`${window.location.origin}/api/webhook`);
+      }
+    });
+  }, []);
+
+  async function copy() {
+    await navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      <h3 className="font-semibold text-gray-900 mb-4">Webhook URL</h3>
+      <p className="text-sm text-gray-500 mb-3">
+        Meta Developer panelinde webhook URL olarak aşağıdaki adresi girin:
+      </p>
+      <div className="flex items-center gap-2">
+        <div className="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3 font-mono text-sm text-gray-700 break-all">
+          {url}
+        </div>
+        <button
+          type="button"
+          onClick={copy}
+          aria-label="Webhook URL'ini kopyala"
+          className="px-3 py-2 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-800"
+        >
+          {copied ? "Kopyalandı" : "Kopyala"}
+        </button>
+      </div>
+      <p className="text-xs text-gray-400 mt-2">
+        Güvenlik için{" "}
+        <code className="bg-gray-100 px-1 rounded">WHATSAPP_APP_SECRET</code> ve{" "}
+        <code className="bg-gray-100 px-1 rounded">WHATSAPP_VERIFY_TOKEN</code>{" "}
+        env değişkenlerini ayarlayın.
+      </p>
     </div>
   );
 }

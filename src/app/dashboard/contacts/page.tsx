@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Users, Plus, Trash2, Search, Upload, Download } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
+import { SkeletonTable } from "@/components/skeleton";
 
 interface Contact {
   id: string;
@@ -195,11 +197,20 @@ export default function ContactsPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-center py-12">Yükleniyor...</p>
+        <SkeletonTable rows={5} />
+      ) : contacts.length === 0 ? (
+        <EmptyState
+          icon={<Users size={32} />}
+          title="Henüz kişi eklenmedi"
+          description="Müşterilerinizi manuel olarak ekleyin ya da CSV dosyasıyla toplu içe aktarın."
+          actionLabel="İlk kişiyi ekle"
+          onAction={() => setShowForm(true)}
+          secondaryLabel="CSV'den içe aktar"
+          secondaryHref="#"
+        />
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-          <Users size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500">Henüz kişi eklenmemiş</p>
+        <div className="text-center py-12 text-gray-400 text-sm">
+          &quot;{search}&quot; için kayıt yok
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
