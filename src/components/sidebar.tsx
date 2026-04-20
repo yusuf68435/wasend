@@ -130,6 +130,12 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
       <div className="p-6 border-b border-gray-200">
         <h1 className="text-2xl font-bold text-green-600">WaSend</h1>
         <p className="text-xs text-gray-400 mt-1">WhatsApp Otomasyon</p>
+        <p className="text-xs text-gray-400 mt-3">
+          <kbd className="bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 text-gray-600">
+            ⌘K
+          </kbd>{" "}
+          ile hızlı ara
+        </p>
       </div>
 
       <nav className="flex-1 p-3 space-y-3 overflow-y-auto">

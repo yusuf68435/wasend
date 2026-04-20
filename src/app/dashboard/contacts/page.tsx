@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Users, Plus, Trash2, Search, Upload, Download } from "lucide-react";
+import { Suspense, useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Users, Plus, Trash2, Search, Upload, Download, CheckSquare, Square, Tag } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { SkeletonTable } from "@/components/skeleton";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface Contact {
   id: string;
@@ -22,13 +24,37 @@ interface ImportResult {
   errors?: Array<{ row: number; message: string }>;
 }
 
-export default function ContactsPage() {
+function ContactsContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams?.get("q") || "");
   const [loading, setLoading] = useState(true);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importing, setImporting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkTagValue, setBulkTagValue] = useState("");
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  // Search state URL'de (refresh'te korunur)
+  const updateSearchInUrl = useCallback(
+    (value: string) => {
+      const params = new URLSearchParams(searchParams?.toString() || "");
+      if (value) params.set("q", value);
+      else params.delete("q");
+      router.replace(`/dashboard/contacts${params.toString() ? "?" + params.toString() : ""}`, {
+        scroll: false,
+      });
+    },
+    [router, searchParams],
+  );
+
+  useEffect(() => {
+    const t = setTimeout(() => updateSearchInUrl(search), 300);
+    return () => clearTimeout(t);
+  }, [search, updateSearchInUrl]);
 
   async function reloadContacts() {
     const res = await fetch("/api/contacts?limit=500");
@@ -99,13 +125,69 @@ export default function ContactsPage() {
   async function handleDelete(id: string) {
     await fetch(`/api/contacts?id=${id}`, { method: "DELETE" });
     setContacts((prev) => prev.filter((c) => c.id !== id));
+    setSelected((prev) => {
+      const n = new Set(prev);
+      n.delete(id);
+      return n;
+    });
+  }
+
+  function toggleOne(id: string) {
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   }
 
   const filtered = contacts.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.phone.includes(search)
+      c.phone.includes(search),
   );
+
+  function toggleAllFiltered() {
+    const filteredIds = filtered.map((c) => c.id);
+    const allSelected = filteredIds.every((id) => selected.has(id));
+    setSelected((prev) => {
+      const n = new Set(prev);
+      if (allSelected) filteredIds.forEach((id) => n.delete(id));
+      else filteredIds.forEach((id) => n.add(id));
+      return n;
+    });
+  }
+
+  async function runBulkDelete() {
+    setBulkBusy(true);
+    const res = await fetch("/api/contacts", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [...selected] }),
+    });
+    setBulkBusy(false);
+    setBulkDeleteOpen(false);
+    if (res.ok) {
+      setContacts((prev) => prev.filter((c) => !selected.has(c.id)));
+      setSelected(new Set());
+    }
+  }
+
+  async function runBulkTag() {
+    if (!bulkTagValue.trim()) return;
+    setBulkBusy(true);
+    const res = await fetch("/api/contacts", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: [...selected], addTag: bulkTagValue.trim() }),
+    });
+    setBulkBusy(false);
+    if (res.ok) {
+      setBulkTagValue("");
+      await reloadContacts();
+      setSelected(new Set());
+    }
+  }
 
   return (
     <div>
@@ -187,14 +269,57 @@ export default function ContactsPage() {
       )}
 
       <div className="relative mb-4">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search
+          size={18}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          aria-hidden="true"
+        />
         <input
+          type="search"
+          aria-label="Kişi ara"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-green-500 bg-white"
           placeholder="Kişi ara..."
         />
       </div>
+
+      {selected.size > 0 && (
+        <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-2 flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-amber-900">
+            {selected.size} kişi seçildi
+          </span>
+          <div className="flex items-center gap-1">
+            <input
+              value={bulkTagValue}
+              onChange={(e) => setBulkTagValue(e.target.value)}
+              placeholder="Etiket ekle..."
+              aria-label="Toplu etiket"
+              className="px-2 py-1 border border-amber-300 rounded text-xs bg-white"
+            />
+            <button
+              onClick={runBulkTag}
+              disabled={!bulkTagValue.trim() || bulkBusy}
+              className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center gap-1 disabled:opacity-50"
+            >
+              <Tag size={12} /> Ekle
+            </button>
+          </div>
+          <div className="flex-1" />
+          <button
+            onClick={() => setBulkDeleteOpen(true)}
+            className="text-xs px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700 inline-flex items-center gap-1"
+          >
+            <Trash2 size={12} /> Seçili Sil
+          </button>
+          <button
+            onClick={() => setSelected(new Set())}
+            className="text-xs px-3 py-1.5 text-amber-900 hover:bg-amber-100 rounded"
+          >
+            Temizle
+          </button>
+        </div>
+      )}
 
       {loading ? (
         <SkeletonTable rows={5} />
@@ -217,6 +342,19 @@ export default function ContactsPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
+                <th className="px-3 py-3 w-10">
+                  <button
+                    onClick={toggleAllFiltered}
+                    aria-label="Tüm filtrelenmiş kişileri seç/bırak"
+                    className="text-gray-500 hover:text-gray-900"
+                  >
+                    {filtered.every((c) => selected.has(c.id)) && filtered.length > 0 ? (
+                      <CheckSquare size={16} />
+                    ) : (
+                      <Square size={16} />
+                    )}
+                  </button>
+                </th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">İsim</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Telefon</th>
                 <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Etiketler</th>
@@ -224,28 +362,66 @@ export default function ContactsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {filtered.map((contact) => (
-                <tr key={contact.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{contact.name}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{contact.phone}</td>
-                  <td className="px-6 py-4">
-                    {contact.tags?.split(",").map((tag) => (
-                      <span key={tag} className="inline-block bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full mr-1">
-                        {tag.trim()}
-                      </span>
-                    ))}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button onClick={() => handleDelete(contact.id)} className="text-gray-400 hover:text-red-500 transition">
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {filtered.map((contact) => {
+                const isSelected = selected.has(contact.id);
+                return (
+                  <tr
+                    key={contact.id}
+                    className={`hover:bg-gray-50 ${isSelected ? "bg-amber-50" : ""}`}
+                  >
+                    <td className="px-3 py-4">
+                      <button
+                        onClick={() => toggleOne(contact.id)}
+                        aria-label={isSelected ? "Seçimi kaldır" : "Seç"}
+                        className="text-gray-500 hover:text-gray-900"
+                      >
+                        {isSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{contact.name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{contact.phone}</td>
+                    <td className="px-6 py-4">
+                      {contact.tags?.split(",").map((tag) => (
+                        <span key={tag} className="inline-block bg-green-50 text-green-700 text-xs px-2 py-1 rounded-full mr-1">
+                          {tag.trim()}
+                        </span>
+                      ))}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDelete(contact.id)}
+                        aria-label={`${contact.name} kişisini sil`}
+                        className="text-gray-400 hover:text-red-500 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       )}
+
+      <ConfirmDialog
+        open={bulkDeleteOpen}
+        title="Toplu silme"
+        message={`${selected.size} kişi kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam edilsin mi?`}
+        confirmLabel="Sil"
+        variant="danger"
+        loading={bulkBusy}
+        onConfirm={runBulkDelete}
+        onCancel={() => setBulkDeleteOpen(false)}
+      />
     </div>
+  );
+}
+
+export default function ContactsPage() {
+  return (
+    <Suspense fallback={<SkeletonTable rows={5} />}>
+      <ContactsContent />
+    </Suspense>
   );
 }

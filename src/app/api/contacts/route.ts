@@ -93,8 +93,73 @@ export async function DELETE(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
 
-  await prisma.contact.deleteMany({ where: { id, userId } });
-  return NextResponse.json({ success: true });
+  // Tek silme (id query param)
+  if (id) {
+    await prisma.contact.deleteMany({ where: { id, userId } });
+    return NextResponse.json({ success: true });
+  }
+
+  // Toplu silme (body'de ids[])
+  let body: { ids?: string[] };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "ID veya ids[] gerekli" }, { status: 400 });
+  }
+  if (!Array.isArray(body.ids) || body.ids.length === 0) {
+    return NextResponse.json({ error: "ids[] zorunlu" }, { status: 400 });
+  }
+  if (body.ids.length > 1000) {
+    return NextResponse.json({ error: "Max 1000 kayıt" }, { status: 400 });
+  }
+
+  const result = await prisma.contact.deleteMany({
+    where: { id: { in: body.ids }, userId },
+  });
+  return NextResponse.json({ deleted: result.count });
+}
+
+export async function PATCH(request: Request) {
+  // Toplu etiket ekleme
+  const userId = await getUserId();
+  if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+
+  let body: { ids?: string[]; addTag?: string };
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Geçersiz JSON" }, { status: 400 });
+  }
+  if (!Array.isArray(body.ids) || body.ids.length === 0) {
+    return NextResponse.json({ error: "ids[] zorunlu" }, { status: 400 });
+  }
+  if (!body.addTag || !body.addTag.trim()) {
+    return NextResponse.json({ error: "addTag zorunlu" }, { status: 400 });
+  }
+  if (body.ids.length > 1000) {
+    return NextResponse.json({ error: "Max 1000 kayıt" }, { status: 400 });
+  }
+
+  const newTag = body.addTag.trim().toLowerCase();
+  const contacts = await prisma.contact.findMany({
+    where: { id: { in: body.ids }, userId },
+    select: { id: true, tags: true },
+  });
+
+  let updated = 0;
+  for (const c of contacts) {
+    const existing = (c.tags || "")
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+    if (existing.includes(newTag)) continue;
+    existing.push(newTag);
+    await prisma.contact.update({
+      where: { id: c.id },
+      data: { tags: existing.join(",") },
+    });
+    updated++;
+  }
+  return NextResponse.json({ updated });
 }
