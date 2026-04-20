@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   LayoutDashboard,
   MessageSquare,
@@ -170,6 +171,10 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
           Profil
         </p>
         {PROFILE_ITEMS.map(renderLink)}
+        <div className="flex items-center justify-between px-3 py-2">
+          <span className="text-xs text-gray-500">Tema</span>
+          <ThemeToggle />
+        </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition w-full"

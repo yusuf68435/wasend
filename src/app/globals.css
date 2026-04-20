@@ -1,8 +1,16 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — next-themes ile uyumlu */
+@variant dark (&:where(.dark, .dark *));
+
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+}
+
+.dark {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
 }
 
 body {

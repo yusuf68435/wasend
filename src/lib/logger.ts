@@ -101,12 +101,19 @@ export const logger = {
           : {};
     write("error", msg, { ...errorFields, ...fields });
 
-    // Sentry hook (opsiyonel; SDK kurulursa devreye girer)
+    // Sentry hook — SENTRY_DSN varsa SDK otomatik capture eder.
+    // Manuel captureException aşağıda fallback olarak.
     if (process.env.SENTRY_DSN && error instanceof Error) {
-      // Runtime'da Sentry yoksa sessizce atla
       try {
-        const sentry = (globalThis as { Sentry?: { captureException(e: unknown): void } }).Sentry;
-        sentry?.captureException(error);
+        // Dinamik import — Sentry SDK kurulmamışsa hata fırlatmaz
+        import("@sentry/nextjs")
+          .then((Sentry) => {
+            Sentry.captureException(error, {
+              tags: { logger: "manual" },
+              extra: fields,
+            });
+          })
+          .catch(() => undefined);
       } catch {
         // ignore
       }
