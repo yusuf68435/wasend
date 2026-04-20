@@ -21,20 +21,85 @@ export interface ProcessBroadcastResult {
   total: number;
 }
 
+/**
+ * Broadcast'i "sending" state'ine atomic geçir.
+ * Sadece draft/scheduled/failed bir broadcast işlenebilir.
+ * Eşzamanlı ikinci bir çağrı 0 satır update eder ve hata fırlatır.
+ */
+const RUNNABLE_STATUSES = ["draft", "scheduled", "failed"] as const;
+
 export async function processBroadcast(
   broadcastId: string,
 ): Promise<ProcessBroadcastResult> {
-  const broadcast = await prisma.broadcast.findUnique({
-    where: { id: broadcastId },
-  });
-  if (!broadcast) throw new Error("Kampanya bulunamadı");
-
   const apiToken = process.env.WHATSAPP_API_TOKEN;
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   if (!apiToken || !phoneNumberId) {
     throw new Error("WhatsApp API ayarları eksik");
   }
 
+  const claimed = await prisma.broadcast.updateMany({
+    where: {
+      id: broadcastId,
+      status: { in: [...RUNNABLE_STATUSES] },
+    },
+    data: {
+      status: "sending",
+      startedAt: new Date(),
+    },
+  });
+
+  if (claimed.count === 0) {
+    const existing = await prisma.broadcast.findUnique({
+      where: { id: broadcastId },
+      select: { id: true, status: true },
+    });
+    if (!existing) throw new Error("Kampanya bulunamadı");
+    throw new Error(
+      `Bu kampanya zaten "${existing.status}" durumunda — tekrar gönderilemez`,
+    );
+  }
+
+  const broadcast = await prisma.broadcast.findUnique({
+    where: { id: broadcastId },
+  });
+  if (!broadcast) {
+    await prisma.broadcast.update({
+      where: { id: broadcastId },
+      data: { status: "failed" },
+    }).catch(() => undefined);
+    throw new Error("Kampanya bulunamadı");
+  }
+
+  try {
+    return await runBroadcast(broadcast, broadcastId, apiToken, phoneNumberId);
+  } catch (err) {
+    // Status'u failed'e geri al ki sıkışıp kalmasın; tekrar denenebilir.
+    await prisma.broadcast
+      .update({
+        where: { id: broadcastId },
+        data: { status: "failed", completedAt: new Date() },
+      })
+      .catch(() => undefined);
+    throw err;
+  }
+}
+
+async function runBroadcast(
+  broadcast: {
+    id: string;
+    userId: string;
+    name: string;
+    message: string;
+    targetTags: string | null;
+    segmentId: string | null;
+    mediaType: string | null;
+    mediaUrl: string | null;
+    rateLimit: number;
+  },
+  broadcastId: string,
+  apiToken: string,
+  phoneNumberId: string,
+): Promise<ProcessBroadcastResult> {
   // Audience selection: segment takes priority over targetTags
   let contacts: Array<{ id: string; phone: string; tags: string | null }>;
 
@@ -84,10 +149,18 @@ export async function processBroadcast(
     }
   }
 
-  await prisma.broadcast.update({
-    where: { id: broadcastId },
-    data: { status: "sending" },
+  // Retry safety: eğer bu broadcast önceki run'da yarıda kaldıysa, daha önce
+  // işlenen contact'ları atla. Composite unique (broadcastId, contactId) ile
+  // DB koruma var; ama WA API'sine iki kez istek atmamak için burada da filtre.
+  const processed = await prisma.message.findMany({
+    where: { broadcastId, contactId: { not: null } },
+    select: { contactId: true, status: true },
   });
+  const processedIds = new Set(
+    processed.map((m) => m.contactId).filter((id): id is string => !!id),
+  );
+  const totalAudience = contacts.length;
+  contacts = contacts.filter((c) => !processedIds.has(c.id));
 
   // Rate limit: rateLimit messages per minute.
   const rateLimit = Math.max(1, broadcast.rateLimit || 80);
@@ -98,8 +171,8 @@ export async function processBroadcast(
     : null;
   const useMedia = mediaType && broadcast.mediaUrl;
 
-  let sentCount = 0;
-  let failedCount = 0;
+  let sentCount = processed.filter((m) => m.status === "sent").length;
+  let failedCount = processed.filter((m) => m.status === "failed").length;
 
   for (const contact of contacts) {
     const start = Date.now();
@@ -120,37 +193,50 @@ export async function processBroadcast(
             apiToken,
           });
 
-      await prisma.message.create({
-        data: {
-          content: broadcast.message,
-          direction: "outgoing",
-          phone: contact.phone,
-          userId: broadcast.userId,
-          contactId: contact.id,
-          status: "sent",
-          waMessageId: result.waMessageId,
-          mediaType: mediaType ?? null,
-          mediaUrl: broadcast.mediaUrl ?? null,
-          caption: useMedia ? broadcast.message : null,
-        },
-      });
-
-      sentCount++;
+      try {
+        await prisma.message.create({
+          data: {
+            content: broadcast.message,
+            direction: "outgoing",
+            phone: contact.phone,
+            userId: broadcast.userId,
+            contactId: contact.id,
+            broadcastId,
+            status: "sent",
+            waMessageId: result.waMessageId,
+            mediaType: mediaType ?? null,
+            mediaUrl: broadcast.mediaUrl ?? null,
+            caption: useMedia ? broadcast.message : null,
+          },
+        });
+        sentCount++;
+      } catch (dbErr) {
+        // P2002 = composite unique ihlali = bu broadcast zaten aynı contact'a
+        // gönderilmiş. Muhtemelen önceki denemeden kalmış. Sayma, devam et.
+        const code = (dbErr as { code?: string })?.code;
+        if (code !== "P2002") throw dbErr;
+      }
     } catch (error) {
       failedCount++;
       const reason = error instanceof Error ? error.message : String(error);
       console.error(`Broadcast send error for ${contact.phone}:`, reason);
-      await prisma.message.create({
-        data: {
-          content: broadcast.message,
-          direction: "outgoing",
-          phone: contact.phone,
-          userId: broadcast.userId,
-          contactId: contact.id,
-          status: "failed",
-          failedReason: reason.slice(0, 500),
-        },
-      });
+      try {
+        await prisma.message.create({
+          data: {
+            content: broadcast.message,
+            direction: "outgoing",
+            phone: contact.phone,
+            userId: broadcast.userId,
+            contactId: contact.id,
+            broadcastId,
+            status: "failed",
+            failedReason: reason.slice(0, 500),
+          },
+        });
+      } catch (dbErr) {
+        const code = (dbErr as { code?: string })?.code;
+        if (code !== "P2002") throw dbErr;
+      }
     }
 
     const elapsed = Date.now() - start;
@@ -161,7 +247,12 @@ export async function processBroadcast(
 
   await prisma.broadcast.update({
     where: { id: broadcastId },
-    data: { status: "sent", sentCount, failedCount },
+    data: {
+      status: "sent",
+      sentCount,
+      failedCount,
+      completedAt: new Date(),
+    },
   });
 
   dispatchWebhook({
@@ -172,9 +263,9 @@ export async function processBroadcast(
       name: broadcast.name,
       sentCount,
       failedCount,
-      total: contacts.length,
+      total: totalAudience,
     },
   });
 
-  return { sentCount, failedCount, total: contacts.length };
+  return { sentCount, failedCount, total: totalAudience };
 }

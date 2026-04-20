@@ -31,6 +31,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Kampanya bulunamadı" }, { status: 404 });
   }
 
+  // Çift gönderimi engelle — zaten çalışıyorsa veya tamamlanmışsa reddet.
+  if (broadcast.status === "sending") {
+    return NextResponse.json(
+      { error: "Bu kampanya şu an gönderiliyor — lütfen bekleyin" },
+      { status: 409 },
+    );
+  }
+  if (broadcast.status === "sent") {
+    return NextResponse.json(
+      { error: "Bu kampanya zaten gönderildi" },
+      { status: 409 },
+    );
+  }
+
   const quota = await checkBroadcastQuota(userId);
   if (!quota.allowed) {
     return NextResponse.json(

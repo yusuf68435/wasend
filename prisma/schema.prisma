@@ -123,15 +123,18 @@ model Message {
   caption      String?
   userId       String
   contactId    String?
+  broadcastId  String?
   createdAt    DateTime  @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   contact   Contact? @relation(fields: [contactId], references: [id])
 
+  @@unique([broadcastId, contactId])
   @@index([userId, createdAt])
   @@index([userId, status, createdAt])
   @@index([userId, direction, createdAt])
   @@index([contactId])
+  @@index([broadcastId])
 }
 
 model Reminder {
@@ -163,6 +166,8 @@ model Broadcast {
   failedCount Int       @default(0)
   rateLimit   Int       @default(80)
   scheduledAt DateTime?
+  startedAt   DateTime?
+  completedAt DateTime?
   status      String    @default("draft")
   userId      String
   createdAt   DateTime  @default(now())
