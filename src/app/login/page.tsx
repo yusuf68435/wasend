@@ -23,7 +23,13 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      setError("Email veya şifre hatalı");
+      // Suspended user için auth.ts throw Error("Hesap askıya alındı...") atıyor.
+      // NextAuth bunu result.error'a string olarak koyar.
+      if (result.error.includes("askıya")) {
+        setError(result.error);
+      } else {
+        setError("Email veya şifre hatalı");
+      }
       setLoading(false);
     } else {
       router.push("/dashboard");
@@ -55,7 +61,15 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Şifre</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Şifre</label>
+              <Link
+                href="/forgot-password"
+                className="text-xs text-green-600 hover:underline"
+              >
+                Şifremi unuttum
+              </Link>
+            </div>
             <input
               name="password"
               type="password"
