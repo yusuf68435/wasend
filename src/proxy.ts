@@ -1,41 +1,25 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * CSP nonce proxy — her istekte taze nonce üretir ve script-src'e
- * 'nonce-{value}' olarak koyar. Böylece 'unsafe-inline' kaldırılabilir
- * ve XSS'e karşı CSP'nin asıl faydası geri gelir.
+ * CSP proxy — Next.js 16 convention ("middleware" → "proxy").
  *
- * Next.js 16'da "middleware" adı "proxy" olarak değiştirildi.
- * Dev'de nonce yerine 'unsafe-inline' + 'unsafe-eval' açık kalır —
- * Next.js HMR ve React Fast Refresh buna ihtiyaç duyar.
+ * U7'de strict nonce + strict-dynamic denendi; Next.js 16 kendi client
+ * script'lerine otomatik nonce koymadığı için tüm JS CSP tarafından
+ * bloklandı ve sayfa beyaz kaldı. Rollback: izin verici CSP (unsafe-inline
+ * + unsafe-eval script-src'te; style-src zaten Tailwind için unsafe-inline).
  *
- * Referans: https://nextjs.org/docs/messages/middleware-to-proxy
+ * TODO: Next.js 16 nonce propagation için next/script API veya üst-metre
+ * çözüme geçince burayı strict'e taşı.
  */
 
-function generateNonce(): string {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  return Buffer.from(bytes).toString("base64");
-}
-
-function buildCsp(nonce: string, isProd: boolean): string {
-  // strict-dynamic: nonce'lu script'in dinamik olarak yüklediği script'ler
-  // otomatik güvenilir sayılır. https: fallback, strict-dynamic desteklemeyen
-  // eski tarayıcılar için.
-  const scriptSrc = isProd
-    ? `'self' 'nonce-${nonce}' 'strict-dynamic' https:`
-    : `'self' 'unsafe-inline' 'unsafe-eval'`;
-
+function buildCsp(): string {
   return [
     "default-src 'self'",
-    `script-src ${scriptSrc}`,
-    // Tailwind v4 + inline style attributes için style-src unsafe-inline kalıyor.
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    // GA + reCAPTCHA + Meta Graph + Anthropic
     "connect-src 'self' https://graph.facebook.com https://api.anthropic.com https://www.google-analytics.com https://www.google.com",
-    // reCAPTCHA iframe gerektirir (bot challenge)
     "frame-src https://www.google.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
@@ -45,32 +29,17 @@ function buildCsp(nonce: string, isProd: boolean): string {
   ].join("; ");
 }
 
-export function proxy(request: NextRequest) {
-  const isProd = process.env.NODE_ENV === "production";
-  const nonce = generateNonce();
-  const csp = buildCsp(nonce, isProd);
-
-  // Next.js'in script tag'lerine nonce basması için özel header
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set("content-security-policy", csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
-  response.headers.set("content-security-policy", csp);
+export function proxy(_request: NextRequest) {
+  const response = NextResponse.next();
+  response.headers.set("content-security-policy", buildCsp());
   return response;
 }
 
 export const config = {
   matcher: [
-    /*
-     * Statik asset'ler ve image-optimization hariç tüm sayfalar:
-     * - /api eşleşir (API route'larına da CSP header'ı eklenir — zararsız)
-     * - /_next/static hariç (bundler asset'leri)
-     * - /_next/image hariç (optimized images)
-     * - favicon, robots vb hariç
-     */
     {
-      source: "/((?!api/webhook|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
+      source:
+        "/((?!api/webhook|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
