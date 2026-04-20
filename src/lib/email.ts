@@ -1,8 +1,16 @@
 /**
- * Email soyutlama. Provider-agnostic; şu an Resend API'yi destekler.
- * RESEND_API_KEY yoksa dev modunda log'a yazar.
+ * Email soyutlama. Provider öncelik sırası:
+ *   1. RESEND_API_KEY set ise → Resend API (ücretsiz 3K/ay)
+ *   2. SMTP_HOST set ise → nodemailer SMTP (Gmail, cPanel, custom...)
+ *   3. Prod'da hiçbiri yoksa → hata döner
+ *   4. Dev'de hiçbiri yoksa → console'a yazar
  *
- * Gelecekte SMTP/SendGrid için adapter eklenebilir.
+ * SMTP ayarları örneği (Gmail için app password gerekir):
+ *   SMTP_HOST=smtp.gmail.com
+ *   SMTP_PORT=587
+ *   SMTP_SECURE=false    (465 için true)
+ *   SMTP_USER=your@gmail.com
+ *   SMTP_PASS=app-password
  */
 
 interface SendEmailInput {
@@ -13,24 +21,11 @@ interface SendEmailInput {
   replyTo?: string;
 }
 
-export async function sendEmail(input: SendEmailInput): Promise<{ ok: boolean; id?: string; error?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM || "WaSend <noreply@wasend.tech>";
-
-  if (!apiKey) {
-    if (process.env.NODE_ENV === "production") {
-      console.error("RESEND_API_KEY production'da eksik — e-posta gönderilemedi");
-      return { ok: false, error: "Email provider not configured" };
-    }
-    // Dev: console'a logla
-    console.log("\n───── DEV EMAIL ─────");
-    console.log("To:", input.to);
-    console.log("Subject:", input.subject);
-    console.log("Text:", input.text);
-    console.log("─────────────────────\n");
-    return { ok: true, id: "dev-log" };
-  }
-
+async function sendViaResend(
+  input: SendEmailInput,
+  from: string,
+  apiKey: string,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -54,9 +49,62 @@ export async function sendEmail(input: SendEmailInput): Promise<{ ok: boolean; i
     }
     return { ok: true, id: data.id };
   } catch (e) {
-    console.error("Email send exception:", e);
+    console.error("Resend exception:", e);
     return { ok: false, error: e instanceof Error ? e.message : "unknown" };
   }
+}
+
+async function sendViaSmtp(
+  input: SendEmailInput,
+  from: string,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  try {
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_SECURE === "true",
+      auth:
+        process.env.SMTP_USER && process.env.SMTP_PASS
+          ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+          : undefined,
+    });
+    const info = await transporter.sendMail({
+      from,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+      replyTo: input.replyTo,
+    });
+    return { ok: true, id: info.messageId };
+  } catch (e) {
+    console.error("SMTP send exception:", e);
+    return { ok: false, error: e instanceof Error ? e.message : "unknown" };
+  }
+}
+
+export async function sendEmail(
+  input: SendEmailInput,
+): Promise<{ ok: boolean; id?: string; error?: string }> {
+  const from = process.env.EMAIL_FROM || "WaSend <noreply@wasend.tech>";
+  const resendKey = process.env.RESEND_API_KEY;
+  const smtpHost = process.env.SMTP_HOST;
+
+  if (resendKey) return sendViaResend(input, from, resendKey);
+  if (smtpHost) return sendViaSmtp(input, from);
+
+  if (process.env.NODE_ENV === "production") {
+    console.error("Email provider yok (RESEND_API_KEY veya SMTP_HOST eksik)");
+    return { ok: false, error: "Email provider not configured" };
+  }
+
+  console.log("\n───── DEV EMAIL ─────");
+  console.log("To:", input.to);
+  console.log("Subject:", input.subject);
+  console.log("Text:", input.text);
+  console.log("─────────────────────\n");
+  return { ok: true, id: "dev-log" };
 }
 
 // ——— Templates ———

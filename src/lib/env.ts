@@ -37,8 +37,15 @@ const envSchema = z.object({
 
   // Opsiyonel servisler — DSN/key yoksa ilgili özellik pasif
   ANTHROPIC_API_KEY: z.string().optional(),
+
+  // Email: Resend (öncelik) veya SMTP fallback
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_SECURE: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
   NEXT_PUBLIC_RECAPTCHA_SITE_KEY: z.string().optional(),
   RECAPTCHA_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
