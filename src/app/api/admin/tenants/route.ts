@@ -11,6 +11,7 @@ export async function GET(request: Request) {
   const q = (url.searchParams.get("q") || "").trim();
   const plan = url.searchParams.get("plan") || undefined;
   const status = url.searchParams.get("status") || undefined;
+  const sort = url.searchParams.get("sort") || "createdAt";
   const limit = Math.min(200, Math.max(10, Number(url.searchParams.get("limit")) || 50));
   const cursor = url.searchParams.get("cursor") || undefined;
 
@@ -20,15 +21,23 @@ export async function GET(request: Request) {
       { email: { contains: q } },
       { name: { contains: q } },
       { businessName: { contains: q } },
+      { phone: { contains: q } },
     ];
   }
   if (plan) where.plan = plan;
   if (status === "suspended") where.suspended = true;
   if (status === "active") where.suspended = false;
 
+  const orderBy: Prisma.UserOrderByWithRelationInput =
+    sort === "lastSeenAt"
+      ? { lastSeenAt: { sort: "desc", nulls: "last" } }
+      : sort === "email"
+        ? { email: "asc" }
+        : { createdAt: "desc" };
+
   const tenants = await prisma.user.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy,
     take: limit + 1,
     ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
     select: {
