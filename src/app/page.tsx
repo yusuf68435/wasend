@@ -24,6 +24,7 @@ export default function HomePage() {
             <a href="#pricing" className="hover:text-gray-900">Fiyatlar</a>
             <a href="#faq" className="hover:text-gray-900">SSS</a>
             <Link href="/blog" className="hover:text-gray-900">Blog</Link>
+            <Link href="/changelog" className="hover:text-gray-900">Yenilikler</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link
