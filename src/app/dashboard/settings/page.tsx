@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import { WhatsAppSetupGuide } from "@/components/whatsapp-setup-guide";
 
 const DAY_LABELS = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 
@@ -92,6 +93,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-6">
+        <WhatsAppSetupGuide />
+
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">WhatsApp Business API Bağlantısı</h3>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
