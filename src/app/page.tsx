@@ -23,6 +23,7 @@ export default function HomePage() {
             <a href="#features" className="hover:text-gray-900">Özellikler</a>
             <a href="#pricing" className="hover:text-gray-900">Fiyatlar</a>
             <a href="#faq" className="hover:text-gray-900">SSS</a>
+            <Link href="/blog" className="hover:text-gray-900">Blog</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Link
