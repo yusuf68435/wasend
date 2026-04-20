@@ -12,11 +12,14 @@ export async function register() {
     await import("./lib/env");
   }
 
-  if (process.env.NEXT_RUNTIME === "nodejs") {
+  // Sentry sadece DSN varsa import edilir. Import bile yoksa Turbopack
+  // @sentry/nextjs → @fastify/otel junction point'leri yaratmaz (Windows'ta
+  // bu junction'lar non-ASCII path'te patlıyor).
+  if (process.env.NEXT_RUNTIME === "nodejs" && process.env.SENTRY_DSN) {
     await import("../sentry.server.config");
   }
 
-  if (process.env.NEXT_RUNTIME === "edge") {
+  if (process.env.NEXT_RUNTIME === "edge" && process.env.SENTRY_DSN) {
     await import("../sentry.edge.config");
   }
 }
