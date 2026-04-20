@@ -1,6 +1,7 @@
 import { requireAuth } from "@/lib/auth-helper";
 import { Sidebar } from "@/components/sidebar";
 import { AnnouncementBanner } from "@/components/announcement-banner";
+import { WelcomeModal } from "@/components/welcome-modal";
 import { getSuperAdminOrNull } from "@/lib/admin-guard";
 
 export default async function DashboardLayout({
@@ -18,6 +19,7 @@ export default async function DashboardLayout({
         <AnnouncementBanner />
         {children}
       </main>
+      <WelcomeModal />
     </div>
   );
 }
