@@ -31,6 +31,7 @@ export async function GET(
       aiModel: true,
       aiDailyTokenLimit: true,
       lastSeenAt: true,
+      trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
       _count: {

@@ -13,6 +13,10 @@ import {
   Calendar,
   Activity,
   UserCheck,
+  Clock,
+  KeyRound,
+  Trash2,
+  Copy,
 } from "lucide-react";
 
 interface TenantDetail {
@@ -34,6 +38,7 @@ interface TenantDetail {
     aiModel: string;
     aiDailyTokenLimit: number;
     lastSeenAt: string | null;
+    trialEndsAt: string | null;
     createdAt: string;
     _count: {
       contacts: number;
@@ -71,6 +76,7 @@ export default function TenantDetailPage() {
   const [data, setData] = useState<TenantDetail | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [resetUrl, setResetUrl] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!id) return;
@@ -159,6 +165,79 @@ export default function TenantDetailPage() {
     load();
   }
 
+  async function extendTrial(days: number) {
+    if (!data) return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/tenants/${id}/extend-trial`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ days }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setMsg(d.error || "Hata");
+      return;
+    }
+    const result = await res.json();
+    setMsg(
+      `Trial ${days} gün uzatıldı (yeni bitiş: ${new Date(result.trialEndsAt).toLocaleDateString("tr-TR")})`,
+    );
+    load();
+  }
+
+  async function generatePasswordReset() {
+    if (!data) return;
+    if (
+      !window.confirm(
+        `${data.user.email} için şifre sıfırlama URL'i oluştur? Kullanıcının mevcut şifresi çalışmaya devam eder.`,
+      )
+    )
+      return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/tenants/${id}/reset-password`, {
+      method: "POST",
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setMsg(d.error || "Hata");
+      return;
+    }
+    const result = await res.json();
+    // Clipboard'a yaz + ekranda göster
+    try {
+      await navigator.clipboard.writeText(result.resetUrl);
+    } catch {
+      // clipboard erişimi yok, sadece göster
+    }
+    setResetUrl(result.resetUrl);
+    setMsg("Sıfırlama URL'i panoya kopyalandı. Kullanıcıya güvenli kanaldan ilet (24 saat geçerli).");
+  }
+
+  async function clearFailed() {
+    if (!data) return;
+    if (
+      !window.confirm(
+        "Bu kullanıcının tüm başarısız mesajları silinecek. Devam?",
+      )
+    )
+      return;
+    setBusy(true);
+    const res = await fetch(`/api/admin/tenants/${id}/clear-failed`, {
+      method: "POST",
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setMsg(d.error || "Hata");
+      return;
+    }
+    const result = await res.json();
+    setMsg(`${result.deleted} başarısız mesaj silindi`);
+    load();
+  }
+
   async function impersonate() {
     if (!data) return;
     if (
@@ -199,6 +278,36 @@ export default function TenantDetailPage() {
       {msg && (
         <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-900 text-sm px-3 py-2 rounded">
           {msg}
+        </div>
+      )}
+
+      {resetUrl && (
+        <div className="mb-4 bg-blue-50 border border-blue-200 rounded p-3">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-blue-900 mb-1">
+                Şifre Sıfırlama URL&apos;i (24 saat)
+              </p>
+              <p className="text-xs text-blue-700 break-all font-mono">{resetUrl}</p>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(resetUrl);
+                  setMsg("URL kopyalandı");
+                }}
+                className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center gap-1"
+              >
+                <Copy size={12} /> Kopyala
+              </button>
+              <button
+                onClick={() => setResetUrl(null)}
+                className="text-xs px-2 py-1 text-blue-700 hover:bg-blue-100 rounded"
+              >
+                Gizle
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -334,7 +443,71 @@ export default function TenantDetailPage() {
             <Row k="Telefon" v={u.phone || "—"} />
             <Row k="Saat Dilimi" v={u.timezone} />
             <Row k="AI" v={u.aiEnabled ? `Aktif (${u.aiModel})` : "Kapalı"} />
+            <Row
+              k="Trial bitiş"
+              v={u.trialEndsAt ? new Date(u.trialEndsAt).toLocaleDateString("tr-TR") : "—"}
+            />
           </dl>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
+        <h3 className="font-semibold text-slate-900 mb-3 inline-flex items-center gap-2">
+          <Activity size={16} /> Admin İşlemleri
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="border border-slate-200 rounded-lg p-3">
+            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+              <Clock size={14} /> Trial Süresini Uzat
+            </h4>
+            <p className="text-xs text-slate-500 mb-2">
+              Kullanıcıya ek deneme günü tanı.
+            </p>
+            <div className="flex gap-1.5">
+              {[7, 14, 30].map((d) => (
+                <button
+                  key={d}
+                  onClick={() => extendTrial(d)}
+                  disabled={busy}
+                  className="flex-1 text-xs px-2 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50"
+                >
+                  +{d}g
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-slate-200 rounded-lg p-3">
+            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+              <KeyRound size={14} /> Şifre Sıfırla
+            </h4>
+            <p className="text-xs text-slate-500 mb-2">
+              24 saat geçerli URL. Kullanıcıya elle ilet.
+            </p>
+            <button
+              onClick={generatePasswordReset}
+              disabled={busy || u.isSuperAdmin}
+              className="w-full text-xs px-2 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-50"
+            >
+              URL Oluştur
+            </button>
+          </div>
+
+          <div className="border border-slate-200 rounded-lg p-3">
+            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+              <Trash2 size={14} /> Kuyruğu Temizle
+            </h4>
+            <p className="text-xs text-slate-500 mb-2">
+              Failed mesajları sil. Retry engelini kaldırır.
+            </p>
+            <button
+              onClick={clearFailed}
+              disabled={busy}
+              className="w-full text-xs px-2 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 disabled:opacity-50"
+            >
+              Temizle
+            </button>
+          </div>
         </div>
       </div>
 

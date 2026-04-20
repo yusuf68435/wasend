@@ -29,6 +29,7 @@ model User {
   aiSystemPrompt      String?
   aiDailyTokenLimit   Int       @default(100000)
   plan                String    @default("STARTER")
+  trialEndsAt         DateTime?
   stripeCustomerId    String?
   stripeSubscriptionId String?
   isSuperAdmin        Boolean   @default(false)
