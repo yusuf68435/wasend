@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { CookieBanner } from "@/components/cookie-banner";
+import { Analytics } from "@/components/analytics";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -55,6 +56,7 @@ export default function RootLayout({
       <body className={`${inter.className} antialiased`}>
         <Providers>{children}</Providers>
         <CookieBanner />
+        <Analytics />
         {recaptchaKey && (
           <Script
             src={`https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`}
