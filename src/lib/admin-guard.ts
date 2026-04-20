@@ -1,13 +1,34 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { hasValidTotpCookie } from "@/lib/admin-totp-gate";
 
 export interface AdminUser {
   id: string;
   email: string;
   name: string;
   isSuperAdmin: boolean;
+}
+
+/**
+ * ADMIN_IP_ALLOWLIST env (virgüllü IP listesi, opsiyonel).
+ * Set ise /admin erişimi sadece bu IP'lerden; unauth 403 redirect.
+ * Boş ise kontrol yapılmaz (dev kolaylığı).
+ */
+async function checkAdminIpAllowlist(): Promise<boolean> {
+  const raw = process.env.ADMIN_IP_ALLOWLIST;
+  if (!raw) return true;
+  const allowed = raw
+    .split(",")
+    .map((ip) => ip.trim())
+    .filter(Boolean);
+  if (allowed.length === 0) return true;
+  const h = await headers();
+  const xf = h.get("x-forwarded-for");
+  const ip = xf ? xf.split(",")[0].trim() : (h.get("x-real-ip")?.trim() ?? "");
+  return allowed.includes(ip);
 }
 
 /**
@@ -20,6 +41,20 @@ export async function requireSuperAdmin(): Promise<AdminUser> {
 
   if (!session.user.isSuperAdmin) redirect("/dashboard");
 
+  // IP whitelist (opsiyonel, env-controlled)
+  if (!(await checkAdminIpAllowlist())) {
+    redirect("/dashboard?reason=ip-blocked");
+  }
+
+  // 2FA gate: kullanıcının TOTP aktifse ve bu session'da geçmediyse verify sayfası
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { totpEnabled: true },
+  });
+  if (user?.totpEnabled && !(await hasValidTotpCookie(session.user.id))) {
+    redirect("/verify-2fa?next=/admin");
+  }
+
   return {
     id: session.user.id,
     email: session.user.email || "",
@@ -31,6 +66,22 @@ export async function requireSuperAdmin(): Promise<AdminUser> {
 export async function getSuperAdminOrNull(): Promise<AdminUser | null> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id || !session.user.isSuperAdmin) return null;
+  return {
+    id: session.user.id,
+    email: session.user.email || "",
+    name: session.user.name || "",
+    isSuperAdmin: true,
+  };
+}
+
+/**
+ * /admin/verify-2fa sayfası için — TOTP kontrolü atlatılır, sadece
+ * super admin olduğunu kontrol eder. Infinite redirect önler.
+ */
+export async function requireSuperAdminSkipTotp(): Promise<AdminUser> {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) redirect("/login?next=/admin");
+  if (!session.user.isSuperAdmin) redirect("/dashboard");
   return {
     id: session.user.id,
     email: session.user.email || "",

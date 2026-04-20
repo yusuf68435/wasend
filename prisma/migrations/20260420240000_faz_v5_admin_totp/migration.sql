@@ -1,0 +1,3 @@
+-- Faz V5: Admin TOTP 2FA
+ALTER TABLE "User" ADD COLUMN "totpSecret" TEXT;
+ALTER TABLE "User" ADD COLUMN "totpEnabled" BOOLEAN NOT NULL DEFAULT false;

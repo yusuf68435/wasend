@@ -59,6 +59,10 @@ const envSchema = z.object({
 
   // i18n / impersonation / admin — bootstrap
   ADMIN_EMAILS: z.string().optional(),
+  ADMIN_IP_ALLOWLIST: z.string().optional(),
+
+  // Webhook dev-mode bypass
+  WEBHOOK_SKIP_SIGNATURE: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

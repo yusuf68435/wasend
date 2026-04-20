@@ -22,6 +22,7 @@ const links = [
   { href: "/admin/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/admin/audit", label: "Denetim Kaydı", icon: ScrollText },
   { href: "/admin/system", label: "Sistem Sağlığı", icon: Cpu },
+  { href: "/admin/security", label: "Güvenlik (2FA)", icon: Shield },
 ];
 
 export function AdminSidebar({ adminName }: { adminName: string }) {
