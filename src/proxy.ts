@@ -1,14 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 /**
- * CSP nonce middleware — her istekte taze nonce üretir ve script-src'e
+ * CSP nonce proxy — her istekte taze nonce üretir ve script-src'e
  * 'nonce-{value}' olarak koyar. Böylece 'unsafe-inline' kaldırılabilir
  * ve XSS'e karşı CSP'nin asıl faydası geri gelir.
  *
+ * Next.js 16'da "middleware" adı "proxy" olarak değiştirildi.
  * Dev'de nonce yerine 'unsafe-inline' + 'unsafe-eval' açık kalır —
  * Next.js HMR ve React Fast Refresh buna ihtiyaç duyar.
  *
- * Referans: https://nextjs.org/docs/app/building-your-application/configuring/content-security-policy
+ * Referans: https://nextjs.org/docs/messages/middleware-to-proxy
  */
 
 function generateNonce(): string {
@@ -44,7 +45,7 @@ function buildCsp(nonce: string, isProd: boolean): string {
   ].join("; ");
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const isProd = process.env.NODE_ENV === "production";
   const nonce = generateNonce();
   const csp = buildCsp(nonce, isProd);
