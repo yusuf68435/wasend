@@ -8,6 +8,7 @@ import {
   Megaphone,
   ArrowRight,
 } from "lucide-react";
+import { ActivityFeed } from "@/components/activity-feed";
 
 export default async function DashboardPage() {
   const user = await requireAuth();
@@ -68,8 +69,9 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="mt-8 bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Hızlı Başlangıç</h3>
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h3 className="font-semibold text-gray-900 mb-4">Hızlı Başlangıç</h3>
         <div className="space-y-3">
           <StepItem
             step={1}
@@ -96,6 +98,9 @@ export default async function DashboardPage() {
             href="/dashboard/broadcasts"
           />
         </div>
+        </div>
+
+        <ActivityFeed />
       </div>
 
       {!wabaConfigured && (
