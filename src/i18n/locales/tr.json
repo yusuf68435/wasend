@@ -1,0 +1,61 @@
+{
+  "common": {
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "delete": "Sil",
+    "edit": "Düzenle",
+    "loading": "Yükleniyor...",
+    "error": "Hata oluştu",
+    "success": "Başarılı",
+    "confirm": "Onayla",
+    "search": "Ara",
+    "filter": "Filtrele",
+    "empty": "Henüz kayıt yok",
+    "yes": "Evet",
+    "no": "Hayır",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "create": "Oluştur",
+    "update": "Güncelle"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "contacts": "Kişiler",
+    "messages": "Mesajlar",
+    "broadcasts": "Toplu Mesaj",
+    "templates": "Şablonlar",
+    "flows": "Akışlar",
+    "segments": "Segmentler",
+    "analytics": "Analitik",
+    "settings": "Ayarlar",
+    "team": "Ekip",
+    "billing": "Faturalandırma",
+    "account": "Hesap",
+    "logout": "Çıkış Yap"
+  },
+  "auth": {
+    "login": "Giriş Yap",
+    "register": "Kaydol",
+    "email": "E-posta",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi Unuttum",
+    "logout": "Çıkış Yap",
+    "unauthorized": "Yetkisiz",
+    "accountSuspended": "Hesap askıya alındı"
+  },
+  "plan": {
+    "starter": "Başlangıç",
+    "pro": "Profesyonel",
+    "business": "İşletme",
+    "limitReached": "Plan limiti doldu",
+    "upgrade": "Yükselt"
+  },
+  "validation": {
+    "required": "Bu alan zorunludur",
+    "invalidEmail": "Geçersiz e-posta",
+    "invalidPhone": "Geçersiz telefon numarası",
+    "passwordTooShort": "Şifre çok kısa",
+    "passwordMismatch": "Şifreler eşleşmiyor"
+  }
+}

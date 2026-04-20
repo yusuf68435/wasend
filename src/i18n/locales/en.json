@@ -1,0 +1,61 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm": "Confirm",
+    "search": "Search",
+    "filter": "Filter",
+    "empty": "No records yet",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "create": "Create",
+    "update": "Update"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "contacts": "Contacts",
+    "messages": "Messages",
+    "broadcasts": "Broadcasts",
+    "templates": "Templates",
+    "flows": "Flows",
+    "segments": "Segments",
+    "analytics": "Analytics",
+    "settings": "Settings",
+    "team": "Team",
+    "billing": "Billing",
+    "account": "Account",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Log In",
+    "register": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password",
+    "logout": "Log Out",
+    "unauthorized": "Unauthorized",
+    "accountSuspended": "Account suspended"
+  },
+  "plan": {
+    "starter": "Starter",
+    "pro": "Pro",
+    "business": "Business",
+    "limitReached": "Plan limit reached",
+    "upgrade": "Upgrade"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email",
+    "invalidPhone": "Invalid phone number",
+    "passwordTooShort": "Password too short",
+    "passwordMismatch": "Passwords do not match"
+  }
+}
