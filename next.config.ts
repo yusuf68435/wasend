@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
   },
   outputFileTracingRoot: path.resolve(__dirname),
   poweredByHeader: false,
+  // iyzipay dinamik require kullanıyor, Next.js bundle edemez.
+  // External olarak bırakınca runtime Node.js require'ı çalışır.
+  serverExternalPackages: ["iyzipay"],
   async headers() {
     return [
       {
