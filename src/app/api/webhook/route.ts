@@ -28,18 +28,28 @@ export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
 
-    // Webhook signature doğrulaması — production'da ZORUNLU.
-    // WHATSAPP_APP_SECRET tanımlı değilse sadece dev'de (NODE_ENV !== "production") atlanır.
+    // Webhook signature doğrulaması — varsayılan olarak ZORUNLU.
+    // Dev'de lokal test için atlamak istiyorsan WEBHOOK_SKIP_SIGNATURE=true + APP_SECRET yok.
+    // "APP_SECRET yok → otomatik atla" anti-pattern'i kaldırıldı — prod'a yanlış env
+    // yüklenirse artık sessiz güvenlik kaybı yaşanmaz.
     const appSecret = process.env.WHATSAPP_APP_SECRET;
+    const isProd = process.env.NODE_ENV === "production";
+    const explicitSkip = process.env.WEBHOOK_SKIP_SIGNATURE === "true";
+
     if (!appSecret) {
-      if (process.env.NODE_ENV === "production") {
-        console.error("CRITICAL: WHATSAPP_APP_SECRET missing — webhook reddedildi");
+      if (isProd || !explicitSkip) {
+        console.error(
+          "CRITICAL: WHATSAPP_APP_SECRET yok — webhook reddedildi. " +
+            "Dev'de bilinçli atlamak için WEBHOOK_SKIP_SIGNATURE=true.",
+        );
         return NextResponse.json(
           { error: "Webhook not configured" },
           { status: 500 },
         );
       }
-      console.warn("DEV: WHATSAPP_APP_SECRET yok, signature doğrulaması atlanıyor");
+      console.warn(
+        "DEV: WEBHOOK_SKIP_SIGNATURE=true — imza doğrulaması BİLİNÇLİ atlandı",
+      );
     } else {
       const signature = request.headers.get("x-hub-signature-256");
       if (!verifyMetaSignature(rawBody, signature, appSecret)) {
