@@ -39,6 +39,30 @@ interface Snapshot {
   alerts: { failedMessages24h: number };
 }
 
+// Process-lokal cache — N admin client aynı snapshot'ı paylaşır.
+// 4000ms TTL (tick 5s olduğu için cache her tick'te iki kez hit almaz).
+const SNAPSHOT_CACHE_MS = 4000;
+let cached: { at: number; data: Snapshot } | null = null;
+let inflight: Promise<Snapshot> | null = null;
+
+async function getSnapshotCached(): Promise<Snapshot> {
+  const now = Date.now();
+  if (cached && now - cached.at < SNAPSHOT_CACHE_MS) {
+    return cached.data;
+  }
+  // Single-flight: eşzamanlı çağrılar aynı promise'i paylaşır
+  if (inflight) return inflight;
+  inflight = snapshot()
+    .then((data) => {
+      cached = { at: Date.now(), data };
+      return data;
+    })
+    .finally(() => {
+      inflight = null;
+    });
+  return inflight;
+}
+
 async function snapshot(): Promise<Snapshot> {
   const [dbSize, dbStats, tableCount, recentErrors] = await Promise.all([
     prisma
@@ -147,7 +171,7 @@ export async function GET(request: Request) {
 
       // İlk snapshot hemen
       try {
-        send("snapshot", await snapshot());
+        send("snapshot", await getSnapshotCached());
       } catch {
         // yut — sonraki tick'te yeniden dener
       }
@@ -155,7 +179,7 @@ export async function GET(request: Request) {
       const dataTimer = setInterval(async () => {
         if (closed) return;
         try {
-          send("snapshot", await snapshot());
+          send("snapshot", await getSnapshotCached());
         } catch {
           // yut
         }
