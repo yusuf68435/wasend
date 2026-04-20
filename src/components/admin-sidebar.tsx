@@ -10,6 +10,7 @@ import {
   Megaphone,
   ScrollText,
   Cpu,
+  Flag,
   LogOut,
   ArrowLeftRight,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const links = [
   { href: "/admin", label: "Genel Bakış", icon: LayoutDashboard },
   { href: "/admin/tenants", label: "Kiracılar", icon: Users },
   { href: "/admin/announcements", label: "Duyurular", icon: Megaphone },
+  { href: "/admin/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/admin/audit", label: "Denetim Kaydı", icon: ScrollText },
   { href: "/admin/system", label: "Sistem Sağlığı", icon: Cpu },
 ];
