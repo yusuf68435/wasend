@@ -28,6 +28,45 @@ body {
 
 /* Skip-to-content destekli olsaydı burada ek CSS eklenebilir */
 
+/* Admin panel dark mode — [data-admin] wrapper'ı altındaki tüm Tailwind
+   bg-white / border-slate-200 / text-slate-900 gibi sınıfları dark modda
+   tersine çevir. Her sayfada dark: variant eklemeye gerek kalmadan
+   uniform dark UI. */
+.dark [data-admin] .bg-white {
+  background-color: rgb(30 41 59) !important; /* slate-800 */
+}
+.dark [data-admin] .bg-slate-50 {
+  background-color: rgb(15 23 42) !important; /* slate-900 */
+}
+.dark [data-admin] .border-slate-100,
+.dark [data-admin] .border-slate-200 {
+  border-color: rgb(51 65 85) !important; /* slate-700 */
+}
+.dark [data-admin] .text-slate-900 {
+  color: rgb(241 245 249) !important; /* slate-100 */
+}
+.dark [data-admin] .text-slate-700 {
+  color: rgb(203 213 225) !important; /* slate-300 */
+}
+.dark [data-admin] .text-slate-600,
+.dark [data-admin] .text-slate-500 {
+  color: rgb(148 163 184) !important; /* slate-400 */
+}
+.dark [data-admin] .divide-slate-100 > * + *,
+.dark [data-admin] .divide-slate-50 > * + * {
+  border-color: rgb(51 65 85) !important;
+}
+.dark [data-admin] input,
+.dark [data-admin] select,
+.dark [data-admin] textarea {
+  background-color: rgb(15 23 42);
+  color: rgb(241 245 249);
+  border-color: rgb(51 65 85);
+}
+.dark [data-admin] .hover\\:bg-slate-50:hover {
+  background-color: rgb(51 65 85) !important;
+}
+
 /* Reduced motion — kullanıcı prefers-reduced-motion açmışsa animate-pulse
    vs gibi süren animasyonları kaldır */
 @media (prefers-reduced-motion: reduce) {
