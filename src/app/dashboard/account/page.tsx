@@ -70,12 +70,32 @@ export default function AccountPage() {
           bir JSON dosyasında indirilir. KVKK Madde 11 / GDPR Article 20
           uyarınca sağlanan veri taşınabilirliği hakkıdır.
         </p>
-        <a
-          href="/api/account/export"
-          className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
-        >
-          <Download size={16} /> JSON olarak indir
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="/api/account/export"
+            className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800"
+          >
+            <Download size={16} /> Tümü JSON
+          </a>
+          <a
+            href="/api/contacts/export"
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            <Download size={16} /> Kişiler CSV
+          </a>
+          <a
+            href="/api/messages/export"
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            <Download size={16} /> Mesajlar CSV
+          </a>
+          <a
+            href="/api/broadcasts/export"
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+          >
+            <Download size={16} /> Toplu Mesaj CSV
+          </a>
+        </div>
       </div>
 
       {/* Delete account */}
