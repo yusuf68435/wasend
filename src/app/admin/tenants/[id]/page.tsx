@@ -86,9 +86,17 @@ export default function TenantDetailPage() {
 
   async function toggleSuspend() {
     if (!data) return;
-    const reason = data.user.suspended
-      ? null
-      : prompt("Askıya alma sebebi (opsiyonel):") || undefined;
+    const isSuspending = !data.user.suspended;
+
+    // Her iki yönde de confirm (accidental click koruması)
+    const confirmMsg = isSuspending
+      ? `${data.user.email} hesabı askıya alınacak. Kullanıcı giriş yapamayacak. Emin misiniz?`
+      : `${data.user.email} hesabının askısı kaldırılacak. Tekrar erişim sağlayacak. Emin misiniz?`;
+    if (!window.confirm(confirmMsg)) return;
+
+    const reason = isSuspending
+      ? prompt("Askıya alma sebebi (isteğe bağlı, audit log'a yazılacak):") || undefined
+      : null;
     setBusy(true);
     const res = await fetch(`/api/admin/tenants/${id}/suspend`, {
       method: "POST",

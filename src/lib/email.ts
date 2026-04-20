@@ -99,6 +99,42 @@ export function passwordResetEmail(params: {
   return { subject, html, text };
 }
 
+export function emailVerificationEmail(params: {
+  name: string;
+  verifyUrl: string;
+}): { subject: string; html: string; text: string } {
+  const { name, verifyUrl } = params;
+  const subject = "WaSend — E-posta adresinizi doğrulayın";
+  const text =
+    `Merhaba ${name},\n\n` +
+    `WaSend'e hoş geldin! Hesabını aktive etmek için aşağıdaki bağlantıya tıkla:\n\n` +
+    `${verifyUrl}\n\n` +
+    `Bağlantı 48 saat geçerlidir. Kayıt olmadıysan bu e-postayı görmezden gelebilirsin.\n\n` +
+    `— WaSend Ekibi`;
+  const html = `
+<!DOCTYPE html><html><body style="font-family:-apple-system,sans-serif;max-width:600px;margin:auto;padding:24px;color:#222">
+  <h2 style="color:#16a34a;margin:0 0 8px">WaSend</h2>
+  <p style="color:#555;margin:0 0 24px">E-posta doğrulama</p>
+  <p>Merhaba <strong>${escapeHtml(name)}</strong>,</p>
+  <p>WaSend'e hoş geldin! Hesabını aktive etmek için aşağıdaki butona tıkla:</p>
+  <p style="margin:28px 0">
+    <a href="${escapeHtml(verifyUrl)}" style="background:#16a34a;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:500;display:inline-block">
+      E-postamı doğrula
+    </a>
+  </p>
+  <p style="color:#666;font-size:14px">
+    Bağlantı <strong>48 saat</strong> geçerlidir.
+  </p>
+  <p style="color:#888;font-size:13px;margin-top:32px">
+    Kayıt olmadıysan bu e-postayı görmezden gelebilirsin.
+  </p>
+  <p style="color:#aaa;font-size:12px;margin-top:24px;border-top:1px solid #eee;padding-top:16px">
+    — WaSend Ekibi
+  </p>
+</body></html>`;
+  return { subject, html, text };
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

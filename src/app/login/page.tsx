@@ -1,12 +1,18 @@
 "use client";
 
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { CheckCircle2 } from "lucide-react";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const registered = searchParams?.get("registered") === "true";
+  const verified = searchParams?.get("verified") === "true";
+  const next = searchParams?.get("next") || "/dashboard";
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,16 +29,17 @@ export default function LoginPage() {
     });
 
     if (result?.error) {
-      // Suspended user için auth.ts throw Error("Hesap askıya alındı...") atıyor.
-      // NextAuth bunu result.error'a string olarak koyar.
-      if (result.error.includes("askıya")) {
-        setError(result.error);
+      const err = result.error;
+      if (err.includes("silindi")) {
+        setError("Hesabınız silinmiş. Yeni hesap açmak için kayıt olun.");
+      } else if (err.includes("askıya")) {
+        setError(err);
       } else {
-        setError("Email veya şifre hatalı");
+        setError("Giriş yapılamadı. E-posta veya şifreyi kontrol edin.");
       }
       setLoading(false);
     } else {
-      router.push("/dashboard");
+      router.push(next);
     }
   }
 
@@ -45,16 +52,44 @@ export default function LoginPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {(registered || verified) && (
+            <div className="bg-green-50 text-green-800 p-3 rounded-lg text-sm flex items-center gap-2">
+              <CheckCircle2 size={16} />
+              {verified
+                ? "E-posta doğrulandı. Giriş yapabilirsin."
+                : "Kayıt başarılı! E-postana gönderdiğimiz bağlantıyla doğrulama yap, sonra giriş yapabilirsin."}
+            </div>
+          )}
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">{error}</div>
+            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+              {error}
+              {error.includes("askıya") && (
+                <div className="mt-2">
+                  Destek için:{" "}
+                  <a
+                    href="mailto:support@wasend.tech"
+                    className="underline font-medium"
+                  >
+                    support@wasend.tech
+                  </a>
+                </div>
+              )}
+            </div>
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label
+              htmlFor="login-email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              E-posta
+            </label>
             <input
+              id="login-email"
               name="email"
               type="email"
               required
+              autoComplete="email"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               placeholder="ornek@email.com"
             />
@@ -62,7 +97,12 @@ export default function LoginPage() {
 
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-sm font-medium text-gray-700">Şifre</label>
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-medium text-gray-700"
+              >
+                Şifre
+              </label>
               <Link
                 href="/forgot-password"
                 className="text-xs text-green-600 hover:underline"
@@ -71,9 +111,11 @@ export default function LoginPage() {
               </Link>
             </div>
             <input
+              id="login-password"
               name="password"
               type="password"
               required
+              autoComplete="current-password"
               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
               placeholder="••••••••"
             />
@@ -96,5 +138,19 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center text-gray-400">
+          Yükleniyor...
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }

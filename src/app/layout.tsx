@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { CookieBanner } from "@/components/cookie-banner";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -46,10 +48,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+
   return (
     <html lang="tr">
       <body className={`${inter.className} antialiased`}>
         <Providers>{children}</Providers>
+        <CookieBanner />
+        {recaptchaKey && (
+          <Script
+            src={`https://www.google.com/recaptcha/api.js?render=${recaptchaKey}`}
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
