@@ -11,6 +11,7 @@ import {
   ScrollText,
   Cpu,
   Flag,
+  LifeBuoy,
   LogOut,
   ArrowLeftRight,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import {
 const links = [
   { href: "/admin", label: "Genel Bakış", icon: LayoutDashboard },
   { href: "/admin/tenants", label: "Kiracılar", icon: Users },
+  { href: "/admin/support", label: "Destek", icon: LifeBuoy },
   { href: "/admin/announcements", label: "Duyurular", icon: Megaphone },
   { href: "/admin/feature-flags", label: "Feature Flags", icon: Flag },
   { href: "/admin/audit", label: "Denetim Kaydı", icon: ScrollText },

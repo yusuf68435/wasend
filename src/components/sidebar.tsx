@@ -25,6 +25,7 @@ import {
   CreditCard,
   Shield,
   UserCircle,
+  LifeBuoy,
   ChevronDown,
   ChevronRight,
   type LucideIcon,
@@ -90,6 +91,7 @@ const PROFILE_ITEMS: NavItem[] = [
   { href: "/dashboard/billing", label: "Faturalandırma", icon: CreditCard },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
   { href: "/dashboard/account", label: "Hesap", icon: UserCircle },
+  { href: "/dashboard/support", label: "Destek", icon: LifeBuoy },
 ];
 
 export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {

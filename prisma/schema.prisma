@@ -66,6 +66,7 @@ model User {
   announcements    SystemAnnouncement[] @relation("AnnouncementAuthor")
   dismissedAnnouncements AnnouncementDismissal[]
   payments         Payment[]
+  supportTickets   SupportTicket[]
 }
 
 model Contact {
@@ -365,6 +366,36 @@ model AdminAuditLog {
   @@index([actorId, createdAt])
   @@index([action])
   @@index([targetType, targetId])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  userId    String
+  subject   String
+  status    String   @default("open")
+  priority  String   @default("normal")
+  closedAt  DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportTicketMessage[]
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+}
+
+model SupportTicketMessage {
+  id          String   @id @default(cuid())
+  ticketId    String
+  authorId    String
+  authorRole  String
+  body        String
+  createdAt   DateTime @default(now())
+
+  ticket SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+
+  @@index([ticketId, createdAt])
 }
 
 model Payment {
