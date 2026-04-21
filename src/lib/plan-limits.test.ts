@@ -5,7 +5,7 @@ describe("getLimits", () => {
   it("STARTER default", () => {
     const l = getLimits("STARTER");
     expect(l.contactLimit).toBe(500);
-    expect(l.priceTry).toBe(299);
+    expect(l.priceTry).toBe(499);
   });
 
   it("PRO", () => {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Check, AlertTriangle } from "lucide-react";
+import { CreditCard, Check } from "lucide-react";
 
 interface Limits {
   contactLimit: number;
@@ -113,8 +113,8 @@ export default function BillingPage() {
           <CreditCard size={20} /> Faturalandırma
         </h2>
         <p className="text-gray-500 text-sm mt-1">
-          Mevcut plan ve kullanım özeti. Stripe entegrasyonu bekleniyor — şimdilik
-          dev modunda manuel olarak değiştirilebilir.
+          Mevcut plan, kullanım özeti ve yükseltme seçenekleri. Tüm fiyatlar KDV
+          dahil · iyzico ile güvenli ödeme.
         </p>
       </div>
 
@@ -171,22 +171,39 @@ export default function BillingPage() {
           const limits = data.allPlans[plan];
           if (!limits) return null;
           const isCurrent = data.plan === plan;
+          const isPopular = plan === "PRO";
+          const annualPrice = Math.round(limits.priceTry * 10).toLocaleString("tr-TR");
           return (
             <div
               key={plan}
               className={
-                "bg-white rounded-xl border p-6 " +
-                (isCurrent ? "border-green-500 ring-2 ring-green-100" : "border-gray-200")
+                "relative bg-white rounded-xl border p-6 transition " +
+                (isCurrent
+                  ? "border-green-500 ring-2 ring-green-100 shadow-sm"
+                  : isPopular
+                    ? "border-green-300 shadow-sm"
+                    : "border-gray-200")
               }
             >
+              {isPopular && !isCurrent && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-medium px-3 py-1 rounded-full">
+                  En popüler
+                </span>
+              )}
               <div className="mb-3">
                 <h4 className="font-semibold text-gray-900">
                   {PLAN_LABELS[plan]}
                 </h4>
                 <p className="text-2xl font-bold text-gray-900 mt-1">
-                  ₺{limits.priceTry}
+                  ₺{limits.priceTry.toLocaleString("tr-TR")}
                   <span className="text-sm font-normal text-gray-500">/ay</span>
                 </p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                    %17 yıllık indirim
+                  </span>
+                  <span className="text-xs text-gray-500">₺{annualPrice}/yıl</span>
+                </div>
               </div>
               <ul className="text-sm text-gray-700 space-y-2 mb-4">
                 <FeatureLine value={`${limits.contactLimit.toLocaleString("tr-TR")} kişi`} />
@@ -228,14 +245,13 @@ export default function BillingPage() {
         })}
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 flex gap-3">
-        <AlertTriangle size={18} className="text-blue-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-blue-800">
-          <strong>Stripe iskeleti:</strong> Gerçek ödeme akışı için{" "}
-          <code className="bg-blue-100 px-1 rounded">STRIPE_ENABLED=true</code>{" "}
-          env ayarlayın, ardından bu sayfa Stripe müşteri portalına yönlendirilecek
-          şekilde güncellenmelidir. Şu an plan değişiklikleri doğrudan veritabanında
-          yapılır.
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6 flex gap-3">
+        <Check size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
+        <div className="text-sm text-green-900">
+          <strong>iyzico ile güvenli ödeme:</strong> Tüm ödemeler KDV dahildir.
+          Yıllık abonelikte <strong>2 ay bedava</strong> (otomatik indirim
+          fatura ekranında uygulanır). İptal için tek tık yeterli — bir sonraki
+          dönem başına kadar aktif kalır.
         </div>
       </div>
     </div>

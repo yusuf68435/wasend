@@ -18,7 +18,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     aiTokensPerMonth: 100_000,
     flows: 3,
     teamMembers: 1,
-    priceTry: 299,
+    priceTry: 499,
   },
   PRO: {
     contactLimit: 5_000,
@@ -26,7 +26,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     aiTokensPerMonth: 1_000_000,
     flows: 20,
     teamMembers: 5,
-    priceTry: 599,
+    priceTry: 1_299,
   },
   BUSINESS: {
     contactLimit: 50_000,
@@ -34,7 +34,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
     aiTokensPerMonth: 10_000_000,
     flows: 200,
     teamMembers: 25,
-    priceTry: 999,
+    priceTry: 2_999,
   },
 };
 

@@ -9,34 +9,46 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://wasend.tech"),
   title: {
-    default: "WaSend — WhatsApp Business Otomasyonu",
+    default: "WaSend — WhatsApp Business Otomasyonu | 499 ₺'den başlayan paketler",
     template: "%s · WaSend",
   },
   description:
-    "İşletmeniz için WhatsApp otomatik cevap, randevu hatırlatma, toplu mesaj, AI destekli müşteri hizmetleri ve analitik.",
+    "Türkiye'nin WhatsApp Business otomasyon platformu. Otomatik cevap, toplu mesaj, randevu hatırlatma, AI chatbot ve analitik — 499 ₺/ay, KDV dahil. 14 gün ücretsiz deneme.",
   keywords: [
     "whatsapp business",
+    "whatsapp otomasyon",
+    "whatsapp business fiyat",
+    "whatsapp business api türkiye",
+    "whatsapp toplu mesaj",
+    "whatsapp toplu mesaj fiyatları",
+    "whatsapp panel yazılımı",
+    "whatsapp chatbot",
     "otomatik mesaj",
     "randevu hatırlatma",
-    "toplu mesaj",
-    "chatbot",
-    "müşteri hizmetleri",
+    "whatsapp crm",
+    "kobi whatsapp",
+    "müşteri hizmetleri otomasyonu",
   ],
   authors: [{ name: "WaSend" }],
+  alternates: {
+    canonical: "https://wasend.tech",
+  },
   openGraph: {
     type: "website",
     locale: "tr_TR",
     url: "https://wasend.tech",
-    title: "WaSend — WhatsApp Business Otomasyonu",
+    title: "WaSend — WhatsApp Business Otomasyonu | 499 ₺'den",
     description:
-      "İşletmeniz için otomatik WhatsApp müşteri hizmetleri, randevu hatırlatma, toplu mesaj ve AI chatbot.",
+      "Türkiye için WhatsApp Business otomasyonu — toplu mesaj, randevu hatırlatma, AI chatbot. 499 ₺/ay'dan başlar. KDV dahil, 14 gün ücretsiz.",
     siteName: "WaSend",
   },
   twitter: {
     card: "summary_large_image",
-    title: "WaSend — WhatsApp Otomasyon",
-    description: "İşletmeler için WhatsApp otomasyonu",
+    title: "WaSend — WhatsApp Otomasyon | 499 ₺'den",
+    description:
+      "WhatsApp Business otomasyon platformu. Toplu mesaj, chatbot, randevu hatırlatma — 499 ₺/ay.",
   },
   robots: {
     index: true,
