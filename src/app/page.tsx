@@ -19,8 +19,6 @@ const STRUCTURED_DATA = {
       "@type": "Organization",
       name: "WaSend",
       url: "https://wasend.tech",
-      logo: "https://wasend.tech/logo.png",
-      sameAs: [] as string[],
       contactPoint: {
         "@type": "ContactPoint",
         email: "support@wasend.tech",
