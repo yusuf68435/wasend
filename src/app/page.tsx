@@ -120,8 +120,15 @@ export default function HomePage() {
       {/* NAV — Apple tarzı: transparan, ince, ortalanmış */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#fbfbfd]/80 border-b border-black/5">
         <div className="max-w-[980px] mx-auto px-6 h-12 flex items-center justify-between text-[13px]">
-          <Link href="/" className="font-semibold tracking-tight text-[15px]">
+          <Link
+            href="/"
+            className="font-semibold tracking-tight text-[15px] inline-flex items-center gap-1.5"
+          >
             WaSend
+            <span
+              aria-hidden
+              className="inline-block w-1.5 h-1.5 rounded-full bg-[#25D366]"
+            />
           </Link>
           <nav className="hidden md:flex items-center gap-8 text-[#1d1d1f]/80">
             <a href="#features" className="hover:text-[#1d1d1f] transition-colors">
@@ -157,13 +164,13 @@ export default function HomePage() {
       {/* HERO — büyük display type, merkezi, nefes alan */}
       <section className="pt-24 pb-32 md:pt-32 md:pb-40 px-6">
         <div className="max-w-[980px] mx-auto text-center">
-          <p className="eyebrow text-[#25D366] mb-6">
+          <p className="eyebrow text-[#6e6e73] mb-6">
             WhatsApp Business Cloud API · Türkiye
           </p>
           <h1 className="display-xl mb-6">
             WhatsApp&apos;ı,
             <br />
-            <span className="text-[#25D366]">akıllı işle.</span>
+            <span className="text-[#6e6e73] font-medium">akıllı işle.</span>
           </h1>
           <p className="text-[21px] md:text-[24px] leading-[1.3] text-[#6e6e73] max-w-[680px] mx-auto font-normal">
             Otomatik cevap, randevu hatırlatma, toplu mesaj, AI chatbot ve
@@ -172,7 +179,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
             <Link
               href="/register"
-              className="group inline-flex items-center gap-1.5 bg-[#25D366] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-[#1faa55] transition-all"
+              className="group inline-flex items-center gap-1.5 bg-[#1d1d1f] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-black transition-all"
             >
               14 gün ücretsiz başla
               <ArrowRight
@@ -182,7 +189,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="#features"
-              className="inline-flex items-center gap-1 text-[17px] text-[#25D366] hover:underline underline-offset-4 px-2 py-3"
+              className="inline-flex items-center gap-1 text-[17px] text-[#1d1d1f] hover:underline underline-offset-4 px-2 py-3"
             >
               Daha fazlasını gör
               <ArrowRight size={14} />
@@ -238,7 +245,7 @@ export default function HomePage() {
       <section id="features" className="py-32 px-6">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-20">
-            <p className="eyebrow text-[#25D366] mb-4">Özellikler</p>
+            <p className="eyebrow text-[#6e6e73] mb-4">Özellikler</p>
             <h2 className="display-lg">
               İşletmenizin WhatsApp&apos;taki <br />
               tüm derdi, tek panelde.
@@ -292,7 +299,7 @@ export default function HomePage() {
       <section className="py-32 px-6 bg-[#f5f5f7]">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-16">
-            <p className="eyebrow text-[#25D366] mb-4">Müşteriler</p>
+            <p className="eyebrow text-[#6e6e73] mb-4">Müşteriler</p>
             <h2 className="display-lg">Türkiye&apos;den işletme sahipleri.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
@@ -322,7 +329,7 @@ export default function HomePage() {
       <section id="pricing" className="py-32 px-6">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-20">
-            <p className="eyebrow text-[#25D366] mb-4">Fiyatlandırma</p>
+            <p className="eyebrow text-[#6e6e73] mb-4">Fiyatlandırma</p>
             <h2 className="display-lg mb-4">
               Basit, şeffaf, <br />
               yıllık ödemede iki ay bedava.
@@ -390,7 +397,7 @@ export default function HomePage() {
       <section id="faq" className="py-32 px-6">
         <div className="max-w-[820px] mx-auto">
           <div className="text-center mb-16">
-            <p className="eyebrow text-[#25D366] mb-4">SSS</p>
+            <p className="eyebrow text-[#6e6e73] mb-4">SSS</p>
             <h2 className="display-lg">Sıkça sorulanlar.</h2>
           </div>
           <div className="border-t border-[#d2d2d7]">
@@ -568,8 +575,8 @@ function FeatureCard({
         large ? "md:col-span-2" : ""
       }`}
     >
-      <div className="w-11 h-11 rounded-2xl bg-[#25D366]/10 flex items-center justify-center mb-6">
-        <Icon size={22} className="text-[#25D366]" strokeWidth={1.75} />
+      <div className="w-11 h-11 rounded-2xl bg-[#f5f5f7] flex items-center justify-center mb-6">
+        <Icon size={22} className="text-[#1d1d1f]" strokeWidth={1.75} />
       </div>
       <h3 className="display-md mb-3">{title}</h3>
       <p className="text-[17px] text-[#6e6e73] leading-[1.45]">{desc}</p>
@@ -658,7 +665,7 @@ function PricingCard({
           }`}
         >
           Yıllık ₺{annualPrice} &middot;{" "}
-          <span className={popular ? "text-[#30d158]" : "text-[#25D366]"}>
+          <span className={popular ? "text-[#30d158]" : "text-[#1d1d1f] font-medium"}>
             2 ay bedava
           </span>
         </p>
@@ -672,7 +679,7 @@ function PricingCard({
             <Check
               size={16}
               className={`mt-0.5 flex-shrink-0 ${
-                popular ? "text-[#30d158]" : "text-[#25D366]"
+                popular ? "text-[#30d158]" : "text-[#1d1d1f]"
               }`}
             />
             <span>{f}</span>
