@@ -79,21 +79,21 @@ export default function AnalyticsPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analitik</h2>
-          <p className="text-gray-500 text-sm mt-1">
+          <h2 className="display-md text-[#1d1d1f]">Analitik</h2>
+          <p className="text-[13px] text-[#6e6e73] mt-1 tracking-tight">
             Mesaj, teslim, okuma oranları ve engagement
           </p>
         </div>
-        <div className="flex gap-1 bg-white border border-gray-200 rounded-lg p-1">
+        <div className="flex gap-1 bg-white border border-[#d2d2d7] rounded-full p-1">
           {RANGES.map((r) => (
             <button
               key={r.value}
               onClick={() => setRange(r.value)}
               className={
-                "px-3 py-1 text-sm rounded " +
+                "px-3.5 py-1 text-[13px] rounded-full font-medium tracking-tight transition " +
                 (range === r.value
-                  ? "bg-green-600 text-white"
-                  : "text-gray-600 hover:bg-gray-50")
+                  ? "bg-[#1d1d1f] text-white"
+                  : "text-[#6e6e73] hover:text-[#1d1d1f]")
               }
             >
               {r.label}
@@ -107,7 +107,6 @@ export default function AnalyticsPage() {
           icon={<Send size={18} />}
           label="Gönderilen"
           value={data?.totals.sent ?? 0}
-          color="text-green-600 bg-green-50"
         />
         <KpiCard
           icon={<TrendingUp size={18} />}
@@ -117,13 +116,11 @@ export default function AnalyticsPage() {
               ? `${Math.round((data.totals.read / data.totals.sent) * 100)}%`
               : "—"
           }
-          color="text-blue-600 bg-blue-50"
         />
         <KpiCard
           icon={<Users size={18} />}
           label="Aktif Kişi"
           value={data?.snapshot.totalContacts ?? 0}
-          color="text-purple-600 bg-purple-50"
         />
         <KpiCard
           icon={<Bot size={18} />}
@@ -138,13 +135,12 @@ export default function AnalyticsPage() {
               ? `$${data.ai.totalCost.toFixed(3)}`
               : undefined
           }
-          color="text-orange-600 bg-orange-50"
         />
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-        <h3 className="font-semibold text-gray-900 mb-4 inline-flex items-center gap-2">
-          <BarChart3 size={18} /> Mesaj Akışı
+      <div className="bg-white border border-[#d2d2d7] rounded-2xl p-6 mb-6">
+        <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-4 inline-flex items-center gap-2">
+          <BarChart3 size={16} /> Mesaj Akışı
         </h3>
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
@@ -165,8 +161,8 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Kontak Büyümesi</h3>
+        <div className="bg-white border border-[#d2d2d7] rounded-2xl p-6">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-4">Kontak Büyümesi</h3>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data?.series ?? []}>
@@ -182,22 +178,22 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">En Çok Tetiklenen Kurallar</h3>
+        <div className="bg-white border border-[#d2d2d7] rounded-2xl p-6">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-4">En Çok Tetiklenen Kurallar</h3>
           {triggers.length === 0 ? (
-            <p className="text-center text-gray-400 py-8 text-sm">Henüz veri yok</p>
+            <p className="text-center text-[#86868b] py-8 text-[13px] tracking-tight">Henüz veri yok</p>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-[#f5f5f7]">
               {triggers.map((t, i) => (
-                <li key={i} className="py-2 flex items-center justify-between text-sm">
+                <li key={i} className="py-2.5 flex items-center justify-between text-[13px] tracking-tight">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-xs w-4">{i + 1}.</span>
-                    <span className="font-medium text-gray-900">{t.trigger}</span>
+                    <span className="text-[#86868b] text-[11px] w-4">{i + 1}.</span>
+                    <span className="font-medium text-[#1d1d1f]">{t.trigger}</span>
                     {!t.active && (
-                      <span className="text-xs bg-gray-100 text-gray-500 px-2 rounded">pasif</span>
+                      <span className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-2 py-0.5 rounded-full">pasif</span>
                     )}
                   </div>
-                  <span className="text-gray-600">{t.matches} eşleşme</span>
+                  <span className="text-[#6e6e73]">{t.matches} eşleşme</span>
                 </li>
               ))}
             </ul>
@@ -205,7 +201,7 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 mt-6">
+      <p className="text-[11px] text-[#86868b] mt-6 tracking-tight">
         Günlük metrikler saat 01:00 UTC&apos;de agrege edilir. Bugünün değerleri
         canlı hesaplanır.
       </p>
@@ -218,22 +214,20 @@ function KpiCard({
   label,
   value,
   extra,
-  color,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number | string;
   extra?: string;
-  color: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-4">
+    <div className="bg-white rounded-2xl border border-[#d2d2d7] p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-gray-500">{label}</span>
-        <span className={"p-1.5 rounded-lg " + color}>{icon}</span>
+        <span className="text-[12px] text-[#6e6e73] tracking-tight">{label}</span>
+        <span className="p-1.5 rounded-lg bg-[#f5f5f7] text-[#1d1d1f]">{icon}</span>
       </div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      {extra && <div className="text-xs text-gray-400 mt-1">{extra}</div>}
+      <div className="text-[22px] font-semibold tracking-tight text-[#1d1d1f]">{value}</div>
+      {extra && <div className="text-[11px] text-[#86868b] mt-1 tracking-tight">{extra}</div>}
     </div>
   );
 }

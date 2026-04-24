@@ -117,8 +117,13 @@ export default function HomePage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
       />
 
-      {/* NAV — Apple tarzı: transparan, ince, ortalanmış */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#fbfbfd]/80 border-b border-black/5">
+      {/* Skip-to-content (a11y) */}
+      <a href="#main" className="skip-to-content">
+        İçeriğe atla
+      </a>
+
+      {/* NAV — Apple globalnav: ince, sticky, hafif border, blur */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#fbfbfd]/72 supports-[backdrop-filter]:bg-[#fbfbfd]/60 border-b border-black/5 dark:border-white/10">
         <div className="max-w-[980px] mx-auto px-6 h-12 flex items-center justify-between text-[13px]">
           <Link
             href="/"
@@ -161,277 +166,284 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* HERO — büyük display type, merkezi, nefes alan */}
-      <section className="pt-24 pb-32 md:pt-32 md:pb-40 px-6">
-        <div className="max-w-[980px] mx-auto text-center">
-          <p className="eyebrow text-[#6e6e73] mb-6">
-            WhatsApp Business Cloud API · Türkiye
-          </p>
-          <h1 className="display-xl mb-6">
-            WhatsApp&apos;ı,
-            <br />
-            <span className="text-[#6e6e73] font-medium">akıllı işle.</span>
-          </h1>
-          <p className="text-[21px] md:text-[24px] leading-[1.3] text-[#6e6e73] max-w-[680px] mx-auto font-normal">
-            Otomatik cevap, randevu hatırlatma, toplu mesaj, AI chatbot ve
-            analitik. Hepsi tek bir sessiz panelde.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+      <main id="main">
+        {/* HERO — Apple ürün sayfası: clamp(56,8vw,96), iki satır, ikinci satır muted */}
+        <section className="pt-24 pb-28 md:pt-32 md:pb-36 px-6">
+          <div className="max-w-[980px] mx-auto text-center">
+            <p className="eyebrow text-[#6e6e73] mb-6">
+              WhatsApp Business Cloud API · Türkiye
+            </p>
+            <h1
+              className="font-semibold tracking-[-0.03em] leading-[0.98] mb-8"
+              style={{ fontSize: "clamp(2.75rem, 7.6vw, 5.75rem)" }}
+            >
+              <span className="block">WhatsApp&apos;ı</span>
+              <span className="block text-[#86868b] font-medium">
+                akıllı işle.
+              </span>
+            </h1>
+            <p className="text-[19px] md:text-[22px] leading-[1.32] text-[#6e6e73] max-w-[640px] mx-auto font-normal">
+              Otomatik cevap, randevu hatırlatma, toplu mesaj, AI chatbot ve
+              analitik. Hepsi tek bir sessiz panelde.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+              <Link
+                href="/register"
+                className="group inline-flex items-center gap-1.5 bg-[#1d1d1f] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-black transition-all"
+              >
+                14 gün ücretsiz başla
+                <ArrowRight
+                  size={16}
+                  className="transition-transform group-hover:translate-x-0.5"
+                />
+              </Link>
+              <Link
+                href="#features"
+                className="inline-flex items-center gap-1 text-[17px] text-[#1d1d1f] hover:underline underline-offset-4 px-2 py-3"
+              >
+                Daha fazlasını gör
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+            <p className="text-[13px] text-[#6e6e73] mt-6">
+              499 ₺/ay&apos;dan başlar · KDV dahil · Kredi kartı gerekmez
+            </p>
+          </div>
+
+          {/* Hero alt metrik şeridi */}
+          <div className="max-w-[880px] mx-auto mt-20 grid grid-cols-3 gap-4 md:gap-12">
+            <HeroStat value="%98" label="Otomatik cevap hızı" />
+            <HeroStat value="7/24" label="Müşteri hizmeti" />
+            <HeroStat value="KVKK" label="Uyumlu altyapı" />
+          </div>
+        </section>
+
+        {/* PROBLEM — Apple sessiz beyaz section, dark blok KALDIRILDI */}
+        <section className="py-24 md:py-28 px-6 border-t border-[#ececec]">
+          <div className="max-w-[980px] mx-auto">
+            <div className="max-w-[720px] mx-auto text-center mb-14">
+              <p className="eyebrow text-[#6e6e73] mb-4">Neden WaSend</p>
+              <h2 className="display-lg">
+                Her gün aynı mesajı yazmak,
+                <br />
+                <span className="text-[#86868b] font-medium">
+                  iş büyütmek değil.
+                </span>
+              </h2>
+              <p className="text-[17px] md:text-[19px] leading-[1.4] text-[#6e6e73] mt-6">
+                Randevu hatırlatması için alarm kuruyor, fiyat sorularına üçüncü
+                kez aynı cevabı yazıyor, toplu duyuruları 50 kişiye tek tek
+                gönderiyorsunuz. WaSend bunları bir kerede devralır.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <BeforeAfterCard
+                before="Sabah 8:00 — tek tek hatırlatma"
+                after="Bir gün önce 18:00'da otomatik"
+              />
+              <BeforeAfterCard
+                before="Aynı fiyat sorusuna üçüncü cevap"
+                after="Anahtar kelime → anında cevap"
+              />
+              <BeforeAfterCard
+                before="200 kişiye tek tek duyuru"
+                after="Tek tıkla gönder, rate limit biz"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* FEATURES — 3 kolonlu grid, kartlar eşit yükseklik */}
+        <section id="features" className="py-24 md:py-28 px-6 bg-[#f5f5f7]">
+          <div className="max-w-[1100px] mx-auto">
+            <div className="text-center mb-16">
+              <p className="eyebrow text-[#6e6e73] mb-4">Özellikler</p>
+              <h2 className="display-lg">
+                İşletmenizin WhatsApp&apos;taki <br />
+                tüm derdi, tek panelde.
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <FeatureCard
+                icon={Bot}
+                title="Otomatik Cevap"
+                desc="Anahtar kelime kuralları + Claude AI fallback. Gelen her mesaj 2 saniye içinde cevaplanır."
+              />
+              <FeatureCard
+                icon={Calendar}
+                title="Randevu Hatırlatma"
+                desc="Timezone-aware zamanlanmış mesajlar. Gelmeyen müşteri derdini unutun."
+              />
+              <FeatureCard
+                icon={Megaphone}
+                title="Toplu Mesaj"
+                desc="Segment bazlı kampanya, opt-out yönetimi, dakika başı rate limit otomatik."
+              />
+              <FeatureCard
+                icon={Sparkles}
+                title="Görsel Akış Editörü"
+                desc="Sürükle-bırak chatbot akışları. Koşul, aksiyon, insan devretme."
+              />
+              <FeatureCard
+                icon={BarChart3}
+                title="Canlı Analitik"
+                desc="Mesaj teslim oranı, tetiklenen kurallar, müşteri büyümesi."
+              />
+              <FeatureCard
+                icon={Shield}
+                title="KVKK + GDPR"
+                desc="Otomatik opt-out, veri dışa aktarımı, hesap silme — tek tık."
+              />
+              <FeatureCard
+                icon={Plug}
+                title="Public API + Webhook"
+                desc="CRM'inize bağlayın. HMAC-imzalı event'ler, 10+ tetikleyici."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* TESTIMONIALS — initial avatar + alıntı, divider'sız */}
+        <section className="py-24 md:py-28 px-6">
+          <div className="max-w-[1100px] mx-auto">
+            <div className="text-center mb-16">
+              <p className="eyebrow text-[#6e6e73] mb-4">Müşteriler</p>
+              <h2 className="display-lg">Türkiye&apos;den işletme sahipleri.</h2>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4">
+              <Quote
+                quote="Randevularımın %30'u gelmiyordu. WaSend'le bir gün önce otomatik hatırlatma gönderiyorum, artık neredeyse herkes geliyor."
+                name="Elif K."
+                role="Kuaför Salonu"
+                city="İstanbul"
+              />
+              <Quote
+                quote="'Sipariş hazır' mesajı için 2 kişi tutuyorduk. Şimdi broadcast ile 10 saniyede halloluyor."
+                name="Murat S."
+                role="Restoran"
+                city="Ankara"
+              />
+              <Quote
+                quote="Fiyat soruları anında cevaplanıyor. WhatsApp'tan günde 4 saat kazandım."
+                name="Dr. Ayşe T."
+                role="Klinik"
+                city="İzmir"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* PRICING — Apple Pay tarzı */}
+        <section id="pricing" className="py-24 md:py-28 px-6 bg-[#f5f5f7]">
+          <div className="max-w-[1100px] mx-auto">
+            <div className="text-center mb-16">
+              <p className="eyebrow text-[#6e6e73] mb-4">Fiyatlandırma</p>
+              <h2 className="display-lg mb-4">
+                Basit, şeffaf, <br />
+                yıllık ödemede iki ay bedava.
+              </h2>
+              <p className="text-[17px] md:text-[19px] text-[#6e6e73]">
+                14 gün ücretsiz deneme · Kredi kartı gerekmez · KDV dahil
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <PricingCard
+                name="Başlangıç"
+                tagline="Tek çalışan işletmeler"
+                price="499"
+                annualPrice="4.790"
+                features={[
+                  "500 kişi",
+                  "10 toplu mesaj/ay",
+                  "100K AI token/ay",
+                  "3 otomasyon akışı",
+                  "Email destek",
+                ]}
+              />
+              <PricingCard
+                name="Profesyonel"
+                tagline="Büyüyen KOBİ'ler"
+                price="1.299"
+                annualPrice="12.470"
+                popular
+                features={[
+                  "5.000 kişi",
+                  "100 toplu mesaj/ay",
+                  "1M AI token/ay",
+                  "20 otomasyon akışı",
+                  "5 ekip üyesi",
+                  "Öncelikli destek",
+                ]}
+              />
+              <PricingCard
+                name="İşletme"
+                tagline="Kurumsal ekipler"
+                price="2.999"
+                annualPrice="28.790"
+                features={[
+                  "50.000 kişi",
+                  "1.000 toplu mesaj/ay",
+                  "10M AI token/ay",
+                  "200 otomasyon akışı",
+                  "25 ekip üyesi",
+                  "Public API + Webhook",
+                  "7/24 destek",
+                ]}
+              />
+            </div>
+
+            <p className="text-center text-[13px] text-[#6e6e73] mt-10 max-w-[640px] mx-auto leading-relaxed">
+              Meta Cloud API konuşma ücretleri ayrıca Meta tarafından tahsil
+              edilir. WaSend yalnızca platform ücretini alır.
+            </p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="py-24 md:py-28 px-6">
+          <div className="max-w-[820px] mx-auto">
+            <div className="text-center mb-12">
+              <p className="eyebrow text-[#6e6e73] mb-4">SSS</p>
+              <h2 className="display-lg">Sıkça sorulanlar.</h2>
+            </div>
+            <div className="border-t border-[#d2d2d7]">
+              {FAQ_ITEMS.map((f) => (
+                <FAQItem key={f.q} question={f.q} answer={f.a} />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA closer — koyu, kısa, net */}
+        <section className="py-24 md:py-28 px-6 bg-[#1d1d1f] text-white">
+          <div className="max-w-[820px] mx-auto text-center">
+            <h2 className="display-lg mb-6">
+              Bugün başla. <br />
+              <span className="text-[#86868b] font-medium">
+                Yarın zaman kazan.
+              </span>
+            </h2>
+            <p className="text-[17px] md:text-[19px] text-[#86868b] mb-10 max-w-[520px] mx-auto">
+              5 dakikalık kurulum. Kredi kartı istenmez. İstediğiniz zaman iptal.
+            </p>
             <Link
               href="/register"
-              className="group inline-flex items-center gap-1.5 bg-[#1d1d1f] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-black transition-all"
+              className="inline-flex items-center gap-2 bg-white text-[#1d1d1f] px-7 py-3.5 rounded-full text-[15px] md:text-[17px] font-medium hover:bg-[#f5f5f7] transition-colors"
             >
-              14 gün ücretsiz başla
-              <ArrowRight
-                size={16}
-                className="transition-transform group-hover:translate-x-0.5"
-              />
-            </Link>
-            <Link
-              href="#features"
-              className="inline-flex items-center gap-1 text-[17px] text-[#1d1d1f] hover:underline underline-offset-4 px-2 py-3"
-            >
-              Daha fazlasını gör
-              <ArrowRight size={14} />
+              14 gün ücretsiz dene
+              <ArrowRight size={16} />
             </Link>
           </div>
-          <p className="text-[13px] text-[#6e6e73] mt-6">
-            499 ₺/ay&apos;dan başlar · KDV dahil · Kredi kartı gerekmez
-          </p>
-        </div>
+        </section>
+      </main>
 
-        {/* Hero görseli yerine rafine istatistik satırı */}
-        <div className="max-w-[980px] mx-auto mt-20 grid grid-cols-3 gap-4 md:gap-12">
-          <HeroStat value="%98" label="Otomatik cevap hızı" />
-          <HeroStat value="7/24" label="Müşteri hizmeti" />
-          <HeroStat value="KVKK" label="Uyumlu altyapı" />
-        </div>
-      </section>
-
-      {/* PROBLEM / SOLUTION — Apple tarzı koyu "shelf" */}
-      <section className="bg-[#1d1d1f] text-white py-32 px-6">
-        <div className="max-w-[980px] mx-auto">
-          <div className="max-w-[720px] mb-16">
-            <p className="eyebrow text-[#86868b] mb-4">Neden WaSend</p>
-            <h2 className="display-lg mb-6">
-              Her gün aynı mesajı <br />
-              yazmaktan yoruldunuz.
-            </h2>
-            <p className="text-[21px] leading-[1.35] text-[#86868b]">
-              Randevu hatırlatması için alarm kuruyor, fiyat sorularına 3. kez
-              aynı cevabı yazıyor, toplu duyuruları 50 kişiye tek tek
-              gönderiyorsunuz. WaSend bunları bir kerede devralır.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <BeforeAfterCard
-              before="Sabah 8:00 — tek tek hatırlatma"
-              after="Bir gün önce 18:00'da otomatik"
-            />
-            <BeforeAfterCard
-              before="Aynı fiyat sorusuna üçüncü cevap"
-              after="Anahtar kelime → anında cevap"
-            />
-            <BeforeAfterCard
-              before="200 kişiye tek tek duyuru"
-              after="Tek tıkla gönder, rate limit biz"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES — büyük kartlar, Apple iPhone feature sayfası */}
-      <section id="features" className="py-32 px-6">
-        <div className="max-w-[980px] mx-auto">
-          <div className="text-center mb-20">
-            <p className="eyebrow text-[#6e6e73] mb-4">Özellikler</p>
-            <h2 className="display-lg">
-              İşletmenizin WhatsApp&apos;taki <br />
-              tüm derdi, tek panelde.
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FeatureCard
-              icon={Bot}
-              title="Otomatik Cevap"
-              desc="Anahtar kelime kuralları + Claude AI fallback. Gelen her mesaj 2 saniye içinde cevaplanır."
-              large
-            />
-            <FeatureCard
-              icon={Calendar}
-              title="Randevu Hatırlatma"
-              desc="Timezone-aware zamanlanmış mesajlar. Gelmeyen müşteri derdini unutun."
-              large
-            />
-            <FeatureCard
-              icon={Megaphone}
-              title="Toplu Mesaj"
-              desc="Segment bazlı kampanya, opt-out yönetimi, dakika başı rate limit otomatik."
-            />
-            <FeatureCard
-              icon={Sparkles}
-              title="Görsel Akış Editörü"
-              desc="Sürükle-bırak chatbot akışları. Koşul, aksiyon, insan devretme."
-            />
-            <FeatureCard
-              icon={BarChart3}
-              title="Canlı Analitik"
-              desc="Mesaj teslim oranı, tetiklenen kurallar, müşteri büyümesi."
-            />
-            <FeatureCard
-              icon={Shield}
-              title="KVKK + GDPR"
-              desc="Otomatik opt-out, veri dışa aktarımı, hesap silme — tek tık."
-            />
-            <FeatureCard
-              icon={Plug}
-              title="Public API + Webhook"
-              desc="CRM'inize bağlayın. HMAC-imzalı event'ler, 10+ tetikleyici."
-              large
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS — tek büyük alıntı vurgulu */}
-      <section className="py-32 px-6 bg-[#f5f5f7]">
-        <div className="max-w-[980px] mx-auto">
-          <div className="text-center mb-16">
-            <p className="eyebrow text-[#6e6e73] mb-4">Müşteriler</p>
-            <h2 className="display-lg">Türkiye&apos;den işletme sahipleri.</h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            <Quote
-              quote="Randevularımın %30'u gelmiyordu. WaSend'le bir gün önce otomatik hatırlatma gönderiyorum, artık neredeyse herkes geliyor."
-              name="Elif K."
-              role="Kuaför Salonu"
-              city="İstanbul"
-            />
-            <Quote
-              quote="'Sipariş hazır' mesajı için 2 kişi tutuyorduk. Şimdi broadcast ile 10 saniyede halloluyor."
-              name="Murat S."
-              role="Restoran"
-              city="Ankara"
-            />
-            <Quote
-              quote="Fiyat soruları anında cevaplanıyor. WhatsApp'tan günde 4 saat kazandım."
-              name="Dr. Ayşe T."
-              role="Klinik"
-              city="İzmir"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING — Apple Pay tarzı temiz kartlar */}
-      <section id="pricing" className="py-32 px-6">
-        <div className="max-w-[980px] mx-auto">
-          <div className="text-center mb-20">
-            <p className="eyebrow text-[#6e6e73] mb-4">Fiyatlandırma</p>
-            <h2 className="display-lg mb-4">
-              Basit, şeffaf, <br />
-              yıllık ödemede iki ay bedava.
-            </h2>
-            <p className="text-[19px] text-[#6e6e73]">
-              14 gün ücretsiz deneme · Kredi kartı gerekmez · KDV dahil
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <PricingCard
-              name="Başlangıç"
-              tagline="Tek çalışan işletmeler"
-              price="499"
-              annualPrice="4.790"
-              features={[
-                "500 kişi",
-                "10 toplu mesaj/ay",
-                "100K AI token/ay",
-                "3 otomasyon akışı",
-                "Email destek",
-              ]}
-            />
-            <PricingCard
-              name="Profesyonel"
-              tagline="Büyüyen KOBİ'ler"
-              price="1.299"
-              annualPrice="12.470"
-              popular
-              features={[
-                "5.000 kişi",
-                "100 toplu mesaj/ay",
-                "1M AI token/ay",
-                "20 otomasyon akışı",
-                "5 ekip üyesi",
-                "Öncelikli destek",
-              ]}
-            />
-            <PricingCard
-              name="İşletme"
-              tagline="Kurumsal ekipler"
-              price="2.999"
-              annualPrice="28.790"
-              features={[
-                "50.000 kişi",
-                "1.000 toplu mesaj/ay",
-                "10M AI token/ay",
-                "200 otomasyon akışı",
-                "25 ekip üyesi",
-                "Public API + Webhook",
-                "7/24 destek",
-              ]}
-            />
-          </div>
-
-          <p className="text-center text-[13px] text-[#6e6e73] mt-10 max-w-[640px] mx-auto leading-relaxed">
-            Meta WhatsApp Cloud API konuşma ücretleri ayrıca Meta tarafından
-            fatura edilir (utility ~0,02 ₺, marketing ~0,08 ₺/mesaj). WaSend
-            yalnızca platform ücretini tahsil eder.
-          </p>
-        </div>
-      </section>
-
-      {/* FAQ — Apple-style accordion */}
-      <section id="faq" className="py-32 px-6">
-        <div className="max-w-[820px] mx-auto">
-          <div className="text-center mb-16">
-            <p className="eyebrow text-[#6e6e73] mb-4">SSS</p>
-            <h2 className="display-lg">Sıkça sorulanlar.</h2>
-          </div>
-          <div className="border-t border-[#d2d2d7]">
-            {FAQ_ITEMS.map((f) => (
-              <FAQItem key={f.q} question={f.q} answer={f.a} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA — Apple end-of-page büyük CTA */}
-      <section className="py-32 px-6 bg-[#1d1d1f] text-white">
-        <div className="max-w-[820px] mx-auto text-center">
-          <h2 className="display-lg mb-6">
-            Bugün başla. <br />
-            Yarın zaman kazan.
-          </h2>
-          <p className="text-[21px] text-[#86868b] mb-10 max-w-[540px] mx-auto">
-            5 dakikalık kurulum. Kredi kartı istenmez. İstediğiniz zaman iptal.
-          </p>
-          <Link
-            href="/register"
-            className="inline-flex items-center gap-2 bg-white text-[#1d1d1f] px-7 py-3.5 rounded-full text-[17px] font-medium hover:bg-[#f5f5f7] transition-colors"
-          >
-            14 gün ücretsiz dene
-            <ArrowRight size={16} />
-          </Link>
-        </div>
-      </section>
-
-      {/* FOOTER — Apple tarzı: ince, küçük, gri */}
+      {/* FOOTER — 3 kolona indirildi */}
       <footer className="bg-[#f5f5f7] text-[#6e6e73] text-[12px] py-10 px-6">
         <div className="max-w-[980px] mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-[#d2d2d7]">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-8 pb-8 border-b border-[#d2d2d7]">
             <div>
               <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
                 Ürün
@@ -452,26 +464,9 @@ export default function HomePage() {
                     SSS
                   </a>
                 </li>
-              </ul>
-            </div>
-            <div>
-              <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
-                Kaynaklar
-              </h5>
-              <ul className="space-y-2">
                 <li>
                   <Link href="/blog" className="hover:underline">
                     Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/changelog" className="hover:underline">
-                    Yenilikler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/status" className="hover:underline">
-                    Sistem durumu
                   </Link>
                 </li>
               </ul>
@@ -548,10 +543,12 @@ function BeforeAfterCard({
   after: string;
 }) {
   return (
-    <div className="bg-[#2c2c2e] rounded-2xl p-6">
-      <p className="text-[13px] text-[#86868b] line-through mb-2">{before}</p>
-      <p className="text-[15px] text-white flex items-start gap-2">
-        <Check size={16} className="text-[#30d158] mt-0.5 flex-shrink-0" />
+    <div className="bg-white rounded-2xl border border-[#d2d2d7] p-6">
+      <p className="text-[13px] text-[#86868b] line-through mb-2 tracking-tight">
+        {before}
+      </p>
+      <p className="text-[15px] text-[#1d1d1f] flex items-start gap-2 tracking-tight">
+        <Check size={16} className="text-[#1d1d1f] mt-0.5 flex-shrink-0" />
         <span>{after}</span>
       </p>
     </div>
@@ -562,24 +559,22 @@ function FeatureCard({
   icon: Icon,
   title,
   desc,
-  large,
 }: {
   icon: typeof Bot;
   title: string;
   desc: string;
-  large?: boolean;
 }) {
   return (
-    <div
-      className={`bg-white rounded-3xl p-8 md:p-10 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow ${
-        large ? "md:col-span-2" : ""
-      }`}
-    >
+    <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow h-full flex flex-col">
       <div className="w-11 h-11 rounded-2xl bg-[#f5f5f7] flex items-center justify-center mb-6">
         <Icon size={22} className="text-[#1d1d1f]" strokeWidth={1.75} />
       </div>
-      <h3 className="display-md mb-3">{title}</h3>
-      <p className="text-[17px] text-[#6e6e73] leading-[1.45]">{desc}</p>
+      <h3 className="text-[22px] md:text-[24px] font-semibold tracking-tight mb-2 text-[#1d1d1f]">
+        {title}
+      </h3>
+      <p className="text-[15px] md:text-[16px] text-[#6e6e73] leading-[1.45] tracking-tight">
+        {desc}
+      </p>
     </div>
   );
 }
@@ -595,18 +590,34 @@ function Quote({
   role: string;
   city: string;
 }) {
+  const initials = name
+    .split(" ")
+    .map((s) => s[0])
+    .join("")
+    .slice(0, 2);
+
   return (
-    <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
-      <p className="text-[17px] leading-[1.5] text-[#1d1d1f] flex-1">
+    <figure className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col h-full">
+      <blockquote className="text-[17px] leading-[1.5] text-[#1d1d1f] flex-1 tracking-tight">
         &ldquo;{quote}&rdquo;
-      </p>
-      <div className="mt-6 pt-6 border-t border-[#d2d2d7]">
-        <p className="text-[15px] font-medium text-[#1d1d1f]">{name}</p>
-        <p className="text-[13px] text-[#6e6e73]">
-          {role} · {city}
-        </p>
-      </div>
-    </div>
+      </blockquote>
+      <figcaption className="mt-6 flex items-center gap-3">
+        <span
+          aria-hidden
+          className="w-9 h-9 rounded-full bg-[#f5f5f7] flex items-center justify-center text-[13px] font-semibold text-[#1d1d1f]"
+        >
+          {initials}
+        </span>
+        <div>
+          <p className="text-[14px] font-medium text-[#1d1d1f] tracking-tight">
+            {name}
+          </p>
+          <p className="text-[12px] text-[#6e6e73] tracking-tight">
+            {role} · {city}
+          </p>
+        </div>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -634,14 +645,18 @@ function PricingCard({
       }`}
     >
       {popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#25D366] text-white text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#1d1d1f] text-white text-[11px] font-semibold tracking-tight px-3 py-1 rounded-full inline-flex items-center gap-1.5 border border-white/10 shadow-[0_4px_12px_rgba(0,0,0,0.15)]">
+          <span
+            aria-hidden
+            className="w-1.5 h-1.5 rounded-full bg-[#25D366]"
+          />
           En popüler
         </span>
       )}
       <div className="mb-6">
         <h3 className="text-[22px] font-semibold tracking-tight">{name}</h3>
         <p
-          className={`text-[13px] mt-0.5 ${
+          className={`text-[13px] mt-0.5 tracking-tight ${
             popular ? "text-[#86868b]" : "text-[#6e6e73]"
           }`}
         >
@@ -660,12 +675,16 @@ function PricingCard({
           </span>
         </div>
         <p
-          className={`text-[13px] mt-2 ${
+          className={`text-[13px] mt-2 tracking-tight ${
             popular ? "text-[#86868b]" : "text-[#6e6e73]"
           }`}
         >
           Yıllık ₺{annualPrice} &middot;{" "}
-          <span className={popular ? "text-[#30d158]" : "text-[#1d1d1f] font-medium"}>
+          <span
+            className={
+              popular ? "text-white font-medium" : "text-[#1d1d1f] font-medium"
+            }
+          >
             2 ay bedava
           </span>
         </p>
@@ -674,12 +693,12 @@ function PricingCard({
         {features.map((f) => (
           <li
             key={f}
-            className="flex items-start gap-2.5 text-[15px] leading-[1.4]"
+            className="flex items-start gap-2.5 text-[15px] leading-[1.4] tracking-tight"
           >
             <Check
               size={16}
               className={`mt-0.5 flex-shrink-0 ${
-                popular ? "text-[#30d158]" : "text-[#1d1d1f]"
+                popular ? "text-white" : "text-[#1d1d1f]"
               }`}
             />
             <span>{f}</span>
@@ -688,7 +707,7 @@ function PricingCard({
       </ul>
       <Link
         href="/register"
-        className={`text-center py-3 rounded-full text-[15px] font-medium transition-colors ${
+        className={`text-center py-3 rounded-full text-[15px] font-medium tracking-tight transition-colors ${
           popular
             ? "bg-white text-[#1d1d1f] hover:bg-[#f5f5f7]"
             : "bg-[#1d1d1f] text-white hover:bg-black"
@@ -739,15 +758,16 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
   return (
     <details className="group border-b border-[#d2d2d7] py-6">
       <summary className="flex items-start justify-between gap-6 cursor-pointer list-none">
-        <span className="text-[19px] font-medium text-[#1d1d1f] leading-[1.35]">
+        <span className="text-[17px] md:text-[19px] font-medium text-[#1d1d1f] leading-[1.35] tracking-tight">
           {question}
         </span>
         <Plus
           size={20}
           className="text-[#6e6e73] flex-shrink-0 mt-1 transition-transform duration-300 group-open:rotate-45"
+          aria-hidden
         />
       </summary>
-      <p className="text-[17px] text-[#6e6e73] leading-[1.5] mt-4 pr-8">
+      <p className="text-[15px] md:text-[17px] text-[#6e6e73] leading-[1.5] mt-4 pr-8 tracking-tight">
         {answer}
       </p>
     </details>

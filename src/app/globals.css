@@ -12,9 +12,11 @@
   --background: #fbfbfd;
   --foreground: #1d1d1f;
   --muted: #6e6e73;
+  --muted-2: #86868b;
   --surface: #ffffff;
   --surface-elevated: #f5f5f7;
   --border: #d2d2d7;
+  --border-soft: #ececec;
   --accent: #25D366;
   --accent-hover: #1faa55;
 }
@@ -22,12 +24,30 @@
 .dark {
   --background: #000000;
   --foreground: #f5f5f7;
-  --muted: #86868b;
-  --surface: #1d1d1f;
+  --muted: #a1a1a6;
+  --muted-2: #86868b;
+  --surface: #1c1c1e;
   --surface-elevated: #2c2c2e;
-  --border: #424245;
+  --border: #2c2c2e;
+  --border-soft: #242426;
   --accent: #34E57B;
   --accent-hover: #25D366;
+}
+
+/* Tailwind v4 semantic token utilities
+   Her bileşen bg-white yerine bg-surface, text-[#1d1d1f] yerine text-fg kullanır.
+   Tokenlar .dark altında otomatik döner. */
+@theme inline {
+  --color-bg: var(--background);
+  --color-fg: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-elevated);
+  --color-line: var(--border);
+  --color-line-soft: var(--border-soft);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
 }
 
 html {
@@ -74,9 +94,35 @@ body {
 /* A11y: tüm interaktif elementler için net focus ring. Sadece klavye ile
    gezinince gözükür (focus-visible), fare tıklamasında değil. */
 *:focus-visible {
-  outline: 2px solid #25D366;
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Skip-to-content — klavye kullanıcıları için ilk Tab'da görünür hale gelir */
+.skip-to-content {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--foreground);
+  color: var(--background);
+  border-radius: 9999px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.011em;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-8px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  z-index: 100;
+}
+.skip-to-content:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Skip-to-content destekli olsaydı burada ek CSS eklenebilir */
@@ -119,6 +165,99 @@ body {
 .dark [data-admin] .hover\:bg-slate-50:hover {
   background-color: rgb(51 65 85) !important;
 }
+
+/* Dark mode otomatik çevrim katmanı — Apple-paletindeki sabit hex'leri
+   kullanan mevcut Tailwind utility'lerini (bg-white, bg-[#fbfbfd], bg-[#f5f5f7]
+   text-[#1d1d1f], text-[#6e6e73], text-[#86868b], border-[#d2d2d7] ...)
+   .dark varyantı altında token'larına eşler. Böylece bileşenleri tek tek
+   refaktör etmeden koyu mod tutarlı çalışır.
+
+   NOT: Marka rengine (yeşil #25D366 / #30d158 / kritik #ff453a vs) hiç
+   dokunmaz — marka aksanları hem light hem dark'ta aynı kalır. */
+.dark .bg-white,
+.dark .hover\:bg-white:hover {
+  background-color: var(--surface);
+}
+.dark .bg-\[\#ffffff\],
+.dark .bg-\[\#fff\] {
+  background-color: var(--surface);
+}
+.dark .bg-\[\#fbfbfd\] {
+  background-color: var(--background);
+}
+.dark .bg-\[\#f5f5f7\],
+.dark .hover\:bg-\[\#f5f5f7\]:hover,
+.dark .group-hover\:bg-\[\#f5f5f7\]:hover,
+.dark .group:hover .group-hover\:bg-\[\#f5f5f7\] {
+  background-color: var(--surface-elevated);
+}
+.dark .bg-black,
+.dark .hover\:bg-black:hover,
+.dark .bg-\[\#1d1d1f\],
+.dark .hover\:bg-\[\#1d1d1f\]:hover,
+.dark .group-hover\:bg-\[\#1d1d1f\]:hover,
+.dark .group:hover .group-hover\:bg-\[\#1d1d1f\] {
+  background-color: var(--foreground);
+  color: var(--background);
+}
+.dark .text-\[\#1d1d1f\],
+.dark .hover\:text-\[\#1d1d1f\]:hover,
+.dark .group-hover\:text-\[\#1d1d1f\]:hover,
+.dark .group:hover .group-hover\:text-\[\#1d1d1f\] {
+  color: var(--foreground);
+}
+.dark .text-\[\#6e6e73\] {
+  color: var(--muted);
+}
+.dark .text-\[\#86868b\] {
+  color: var(--muted-2);
+}
+.dark .text-\[\#424245\] {
+  color: var(--muted);
+}
+.dark .text-black {
+  color: var(--foreground);
+}
+.dark .text-white {
+  color: var(--foreground);
+}
+.dark .border-\[\#d2d2d7\] {
+  border-color: var(--border);
+}
+.dark .border-\[\#ececec\] {
+  border-color: var(--border-soft);
+}
+.dark .divide-\[\#d2d2d7\] > * + * {
+  border-color: var(--border);
+}
+.dark .divide-\[\#ececec\] > * + * {
+  border-color: var(--border-soft);
+}
+/* Koyu modda dark blokları ters çeviriyoruz; artık "dark island" olmasın */
+.dark .bg-\[\#111\],
+.dark .bg-\[\#111111\] {
+  background-color: var(--surface);
+}
+/* Landing'de bazı kartlarda kullanılan yumuşak gri bg'ler */
+.dark .bg-\[\#fafafa\],
+.dark .bg-\[\#f2f2f2\] {
+  background-color: var(--surface-elevated);
+}
+/* Tailwind gray-* ölçeklerindeki placeholder skeleton renkleri */
+.dark .bg-gray-100 { background-color: var(--surface-elevated); }
+.dark .bg-gray-200 { background-color: var(--surface-elevated); }
+.dark .bg-gray-50 { background-color: var(--surface-2, var(--surface-elevated)); }
+.dark .border-gray-200 { border-color: var(--border); }
+.dark .border-gray-100 { border-color: var(--border-soft); }
+.dark .text-gray-900 { color: var(--foreground); }
+.dark .text-gray-800 { color: var(--foreground); }
+.dark .text-gray-700 { color: var(--foreground); }
+.dark .text-gray-600 { color: var(--muted); }
+.dark .text-gray-500 { color: var(--muted); }
+.dark .text-gray-400 { color: var(--muted-2); }
+/* Yumuşak opak Apple-sistem renkleri (#30d158 = success, #ff9f0a = warning,
+   #ff453a = critical, #0071e3 = info) — açık modda kart üstünde /10 alpha
+   overlay olarak kullanılıyor, dark modda da düşük alpha'yı koruruz. */
 
 /* Reduced motion — kullanıcı prefers-reduced-motion açmışsa animate-pulse
    vs gibi süren animasyonları kaldır */

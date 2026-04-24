@@ -97,8 +97,8 @@ export default function SettingsPage() {
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">WhatsApp Business API Bağlantısı</h3>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-            <p className="text-sm text-yellow-800">
+          <div className="bg-[#ff9f0a]/10 border border-[#ff9f0a]/20 rounded-2xl px-4 py-3 mb-4">
+            <p className="text-[13px] text-[#ff9f0a] tracking-tight">
               WhatsApp API bağlantısı için aşağıdaki adımları takip edin.
             </p>
           </div>

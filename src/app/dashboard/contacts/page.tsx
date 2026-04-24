@@ -217,7 +217,7 @@ function ContactsContent() {
           </a>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium hover:bg-green-700 transition"
+            className="flex items-center gap-2 bg-[#1d1d1f] text-white px-4 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition"
           >
             <Plus size={18} /> Kişi Ekle
           </button>
@@ -262,7 +262,7 @@ function ContactsContent() {
             </div>
           </div>
           <div className="flex gap-3 mt-4">
-            <button type="submit" className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition">Kaydet</button>
+            <button type="submit" className="bg-[#1d1d1f] text-white px-6 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition">Kaydet</button>
             <button type="button" onClick={() => setShowForm(false)} className="px-6 py-2 rounded-lg font-medium text-gray-600 hover:bg-gray-100 transition">İptal</button>
           </div>
         </form>

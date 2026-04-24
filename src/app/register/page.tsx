@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Mail } from "lucide-react";
+import { Mail, Check } from "lucide-react";
 import { PasswordStrengthMeter } from "@/components/password-strength";
 
 function RegisterForm() {
@@ -200,14 +200,26 @@ function RegisterForm() {
             <PasswordStrengthMeter password={password} />
           </div>
 
-          <label className="flex items-start gap-2.5 text-[12px] text-[#6e6e73] tracking-tight leading-relaxed pt-1">
-            <input
-              type="checkbox"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              required
-              className="mt-0.5 h-4 w-4 rounded border-[#d2d2d7] text-[#1d1d1f] focus:ring-[#1d1d1f]/20"
-            />
+          <label className="flex items-start gap-2.5 text-[12px] text-[#6e6e73] tracking-tight leading-relaxed pt-1 cursor-pointer select-none">
+            <span className="relative mt-0.5 flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                required
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden
+                className="block h-[18px] w-[18px] rounded-[6px] border border-[#d2d2d7] bg-white transition-colors peer-checked:bg-[#1d1d1f] peer-checked:border-[#1d1d1f] peer-focus-visible:ring-2 peer-focus-visible:ring-[#1d1d1f]/20"
+              />
+              <Check
+                aria-hidden
+                size={12}
+                strokeWidth={3}
+                className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none"
+              />
+            </span>
             <span>
               <Link
                 href="/terms"
