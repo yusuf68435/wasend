@@ -189,7 +189,7 @@ export default function AdminOverview() {
               <Line
                 type="monotone"
                 dataKey="count"
-                stroke="#16a34a"
+                stroke="#25D366"
                 strokeWidth={2}
                 dot={false}
               />

@@ -130,9 +130,6 @@ export default function HomePage() {
             <a href="#pricing" className="hover:text-[#1d1d1f] transition-colors">
               Fiyatlar
             </a>
-            <a href="#compare" className="hover:text-[#1d1d1f] transition-colors">
-              Karşılaştır
-            </a>
             <a href="#faq" className="hover:text-[#1d1d1f] transition-colors">
               SSS
             </a>
@@ -160,13 +157,13 @@ export default function HomePage() {
       {/* HERO — büyük display type, merkezi, nefes alan */}
       <section className="pt-24 pb-32 md:pt-32 md:pb-40 px-6">
         <div className="max-w-[980px] mx-auto text-center">
-          <p className="eyebrow text-[#16a34a] mb-6">
+          <p className="eyebrow text-[#25D366] mb-6">
             WhatsApp Business Cloud API · Türkiye
           </p>
           <h1 className="display-xl mb-6">
             WhatsApp&apos;ı,
             <br />
-            <span className="text-[#16a34a]">akıllı işle.</span>
+            <span className="text-[#25D366]">akıllı işle.</span>
           </h1>
           <p className="text-[21px] md:text-[24px] leading-[1.3] text-[#6e6e73] max-w-[680px] mx-auto font-normal">
             Otomatik cevap, randevu hatırlatma, toplu mesaj, AI chatbot ve
@@ -175,7 +172,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
             <Link
               href="/register"
-              className="group inline-flex items-center gap-1.5 bg-[#16a34a] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-[#15803d] transition-all"
+              className="group inline-flex items-center gap-1.5 bg-[#25D366] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-[#1faa55] transition-all"
             >
               14 gün ücretsiz başla
               <ArrowRight
@@ -185,7 +182,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="#features"
-              className="inline-flex items-center gap-1 text-[17px] text-[#16a34a] hover:underline underline-offset-4 px-2 py-3"
+              className="inline-flex items-center gap-1 text-[17px] text-[#25D366] hover:underline underline-offset-4 px-2 py-3"
             >
               Daha fazlasını gör
               <ArrowRight size={14} />
@@ -241,7 +238,7 @@ export default function HomePage() {
       <section id="features" className="py-32 px-6">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-20">
-            <p className="eyebrow text-[#16a34a] mb-4">Özellikler</p>
+            <p className="eyebrow text-[#25D366] mb-4">Özellikler</p>
             <h2 className="display-lg">
               İşletmenizin WhatsApp&apos;taki <br />
               tüm derdi, tek panelde.
@@ -295,7 +292,7 @@ export default function HomePage() {
       <section className="py-32 px-6 bg-[#f5f5f7]">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-16">
-            <p className="eyebrow text-[#16a34a] mb-4">Müşteriler</p>
+            <p className="eyebrow text-[#25D366] mb-4">Müşteriler</p>
             <h2 className="display-lg">Türkiye&apos;den işletme sahipleri.</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-4">
@@ -325,7 +322,7 @@ export default function HomePage() {
       <section id="pricing" className="py-32 px-6">
         <div className="max-w-[980px] mx-auto">
           <div className="text-center mb-20">
-            <p className="eyebrow text-[#16a34a] mb-4">Fiyatlandırma</p>
+            <p className="eyebrow text-[#25D366] mb-4">Fiyatlandırma</p>
             <h2 className="display-lg mb-4">
               Basit, şeffaf, <br />
               yıllık ödemede iki ay bedava.
@@ -389,41 +386,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* COMPARE — yatay bar chart görselliği */}
-      <section id="compare" className="py-32 px-6 bg-[#f5f5f7]">
-        <div className="max-w-[980px] mx-auto">
-          <div className="text-center mb-16">
-            <p className="eyebrow text-[#16a34a] mb-4">Karşılaştırma</p>
-            <h2 className="display-lg mb-4">
-              Aynı özellik seti, <br />
-              yarı yarıya fiyat.
-            </h2>
-            <p className="text-[19px] text-[#6e6e73]">
-              Türkiye pazarındaki rakiplerin aylık başlangıç fiyatları
-            </p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
-            <div className="space-y-5">
-              <CompareBar platform="WaSend" price={499} max={1750} us />
-              <CompareBar platform="Infoset" price={880} max={1750} />
-              <CompareBar platform="DialogTab" price={850} max={1750} />
-              <CompareBar platform="Yapaytech" price={1750} max={1750} />
-              <CompareBar platform="Wati" price={1750} max={1750} />
-            </div>
-          </div>
-
-          <p className="text-[13px] text-[#6e6e73] mt-6 text-center">
-            Fiyatlar Nisan 2026 · rakiplerin resmi sayfalarından · kur ve paket kapsamı değişebilir
-          </p>
-        </div>
-      </section>
-
       {/* FAQ — Apple-style accordion */}
       <section id="faq" className="py-32 px-6">
         <div className="max-w-[820px] mx-auto">
           <div className="text-center mb-16">
-            <p className="eyebrow text-[#16a34a] mb-4">SSS</p>
+            <p className="eyebrow text-[#25D366] mb-4">SSS</p>
             <h2 className="display-lg">Sıkça sorulanlar.</h2>
           </div>
           <div className="border-t border-[#d2d2d7]">
@@ -471,11 +438,6 @@ export default function HomePage() {
                 <li>
                   <a href="#pricing" className="hover:underline">
                     Fiyatlar
-                  </a>
-                </li>
-                <li>
-                  <a href="#compare" className="hover:underline">
-                    Karşılaştır
                   </a>
                 </li>
                 <li>
@@ -606,8 +568,8 @@ function FeatureCard({
         large ? "md:col-span-2" : ""
       }`}
     >
-      <div className="w-11 h-11 rounded-2xl bg-[#16a34a]/10 flex items-center justify-center mb-6">
-        <Icon size={22} className="text-[#16a34a]" strokeWidth={1.75} />
+      <div className="w-11 h-11 rounded-2xl bg-[#25D366]/10 flex items-center justify-center mb-6">
+        <Icon size={22} className="text-[#25D366]" strokeWidth={1.75} />
       </div>
       <h3 className="display-md mb-3">{title}</h3>
       <p className="text-[17px] text-[#6e6e73] leading-[1.45]">{desc}</p>
@@ -665,7 +627,7 @@ function PricingCard({
       }`}
     >
       {popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#16a34a] text-white text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#25D366] text-white text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full">
           En popüler
         </span>
       )}
@@ -696,7 +658,7 @@ function PricingCard({
           }`}
         >
           Yıllık ₺{annualPrice} &middot;{" "}
-          <span className={popular ? "text-[#30d158]" : "text-[#16a34a]"}>
+          <span className={popular ? "text-[#30d158]" : "text-[#25D366]"}>
             2 ay bedava
           </span>
         </p>
@@ -710,7 +672,7 @@ function PricingCard({
             <Check
               size={16}
               className={`mt-0.5 flex-shrink-0 ${
-                popular ? "text-[#30d158]" : "text-[#16a34a]"
+                popular ? "text-[#30d158]" : "text-[#25D366]"
               }`}
             />
             <span>{f}</span>
@@ -727,53 +689,6 @@ function PricingCard({
       >
         Ücretsiz başla
       </Link>
-    </div>
-  );
-}
-
-function CompareBar({
-  platform,
-  price,
-  max,
-  us,
-}: {
-  platform: string;
-  price: number;
-  max: number;
-  us?: boolean;
-}) {
-  const pct = Math.round((price / max) * 100);
-  return (
-    <div className="flex items-center gap-4">
-      <div className="w-24 md:w-32 text-[15px] flex items-center gap-2 flex-shrink-0">
-        <span
-          className={us ? "font-semibold text-[#1d1d1f]" : "text-[#1d1d1f]"}
-        >
-          {platform}
-        </span>
-        {us && (
-          <span className="text-[10px] bg-[#16a34a] text-white font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-            Biz
-          </span>
-        )}
-      </div>
-      <div className="flex-1 h-9 bg-[#f5f5f7] rounded-full overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-[width] duration-700 ${
-            us
-              ? "bg-gradient-to-r from-[#16a34a] to-[#22c55e]"
-              : "bg-[#d2d2d7]"
-          }`}
-          style={{ width: `${Math.max(pct, 8)}%` }}
-        />
-      </div>
-      <div
-        className={`w-20 text-right text-[15px] tabular-nums ${
-          us ? "font-semibold text-[#1d1d1f]" : "text-[#6e6e73]"
-        }`}
-      >
-        {price.toLocaleString("tr-TR")} ₺
-      </div>
     </div>
   );
 }

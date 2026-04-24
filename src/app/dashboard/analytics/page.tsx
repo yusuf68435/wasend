@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
               <YAxis tick={{ fontSize: 11 }} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="sent" stroke="#16a34a" name="Gönderilen" dot={false} />
+              <Line type="monotone" dataKey="sent" stroke="#25D366" name="Gönderilen" dot={false} />
               <Line type="monotone" dataKey="delivered" stroke="#2563eb" name="Teslim" dot={false} />
               <Line type="monotone" dataKey="read" stroke="#9333ea" name="Okundu" dot={false} />
               <Line type="monotone" dataKey="failed" stroke="#dc2626" name="Başarısız" dot={false} />
@@ -175,7 +175,7 @@ export default function AnalyticsPage() {
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="newContacts" fill="#22c55e" name="Yeni" />
+                <Bar dataKey="newContacts" fill="#25D366" name="Yeni" />
                 <Bar dataKey="optOuts" fill="#ef4444" name="Çıkış" />
               </BarChart>
             </ResponsiveContainer>

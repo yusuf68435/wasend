@@ -112,7 +112,7 @@ export default function BillingPage() {
     <div className="max-w-[980px] mx-auto">
       {/* Header */}
       <header className="mb-10">
-        <span className="eyebrow text-[#16a34a]">Faturalandırma</span>
+        <span className="eyebrow text-[#25D366]">Faturalandırma</span>
         <h1 className="display-md text-[#1d1d1f] mt-2">Planın, kullanım, yükseltme.</h1>
         <p className="text-[15px] text-[#6e6e73] mt-2 max-w-[560px] tracking-tight">
           Tüm fiyatlar KDV dahil. iyzico ile güvenli ödeme, istediğin zaman iptal.
@@ -190,7 +190,7 @@ export default function BillingPage() {
               }`}
             >
               {isPopular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#16a34a] text-white text-[11px] font-semibold tracking-tight px-3 py-1 rounded-full">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#25D366] text-white text-[11px] font-semibold tracking-tight px-3 py-1 rounded-full">
                   En popüler
                 </span>
               )}
@@ -199,7 +199,7 @@ export default function BillingPage() {
                   className={`absolute top-5 right-5 text-[11px] font-semibold tracking-tight px-2.5 py-1 rounded-full ${
                     isPopular
                       ? "bg-white/15 text-white"
-                      : "bg-[#16a34a]/10 text-[#16a34a]"
+                      : "bg-[#25D366]/10 text-[#25D366]"
                   }`}
                 >
                   Aktif
@@ -294,7 +294,7 @@ export default function BillingPage() {
 
       {/* Payment note */}
       <section className="mt-10 rounded-3xl border border-[#d2d2d7] bg-[#fbfbfd] p-6 flex gap-4">
-        <div className="shrink-0 w-10 h-10 rounded-full bg-[#16a34a]/10 text-[#16a34a] flex items-center justify-center">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center">
           <Check size={18} />
         </div>
         <div>
@@ -350,7 +350,7 @@ function FeatureLine({ value, dark }: { value: string; dark?: boolean }) {
     <li className="flex items-center gap-3">
       <Check
         size={14}
-        className={dark ? "text-[#30d158] shrink-0" : "text-[#16a34a] shrink-0"}
+        className={dark ? "text-[#30d158] shrink-0" : "text-[#25D366] shrink-0"}
       />
       <span className="tracking-tight">{value}</span>
     </li>
