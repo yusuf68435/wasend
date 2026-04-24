@@ -6,12 +6,43 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
+/**
+ * Open-redirect koruması — `?next=` parametresi SADECE kendi domain'imize
+ * ait, `/` ile başlayan, tek slash ile başlayan (protocol-relative `//evil`
+ * veya `/\evil` formlarını engelle) path'lere izin verir. Diğer tüm durumlarda
+ * default `/dashboard` kullanılır.
+ */
+function safeNextPath(raw: string | null | undefined): string {
+  const DEFAULT = "/dashboard";
+  if (!raw) return DEFAULT;
+  // Hem decode öncesi hem sonrası kontrolü yap — attacker `%2f%2fevil.com`
+  // ile bypass denemesin.
+  let candidate: string;
+  try {
+    candidate = decodeURIComponent(raw);
+  } catch {
+    return DEFAULT;
+  }
+  // Tek `/` ile başlamalı
+  if (!candidate.startsWith("/")) return DEFAULT;
+  // Protocol-relative (`//evil.com`) veya backslash tricks (`/\evil.com`)
+  if (candidate.startsWith("//") || candidate.startsWith("/\\")) return DEFAULT;
+  // URL object ile parse — base koy, hostname değişmişse external
+  try {
+    const u = new URL(candidate, "https://wasend.tech");
+    if (u.hostname !== "wasend.tech") return DEFAULT;
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return DEFAULT;
+  }
+}
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams?.get("registered") === "true";
   const verified = searchParams?.get("verified") === "true";
-  const next = searchParams?.get("next") || "/dashboard";
+  const next = safeNextPath(searchParams?.get("next"));
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);

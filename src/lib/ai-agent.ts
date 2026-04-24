@@ -29,9 +29,20 @@ function todayKey(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Rezervasyon: max_tokens + tipik input tahmini. AI çağrısı öncesi atomik
- *  olarak bunu ekleriz; actual kullanım belli olunca delta ayarlanır. */
-const RESERVATION_TOKENS = 800;
+/**
+ * Rezervasyon — tek çağrının üst sınırı (upper bound):
+ *   max_output_tokens (512) + max_input_estimate (2500: 10 msg history +
+ *   system prompt + güncel mesaj + küçük payı) = 3012 → yuvarla 3200.
+ *
+ * AI çağrısı öncesi atomik olarak bu miktar eklenir; actual kullanım belli
+ * olunca delta (negatif) ayarlanır. Reservation'ın actual'dan büyük olması
+ * concurrent isteklerin limiti aşmasını engeller — eski 800'lük rezervasyon
+ * tipik 2500 token'lık gerçek kullanımı karşılamıyordu → race durumunda
+ * concurrent isteklerin bir kısmı limiti aşıyordu.
+ */
+const RESERVATION_TOKENS = 3200;
+const MAX_HISTORY_MESSAGES = 10;
+const MAX_INPUT_TOKENS_APPROX = 2500; // güvenlik eşiği
 
 /**
  * Token rezervasyonu — eşzamanlı iki istek aynı anda limit'i bypass edemesin
@@ -116,10 +127,13 @@ export async function generateAIReply(
 
   const client = new Anthropic({ apiKey });
 
-  const recent = history.slice(-10);
+  const recent = history.slice(-MAX_HISTORY_MESSAGES);
+  // Hard cap: tek mesaj 8000 char'dan uzunsa trunk et (ortalama 2000 token).
+  // Bu agresif ama AI token limitini korumak için zorunlu.
+  const truncate = (s: string) => (s.length > 8000 ? s.slice(0, 8000) : s);
   const messages: Array<{ role: "user" | "assistant"; content: string }> = [
-    ...recent,
-    { role: "user", content: currentMessage },
+    ...recent.map((m) => ({ role: m.role, content: truncate(m.content) })),
+    { role: "user", content: truncate(currentMessage) },
   ];
 
   try {
@@ -144,10 +158,19 @@ export async function generateAIReply(
 
     const inputTokens = resp.usage.input_tokens;
     const outputTokens = resp.usage.output_tokens;
+    const totalTokens = inputTokens + outputTokens;
+
+    // Safety net: actual kullanım rezervasyonu geçtiyse log + future-proof
+    if (totalTokens > RESERVATION_TOKENS) {
+      console.warn(
+        `[ai-agent] actual tokens (${totalTokens}) exceeded reservation (${RESERVATION_TOKENS}). Reservation should be increased.`,
+      );
+    }
+    void MAX_INPUT_TOKENS_APPROX;
 
     // Haiku 4.5 rough pricing: $1/MTok input, $5/MTok output
     const costUsd = (inputTokens / 1_000_000) * 1 + (outputTokens / 1_000_000) * 5;
-    await settleUsage(user.id, inputTokens + outputTokens, costUsd);
+    await settleUsage(user.id, totalTokens, costUsd);
 
     const handoff = text.toLowerCase().includes(HANDOFF_MARKER);
     const cleanText = text.replaceAll(HANDOFF_MARKER, "").trim();

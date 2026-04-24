@@ -91,6 +91,11 @@ export default function FlowEditorPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  // Dirty tracking: initial yükleme sonrası herhangi bir nodes/edges mutasyonu
+  // dirty=true yapar. save() sonrası dirty=false. beforeunload ve router
+  // geri butonu dirty iken kullanıcıyı uyarır.
+  const [dirty, setDirty] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -142,11 +147,31 @@ export default function FlowEditorPage() {
           }
           setNodes(rfNodes);
           setEdges(rfEdges);
+          // İlk yükleme tamamlandı — bundan sonraki değişiklikler dirty sayar
+          queueMicrotask(() => setInitialized(true));
         } catch (e) {
           console.error("Graph parse error:", e);
         }
       });
   }, [id, setNodes, setEdges]);
+
+  // Dirty tracking — initialized olduktan sonra her nodes/edges değişimini yakala
+  useEffect(() => {
+    if (!initialized) return;
+    setDirty(true);
+  }, [nodes, edges, initialized]);
+
+  // beforeunload — dirty iken tarayıcı kapanma / reload / harici link uyarısı
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // Chrome için gerekli
+      return "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
 
   const onConnect: OnConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -243,7 +268,19 @@ export default function FlowEditorPage() {
       return;
     }
     setInfo("Kaydedildi");
+    setDirty(false);
     setTimeout(() => setInfo(null), 2000);
+  }
+
+  // Geri butonu — dirty iken internal navigation'ı da yakalamak istiyoruz
+  function handleBack() {
+    if (
+      dirty &&
+      !confirm("Kaydedilmemiş değişiklikler var. Çıkmak istediğine emin misin?")
+    ) {
+      return;
+    }
+    router.push("/dashboard/flows");
   }
 
   const selected = nodes.find((n) => n.id === selectedId);
@@ -257,8 +294,9 @@ export default function FlowEditorPage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/dashboard/flows")}
+            onClick={handleBack}
             className="p-2 text-gray-500 hover:bg-gray-100 rounded-lg"
+            aria-label="Geri"
           >
             <ArrowLeft size={18} />
           </button>
@@ -273,10 +311,15 @@ export default function FlowEditorPage() {
         </div>
         <div className="flex items-center gap-2">
           {info && <span className="text-sm text-green-600">{info}</span>}
+          {dirty && !info && (
+            <span className="text-xs text-[#ff9f0a] tracking-tight">
+              Kaydedilmemiş değişiklik
+            </span>
+          )}
           <button
             onClick={save}
-            disabled={saving}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 inline-flex items-center gap-2 disabled:opacity-50"
+            disabled={saving || !dirty}
+            className="bg-[#1d1d1f] text-white px-4 py-2 rounded-full font-medium hover:bg-black inline-flex items-center gap-2 disabled:opacity-50 transition"
           >
             <Save size={16} /> {saving ? "Kaydediliyor..." : "Kaydet"}
           </button>

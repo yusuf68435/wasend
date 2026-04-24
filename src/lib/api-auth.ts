@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { readImpersonationCookie } from "@/lib/impersonation";
+import { prisma } from "@/lib/prisma";
 
 /**
  * API route'larında kullanılacak ortak auth helper.
@@ -33,11 +34,18 @@ export async function requireUserId(): Promise<string | NextResponse> {
 
 /**
  * Aynı auth kontrolü ama plan/role bilgisiyle birlikte.
- * JWT'den okunur, DB hit yok.
+ * Normal session'da JWT'den okunur, DB hit yok.
  *
- * Impersonation aktifken id alanı target userId olur; plan/role/email
- * admin'in kendi JWT'sinden gelir (impersonation için bilinçli tradeoff —
- * plan limitlerini admin tarafı normal tenant akışında değerlendirmek istemez).
+ * Impersonation aktifken:
+ *   - id   → target userId
+ *   - plan → target'ın DB'deki gerçek plan'ı (JWT'deki admin plan'ı DEĞİL)
+ *   - role → target'ın rolü
+ *   - email → target'ın email'i
+ *   - isSuperAdmin → false (impersonated user tenant user'dır)
+ *
+ * Bunu tek DB round-trip'le yaparız. Amaç: admin PRO iken STARTER tenant'ı
+ * temsil ederken plan limitlerinin admin planına kaçmasını engellemek
+ * (quota bypass / billing fraud).
  */
 export async function requireUser(): Promise<
   | {
@@ -55,23 +63,37 @@ export async function requireUser(): Promise<
     return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
   }
 
-  let id = session.user.id;
-  let impersonating = false;
   if (session.user.isSuperAdmin) {
     const imp = await readImpersonationCookie();
     if (imp) {
-      id = imp.userId;
-      impersonating = true;
+      const target = await prisma.user.findUnique({
+        where: { id: imp.userId },
+        select: { id: true, email: true, plan: true, role: true },
+      });
+      if (!target) {
+        return NextResponse.json(
+          { error: "Impersonation target bulunamadı" },
+          { status: 404 },
+        );
+      }
+      return {
+        id: target.id,
+        email: target.email,
+        plan: target.plan || "STARTER",
+        role: target.role || "OWNER",
+        isSuperAdmin: false,
+        impersonating: true,
+      };
     }
   }
 
   return {
-    id,
+    id: session.user.id,
     email: session.user.email || "",
     plan: session.user.plan || "STARTER",
     role: session.user.role || "OWNER",
     isSuperAdmin: session.user.isSuperAdmin || false,
-    impersonating,
+    impersonating: false,
   };
 }
 
