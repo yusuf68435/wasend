@@ -29,6 +29,34 @@ export async function requireAuth() {
   return sessionUser;
 }
 
+/**
+ * Dashboard'a girişte onboarding tamamlanmamışsa /onboarding'e yönlendir.
+ *
+ * Impersonation aktifken admin başkasının dashboard'ına bakıyor olabilir —
+ * bu durumda redirect yapılmaz (admin'i onboarding wizard'ına gömmek yanlış).
+ *
+ * Super admin'ler kendi hesapları için de bypass edilir (admin panel zaten var).
+ */
+export async function requireOnboarded() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) redirect("/login");
+
+  const sessionUser = session.user as { id: string; isSuperAdmin?: boolean };
+
+  // Admin impersonation veya super-admin → skip
+  if (sessionUser.isSuperAdmin) {
+    const imp = await readImpersonationCookie();
+    if (imp) return; // başka kullanıcıyı temsil ediyorsa, redirect yapma
+    return; // kendi admin oturumu
+  }
+
+  const u = await prisma.user.findUnique({
+    where: { id: sessionUser.id },
+    select: { onboardedAt: true },
+  });
+  if (!u?.onboardedAt) redirect("/onboarding");
+}
+
 export async function getImpersonationState(): Promise<
   { active: false } | { active: true; targetId: string; targetEmail: string; adminEmail: string }
 > {

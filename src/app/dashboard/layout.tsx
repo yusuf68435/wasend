@@ -1,4 +1,4 @@
-import { requireAuth, getImpersonationState } from "@/lib/auth-helper";
+import { requireAuth, requireOnboarded, getImpersonationState } from "@/lib/auth-helper";
 import { Sidebar } from "@/components/sidebar";
 import { AnnouncementBanner } from "@/components/announcement-banner";
 import { WelcomeModal } from "@/components/welcome-modal";
@@ -12,6 +12,7 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   await requireAuth();
+  await requireOnboarded();
   const admin = await getSuperAdminOrNull();
   const impersonation = await getImpersonationState();
 
