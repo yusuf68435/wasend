@@ -2,23 +2,25 @@ import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
-        <h1 className="text-6xl font-bold text-green-600 mb-2">404</h1>
-        <p className="text-gray-700 font-medium mb-2">Sayfa bulunamadı</p>
-        <p className="text-sm text-gray-500 mb-6">
-          Aradığınız sayfa mevcut değil ya da taşındı.
+    <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#1d1d1f] px-4">
+      <div className="max-w-[420px] w-full text-center">
+        <p className="text-[88px] font-semibold tracking-tight leading-none text-[#1d1d1f]">
+          404
         </p>
-        <div className="flex gap-2 justify-center">
+        <h1 className="display-md mt-4 text-[#1d1d1f]">Sayfa bulunamadı.</h1>
+        <p className="text-[15px] text-[#6e6e73] mt-3 tracking-tight">
+          Aradığın sayfa mevcut değil ya da taşındı.
+        </p>
+        <div className="flex gap-3 justify-center mt-8">
           <Link
             href="/"
-            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+            className="bg-[#1d1d1f] text-white px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition"
           >
             Ana sayfa
           </Link>
           <Link
             href="/dashboard"
-            className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50"
+            className="border border-[#d2d2d7] text-[#1d1d1f] px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-[#f5f5f7] transition"
           >
             Panel
           </Link>

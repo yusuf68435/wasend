@@ -75,42 +75,49 @@ export function WelcomeModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full relative">
+      <div className="bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] max-w-[520px] w-full relative">
         <button
           onClick={close}
           aria-label="Kapat"
-          className="absolute top-3 right-3 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+          className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#86868b] hover:bg-[#f5f5f7] hover:text-[#1d1d1f] transition"
         >
-          <X size={18} />
+          <X size={16} strokeWidth={2} />
         </button>
 
-        <div className="p-8 text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-green-50 text-green-600 rounded-full mb-4">
-            <Sparkles size={28} />
+        <div className="p-10 text-center">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-[#f5f5f7] text-[#1d1d1f] rounded-2xl mb-6">
+            <Sparkles size={22} strokeWidth={1.75} />
           </div>
-          <h2 id="welcome-title" className="text-2xl font-bold text-gray-900 mb-2">
-            WaSend&apos;e hoş geldin!
+          <h2
+            id="welcome-title"
+            className="display-md text-[#1d1d1f]"
+          >
+            WaSend&apos;e hoş geldin.
           </h2>
-          <p className="text-sm text-gray-500 mb-8">
-            Aşağıdaki 4 adımı takip et, 10 dakikada WhatsApp otomasyonun çalışır durumda olsun.
+          <p className="text-[15px] text-[#6e6e73] mt-3 mb-8 tracking-tight">
+            4 adım, 10 dakika. WhatsApp otomasyonun çalışır durumda olsun.
           </p>
 
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 mb-6 text-left">
+          <div className="bg-[#fbfbfd] border border-[#d2d2d7] rounded-2xl p-5 mb-6 text-left">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 bg-white rounded-lg flex items-center justify-center text-green-600">
+              <div className="flex-shrink-0 w-11 h-11 bg-white border border-[#d2d2d7] rounded-xl flex items-center justify-center text-[#1d1d1f]">
                 {current.icon}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 mb-1">{current.title}</h3>
-                <p className="text-sm text-gray-600">{current.description}</p>
+                <h3 className="font-semibold tracking-tight text-[#1d1d1f] text-[15px] mb-1">
+                  {current.title}
+                </h3>
+                <p className="text-[13px] text-[#6e6e73] tracking-tight leading-relaxed">
+                  {current.description}
+                </p>
               </div>
             </div>
           </div>
 
           {/* Progress dots */}
-          <div className="flex gap-2 justify-center mb-6" role="tablist">
+          <div className="flex gap-1.5 justify-center mb-8" role="tablist">
             {STEPS.map((_, i) => (
               <button
                 key={i}
@@ -119,17 +126,19 @@ export function WelcomeModal() {
                 aria-selected={i === step}
                 aria-label={`Adım ${i + 1}`}
                 onClick={() => setStep(i)}
-                className={`h-2 rounded-full transition-all ${
-                  i === step ? "bg-green-600 w-8" : "bg-gray-300 w-2 hover:bg-gray-400"
+                className={`h-1.5 rounded-full transition-all ${
+                  i === step
+                    ? "bg-[#1d1d1f] w-6"
+                    : "bg-[#d2d2d7] w-1.5 hover:bg-[#86868b]"
                 }`}
               />
             ))}
           </div>
 
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-2 justify-center flex-wrap">
             <button
               onClick={close}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100"
+              className="px-4 py-2 rounded-full text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#f5f5f7] transition"
             >
               Sonra yap
             </button>
@@ -137,7 +146,7 @@ export function WelcomeModal() {
               <Link
                 href={current.href}
                 onClick={close}
-                className="inline-flex items-center gap-1 bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+                className="inline-flex items-center gap-1.5 bg-[#1d1d1f] text-white px-4 py-2 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition"
               >
                 {current.action}
                 <ArrowRight size={14} />
@@ -146,14 +155,14 @@ export function WelcomeModal() {
             {!isLast ? (
               <button
                 onClick={() => setStep((s) => Math.min(STEPS.length - 1, s + 1))}
-                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 rounded-full text-[13px] font-medium tracking-tight border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition"
               >
                 Sonraki
               </button>
             ) : (
               <button
                 onClick={close}
-                className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 rounded-full text-[13px] font-medium tracking-tight border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] transition"
               >
                 Tamamla
               </button>
