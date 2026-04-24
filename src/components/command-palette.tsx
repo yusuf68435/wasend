@@ -143,28 +143,28 @@ export function CommandPalette({ isSuperAdmin = false }: { isSuperAdmin?: boolea
       className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh] px-4 bg-black/40"
     >
       <div
-        className="w-full max-w-lg bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
+        className="w-full max-w-lg bg-white rounded-2xl shadow-2xl border border-[#d2d2d7] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2 border-b border-gray-200 dark:border-gray-700 px-4 py-3">
-          <Search size={16} className="text-gray-400" />
+        <div className="flex items-center gap-2 border-b border-[#d2d2d7] px-4 py-3">
+          <Search size={16} className="text-[#86868b]" aria-hidden />
           <Command.Input
-            placeholder="Ara veya bir eyleme git..."
-            className="flex-1 bg-transparent outline-none text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400"
+            placeholder="Ara veya bir eyleme git…"
+            className="flex-1 bg-transparent outline-none text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] tracking-tight"
           />
-          <kbd className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-500 px-1.5 py-0.5 rounded">
+          <kbd className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-1.5 py-0.5 rounded border border-[#d2d2d7]">
             ESC
           </kbd>
         </div>
         <Command.List className="max-h-96 overflow-y-auto p-2">
-          <Command.Empty className="py-8 text-center text-sm text-gray-400">
+          <Command.Empty className="py-8 text-center text-[13px] text-[#86868b] tracking-tight">
             Eşleşen bir şey bulunamadı
           </Command.Empty>
           {groups.map((group) => (
             <Command.Group
               key={group}
               heading={group}
-              className="[&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-gray-500 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:uppercase"
+              className="[&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-semibold [&_[cmdk-group-heading]]:text-[#86868b] [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:uppercase [&_[cmdk-group-heading]]:tracking-wider"
             >
               {items
                 .filter((i) => i.group === group)
@@ -175,7 +175,7 @@ export function CommandPalette({ isSuperAdmin = false }: { isSuperAdmin?: boolea
                       key={item.id}
                       value={`${item.label} ${(item.keywords || []).join(" ")}`}
                       onSelect={item.action}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 dark:text-gray-200 cursor-pointer data-[selected=true]:bg-green-50 dark:data-[selected=true]:bg-green-900/30 data-[selected=true]:text-green-900 dark:data-[selected=true]:text-green-100"
+                      className="flex items-center gap-3 px-3 py-2 rounded-xl text-[14px] text-[#1d1d1f] cursor-pointer tracking-tight data-[selected=true]:bg-[#f5f5f7] data-[selected=true]:text-[#1d1d1f]"
                     >
                       <Icon size={16} />
                       <span>{item.label}</span>
@@ -185,13 +185,16 @@ export function CommandPalette({ isSuperAdmin = false }: { isSuperAdmin?: boolea
             </Command.Group>
           ))}
         </Command.List>
-        <div className="border-t border-gray-200 dark:border-gray-700 px-4 py-2 text-xs text-gray-500 flex items-center justify-between">
+        <div className="border-t border-[#d2d2d7] px-4 py-2 text-[11px] text-[#6e6e73] flex items-center justify-between tracking-tight">
           <span>
-            <kbd className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">↑↓</kbd> gez{" "}
-            <kbd className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded ml-2">↵</kbd> seç
+            <kbd className="bg-[#f5f5f7] border border-[#d2d2d7] px-1.5 py-0.5 rounded">↑↓</kbd>{" "}
+            gez{" "}
+            <kbd className="bg-[#f5f5f7] border border-[#d2d2d7] px-1.5 py-0.5 rounded ml-2">↵</kbd>{" "}
+            seç
           </span>
           <span>
-            <kbd className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">⌘K</kbd> aç/kapat
+            <kbd className="bg-[#f5f5f7] border border-[#d2d2d7] px-1.5 py-0.5 rounded">⌘K</kbd>{" "}
+            aç/kapat
           </span>
         </div>
       </div>

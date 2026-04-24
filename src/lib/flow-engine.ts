@@ -34,14 +34,73 @@ export interface FlowSessionState {
 
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
 
+/**
+ * Güvenlik + bellek büdçeleri:
+ *   - MAX_NODES: tek bir flow 200'den fazla node içeremez (DOS koruması).
+ *   - MAX_VARIABLES: session state'i 50'den fazla değişken saklayamaz.
+ *   - MAX_VARIABLE_VALUE_LEN: tek bir variable değeri 2000 char sınırı
+ *     (WhatsApp message tipik 4096 olsa da variable olarak saklamak için
+ *     budget sınırlı).
+ *   - MAX_STATE_JSON_BYTES: serialized state boyutu 16KB sınırı — DB
+ *     row'unda büyümesin, prisma TEXT field sınırına yaklaşmayalım.
+ *   - MAX_INPUT_LEN: tek bir gelen mesajın engine'e girmesi için cap.
+ */
+const MAX_NODES = 200;
+const MAX_VARIABLES = 50;
+const MAX_VARIABLE_VALUE_LEN = 2000;
+const MAX_STATE_JSON_BYTES = 16 * 1024;
+const MAX_INPUT_LEN = 4000;
+
 export function parseGraph(raw: string | null | undefined): FlowGraph | null {
   if (!raw) return null;
   try {
     const p = JSON.parse(raw);
     if (!p || !Array.isArray(p.nodes) || typeof p.startId !== "string") return null;
+    if (p.nodes.length > MAX_NODES) return null;
     return p as FlowGraph;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Variable'ı state'e güvenli şekilde yaz — büdçe aşılırsa sessizce reddet.
+ * Attacker "aynı değişkeni her mesajda büyüt" saldırısıyla row'u şişiremez.
+ */
+function setVariableBounded(
+  state: FlowSessionState,
+  name: string,
+  value: string,
+): void {
+  // Yeni bir anahtar eklemek isteniyorsa ve limit dolmuşsa reddet.
+  if (!(name in state.variables) && Object.keys(state.variables).length >= MAX_VARIABLES) {
+    return;
+  }
+  const clipped = value.slice(0, MAX_VARIABLE_VALUE_LEN);
+  state.variables[name] = clipped;
+  // Toplam serialized boyut aşıldıysa en eski key'i at — FIFO politikası.
+  let serialized = JSON.stringify(state);
+  while (serialized.length > MAX_STATE_JSON_BYTES) {
+    const keys = Object.keys(state.variables);
+    if (keys.length <= 1) {
+      // Son bir key kaldı ama hala büyükse onu da trim et
+      const lastKey = keys[0];
+      if (!lastKey) break;
+      state.variables[lastKey] = (state.variables[lastKey] || "").slice(
+        0,
+        Math.max(0, MAX_VARIABLE_VALUE_LEN / 2),
+      );
+      break;
+    }
+    const oldestKey = keys[0];
+    if (oldestKey === name) {
+      // Yeni yazdığımızı silme — bir sonraki en eskiyi at
+      const alt = keys[1];
+      if (alt) delete state.variables[alt];
+    } else if (oldestKey) {
+      delete state.variables[oldestKey];
+    }
+    serialized = JSON.stringify(state);
   }
 }
 
@@ -266,7 +325,9 @@ export async function runFlows(input: FlowRunInput): Promise<FlowRunOutcome> {
     }
 
     const state: FlowSessionState = tryParseState(session.state);
-    state.lastInput = input.incomingText;
+    // Input size cap — engine saldırgan mesaj uzunluğuyla şişmesin
+    const safeInput = (input.incomingText || "").slice(0, MAX_INPUT_LEN);
+    state.lastInput = safeInput;
     // Advance from current node (which must be a question awaiting input).
     // Question nodes advance to their `next` on input.
     const node = findNode(graph, session.currentNodeId);
@@ -280,8 +341,8 @@ export async function runFlows(input: FlowRunInput): Promise<FlowRunOutcome> {
 
     // Store user input as a variable if question defined a varName
     if (node?.type === "question") {
-      const varName = String(node.data.varName || "").trim();
-      if (varName) state.variables[varName] = input.incomingText;
+      const varName = String(node.data.varName || "").trim().slice(0, 64);
+      if (varName) setVariableBounded(state, varName, safeInput);
     }
 
     const ctx: RunContext = {
@@ -336,7 +397,7 @@ export async function runFlows(input: FlowRunInput): Promise<FlowRunOutcome> {
 
     const state: FlowSessionState = {
       variables: {},
-      lastInput: input.incomingText,
+      lastInput: (input.incomingText || "").slice(0, MAX_INPUT_LEN),
     };
 
     const ctx: RunContext = {
@@ -374,10 +435,22 @@ function tryParseState(raw: string): FlowSessionState {
   try {
     const p = JSON.parse(raw);
     if (p && typeof p === "object") {
-      return {
-        variables: p.variables || {},
-        lastInput: p.lastInput,
-      };
+      // Defense-in-depth: DB'deki state de MAX_VARIABLES üzerinde olabilir
+      // (eski kayıt, manuel müdahale, vs). Okurken de budget uygula.
+      const rawVars = (p.variables || {}) as Record<string, unknown>;
+      const variables: Record<string, string> = {};
+      let count = 0;
+      for (const [k, v] of Object.entries(rawVars)) {
+        if (count >= MAX_VARIABLES) break;
+        if (typeof v !== "string") continue;
+        variables[k.slice(0, 64)] = v.slice(0, MAX_VARIABLE_VALUE_LEN);
+        count++;
+      }
+      const lastInput =
+        typeof p.lastInput === "string"
+          ? p.lastInput.slice(0, MAX_INPUT_LEN)
+          : undefined;
+      return { variables, lastInput };
     }
   } catch {
     // fallthrough

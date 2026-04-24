@@ -78,6 +78,20 @@ export async function POST(request: Request) {
   let skipped = 0;
   const rowErrors: Array<{ row: number; message: string }> = [];
 
+  // 1. Tüm satırları valide et — geçerli olanları map'e koy (phone key, son
+  //    gelen kazanır). Geçersiz satırlar rowErrors'a düşer.
+  const validRows = new Map<
+    string,
+    {
+      name: string;
+      phone: string;
+      tags?: string | null;
+      notes?: string | null;
+      language?: string | null;
+      source?: string | null;
+    }
+  >();
+
   for (let i = 0; i < parsed.data.length; i++) {
     const row = parsed.data[i];
     const candidate = {
@@ -97,42 +111,129 @@ export async function POST(request: Request) {
       });
       continue;
     }
+    validRows.set(validated.data.phone, validated.data);
+  }
 
-    const data = validated.data;
-    const existing = await prisma.contact.findUnique({
-      where: { userId_phone: { userId, phone: data.phone } },
+  const allPhones = Array.from(validRows.keys());
+
+  // 2. Mevcut kontakları batch halinde çek — 10K satır serisel findUnique
+  //    yerine tek IN sorgusu (500'lük chunk'larla PG parameter limitini aş-
+  //    mamak için).
+  const LOOKUP_BATCH = 500;
+  const existingByPhone = new Map<
+    string,
+    { id: string; tags: string | null; notes: string | null; language: string; source: string | null }
+  >();
+  for (let i = 0; i < allPhones.length; i += LOOKUP_BATCH) {
+    const slice = allPhones.slice(i, i + LOOKUP_BATCH);
+    const rows = await prisma.contact.findMany({
+      where: { userId, phone: { in: slice } },
+      select: {
+        id: true,
+        phone: true,
+        tags: true,
+        notes: true,
+        language: true,
+        source: true,
+      },
     });
+    for (const r of rows) existingByPhone.set(r.phone, r);
+  }
 
+  // 3. Yeni kontakları topla, mevcutları update listesine ayır.
+  const toInsert: Array<{
+    name: string;
+    phone: string;
+    tags: string | null;
+    notes: string | null;
+    language: string;
+    source: string;
+    userId: string;
+  }> = [];
+  const toUpdate: Array<{
+    id: string;
+    name: string;
+    tags: string | null;
+    notes: string | null;
+    language: string;
+    source: string | null;
+  }> = [];
+
+  for (const [phone, data] of validRows) {
+    const existing = existingByPhone.get(phone);
     if (existing) {
       if (mode === "update") {
-        await prisma.contact.update({
-          where: { id: existing.id },
-          data: {
-            name: data.name,
-            tags: data.tags ?? existing.tags,
-            notes: data.notes ?? existing.notes,
-            language: data.language ?? existing.language,
-            source: data.source ?? existing.source,
-          },
+        toUpdate.push({
+          id: existing.id,
+          name: data.name,
+          tags: data.tags ?? existing.tags,
+          notes: data.notes ?? existing.notes,
+          language: data.language ?? existing.language,
+          source: data.source ?? existing.source,
         });
-        updated++;
       } else {
         skipped++;
       }
     } else {
-      await prisma.contact.create({
-        data: {
-          name: data.name,
-          phone: data.phone,
-          tags: data.tags ?? null,
-          notes: data.notes ?? null,
-          language: data.language ?? "tr",
-          source: data.source ?? "csv-import",
-          userId,
-        },
+      toInsert.push({
+        name: data.name,
+        phone: data.phone,
+        tags: data.tags ?? null,
+        notes: data.notes ?? null,
+        language: data.language ?? "tr",
+        source: data.source ?? "csv-import",
+        userId,
       });
-      inserted++;
     }
+  }
+
+  // 4. Batch insert (createMany, 500'lük chunk). SQLite + Prisma'da
+  //    skipDuplicates yok — zaten existingByPhone ile önceden filtreledik,
+  //    yarışmacı aynı zamanda aynı phone'u insert etse bile userId_phone
+  //    unique constraint bir tarafı reject eder; batch catch'e düşer.
+  const INSERT_BATCH = 500;
+  for (let i = 0; i < toInsert.length; i += INSERT_BATCH) {
+    const slice = toInsert.slice(i, i + INSERT_BATCH);
+    try {
+      const res = await prisma.contact.createMany({ data: slice });
+      inserted += res.count;
+    } catch (e) {
+      // Race'de duplicate çıkarsa batch geri düşer — satır satır dene
+      const code = (e as { code?: string })?.code;
+      if (code !== "P2002") throw e;
+      for (const row of slice) {
+        try {
+          await prisma.contact.create({ data: row });
+          inserted++;
+        } catch (inner) {
+          const ic = (inner as { code?: string })?.code;
+          if (ic !== "P2002") throw inner;
+          skipped++;
+        }
+      }
+    }
+  }
+
+  // 5. Update'ler — her satır farklı data, createMany uygulanamaz. Transaction
+  //    ile batch'le, 500'lük chunk.
+  const UPDATE_BATCH = 500;
+  for (let i = 0; i < toUpdate.length; i += UPDATE_BATCH) {
+    const slice = toUpdate.slice(i, i + UPDATE_BATCH);
+    await prisma.$transaction(
+      slice.map((u) =>
+        prisma.contact.update({
+          where: { id: u.id },
+          data: {
+            name: u.name,
+            tags: u.tags,
+            notes: u.notes,
+            language: u.language,
+            source: u.source,
+          },
+        }),
+      ),
+    );
+    updated += slice.length;
   }
 
   return NextResponse.json({

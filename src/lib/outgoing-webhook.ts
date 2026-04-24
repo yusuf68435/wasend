@@ -18,6 +18,52 @@ interface DispatchOptions {
   data: Record<string, unknown>;
 }
 
+/**
+ * Circuit breaker: başarısız webhook'lar socket/event-loop'u yemesin.
+ * Bir webhook URL son 60 saniyede 5+ kez başarısız olduysa 5 dakika boyunca
+ * es geç. Böylece müşterinin ölü webhook'u diğer tenant'ları yavaşlatmaz
+ * ve recovery sonrası otomatik devreye girer.
+ */
+const FAILURE_WINDOW_MS = 60_000;
+const FAILURE_THRESHOLD = 5;
+const COOLDOWN_MS = 5 * 60_000;
+
+interface BreakerState {
+  failures: number[]; // timestamp'ler
+  openUntil: number; // ms, 0 = kapalı
+}
+const breaker = new Map<string, BreakerState>();
+
+function isCircuitOpen(hookId: string): boolean {
+  const state = breaker.get(hookId);
+  if (!state) return false;
+  const now = Date.now();
+  if (state.openUntil > now) return true;
+  // Pencereden çıkmış failure'ları temizle
+  state.failures = state.failures.filter((t) => now - t < FAILURE_WINDOW_MS);
+  if (state.failures.length === 0) breaker.delete(hookId);
+  return false;
+}
+
+function recordFailure(hookId: string): void {
+  const now = Date.now();
+  const state = breaker.get(hookId) || { failures: [], openUntil: 0 };
+  state.failures.push(now);
+  state.failures = state.failures.filter((t) => now - t < FAILURE_WINDOW_MS);
+  if (state.failures.length >= FAILURE_THRESHOLD) {
+    state.openUntil = now + COOLDOWN_MS;
+    state.failures = [];
+    console.warn(
+      `[webhook] circuit opened for ${hookId} — cooldown ${COOLDOWN_MS / 1000}s`,
+    );
+  }
+  breaker.set(hookId, state);
+}
+
+function recordSuccess(hookId: string): void {
+  breaker.delete(hookId);
+}
+
 // Fire-and-forget. Never throws — logs errors internally.
 export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
   try {
@@ -39,7 +85,10 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
             .split(",")
             .map((e) => e.trim())
             .filter(Boolean);
-          return events.includes("*") || events.includes(opts.event);
+          const subscribed = events.includes("*") || events.includes(opts.event);
+          if (!subscribed) return false;
+          if (isCircuitOpen(h.id)) return false;
+          return true;
         })
         .map(async (h) => {
           const signature = crypto
@@ -49,7 +98,7 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
           try {
             // 5 sn timeout — yavaş webhook endpoint broadcast processor'ı
             // yavaşlatmasın (Promise.allSettled dış sarmalayıcısıyla birlikte)
-            await fetch(h.url, {
+            const res = await fetch(h.url, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
@@ -59,8 +108,17 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
               body,
               signal: AbortSignal.timeout(5000),
             });
+            if (res.ok) {
+              recordSuccess(h.id);
+            } else {
+              recordFailure(h.id);
+            }
           } catch (e) {
-            console.error(`Outgoing webhook ${h.id} failed:`, e instanceof Error ? e.name : String(e));
+            recordFailure(h.id);
+            console.error(
+              `Outgoing webhook ${h.id} failed:`,
+              e instanceof Error ? e.name : String(e),
+            );
           }
         }),
     );

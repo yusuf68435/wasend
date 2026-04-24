@@ -25,8 +25,15 @@ export interface ProcessBroadcastResult {
  * Broadcast'i "sending" state'ine atomic geçir.
  * Sadece draft/scheduled/failed bir broadcast işlenebilir.
  * Eşzamanlı ikinci bir çağrı 0 satır update eder ve hata fırlatır.
+ *
+ * Stale recovery: status=sending ama startedAt > STALE_MS önce ise büyük
+ * ihtimalle süreç crash'ledi (SIGKILL/OOM) ve finally/catch çalışamadı.
+ * Bu durumda reclaim izin veriyoruz — composite unique (broadcastId,
+ * contactId) + processedIds filter'ı sayesinde aynı contact'a iki kez
+ * mesaj gitmez.
  */
 const RUNNABLE_STATUSES = ["draft", "scheduled", "failed"] as const;
+const STALE_SENDING_MS = 30 * 60_000; // 30 dk
 
 export async function processBroadcast(
   broadcastId: string,
@@ -37,10 +44,15 @@ export async function processBroadcast(
     throw new Error("WhatsApp API ayarları eksik");
   }
 
+  const staleBefore = new Date(Date.now() - STALE_SENDING_MS);
   const claimed = await prisma.broadcast.updateMany({
     where: {
       id: broadcastId,
-      status: { in: [...RUNNABLE_STATUSES] },
+      OR: [
+        { status: { in: [...RUNNABLE_STATUSES] } },
+        // Stale "sending" recovery
+        { status: "sending", startedAt: { lt: staleBefore } },
+      ],
     },
     data: {
       status: "sending",
@@ -245,12 +257,28 @@ async function runBroadcast(
     }
   }
 
-  await prisma.broadcast.update({
-    where: { id: broadcastId },
+  // Authoritative counts — in-memory sayılar P2002 skip ve crash/retry
+  // senaryolarında yanıltıcı olabilir. Truth DB'de: broadcastId'li message
+  // satırları.
+  const [sentAgg, failedAgg] = await Promise.all([
+    prisma.message.count({
+      where: { broadcastId, status: "sent" },
+    }),
+    prisma.message.count({
+      where: { broadcastId, status: "failed" },
+    }),
+  ]);
+  const finalSentCount = sentAgg;
+  const finalFailedCount = failedAgg;
+
+  // Final status atomic — eğer başka bir süreç aynı anda status'u
+  // değiştirdiyse (örn. admin cancel), overwrite etme.
+  await prisma.broadcast.updateMany({
+    where: { id: broadcastId, status: "sending" },
     data: {
       status: "sent",
-      sentCount,
-      failedCount,
+      sentCount: finalSentCount,
+      failedCount: finalFailedCount,
       completedAt: new Date(),
     },
   });
@@ -261,11 +289,15 @@ async function runBroadcast(
     data: {
       broadcastId,
       name: broadcast.name,
-      sentCount,
-      failedCount,
+      sentCount: finalSentCount,
+      failedCount: finalFailedCount,
       total: totalAudience,
     },
   });
 
-  return { sentCount, failedCount, total: totalAudience };
+  return {
+    sentCount: finalSentCount,
+    failedCount: finalFailedCount,
+    total: totalAudience,
+  };
 }

@@ -3,13 +3,16 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 /**
  * TOTP gate cookie — admin 2FA'yı bu session'da geçti mi?
- * 12 saat TTL. Her 12 saatte bir tekrar 2FA ister.
+ * 2 saat TTL. Daha önce 12 saat'ti ama super-admin cookie'si 2FA atlatma
+ * penceresini gereksiz uzun tutuyordu (çalınmış cookie + impersonation =
+ * tam tenant erişimi). 2 saat tipik bir admin iş oturumunu karşılar,
+ * laptop çalınma senaryosunda risk penceresini 6× azaltır.
  *
  * Signed HMAC (NEXTAUTH_SECRET). User.id'ye bağlı — başka user'a geçersiz.
  */
 
 const COOKIE_NAME = "wasend_admin_2fa";
-const MAX_AGE_MS = 12 * 60 * 60 * 1000;
+const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
 function secret(): string {
   const s = process.env.NEXTAUTH_SECRET;
