@@ -95,7 +95,6 @@ export default function TenantDetailPage() {
     if (!data) return;
     const isSuspending = !data.user.suspended;
 
-    // Her iki yönde de confirm (accidental click koruması)
     const confirmMsg = isSuspending
       ? `${data.user.email} hesabı askıya alınacak. Kullanıcı giriş yapamayacak. Emin misiniz?`
       : `${data.user.email} hesabının askısı kaldırılacak. Tekrar erişim sağlayacak. Emin misiniz?`;
@@ -205,7 +204,6 @@ export default function TenantDetailPage() {
       return;
     }
     const result = await res.json();
-    // Clipboard'a yaz + ekranda göster
     try {
       await navigator.clipboard.writeText(result.resetUrl);
     } catch {
@@ -262,7 +260,7 @@ export default function TenantDetailPage() {
   }
 
   if (!data)
-    return <div className="text-slate-400">Yükleniyor...</div>;
+    return <div className="text-[#86868b] text-[13px]">Yükleniyor...</div>;
 
   const u = data.user;
 
@@ -270,25 +268,25 @@ export default function TenantDetailPage() {
     <div>
       <button
         onClick={() => router.push("/admin/tenants")}
-        className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 mb-4"
+        className="inline-flex items-center gap-2 text-[13px] text-[#6e6e73] hover:text-[#1d1d1f] mb-4 tracking-tight"
       >
         <ArrowLeft size={16} /> Kiracılara dön
       </button>
 
       {msg && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-900 text-sm px-3 py-2 rounded">
+        <div className="mb-4 bg-[#ff9f0a]/10 border border-[#ff9f0a]/20 text-[#ff9f0a] rounded-2xl px-4 py-3 text-[13px] tracking-tight">
           {msg}
         </div>
       )}
 
       {resetUrl && (
-        <div className="mb-4 bg-blue-50 border border-blue-200 rounded p-3">
+        <div className="mb-4 bg-[#0071e3]/10 border border-[#0071e3]/20 rounded-2xl px-4 py-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-blue-900 mb-1">
+              <p className="text-[11px] font-semibold text-[#0071e3] mb-1 tracking-tight">
                 Şifre Sıfırlama URL&apos;i (24 saat)
               </p>
-              <p className="text-xs text-blue-700 break-all font-mono">{resetUrl}</p>
+              <p className="text-[11px] text-[#0071e3] break-all font-mono">{resetUrl}</p>
             </div>
             <div className="flex gap-2 flex-shrink-0">
               <button
@@ -296,13 +294,13 @@ export default function TenantDetailPage() {
                   navigator.clipboard.writeText(resetUrl);
                   setMsg("URL kopyalandı");
                 }}
-                className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 inline-flex items-center gap-1"
+                className="bg-[#1d1d1f] text-white px-3 h-8 rounded-full text-[12px] font-medium tracking-tight hover:bg-black transition inline-flex items-center gap-1"
               >
                 <Copy size={12} /> Kopyala
               </button>
               <button
                 onClick={() => setResetUrl(null)}
-                className="text-xs px-2 py-1 text-blue-700 hover:bg-blue-100 rounded"
+                className="text-[12px] px-3 h-8 text-[#0071e3] hover:bg-[#0071e3]/10 rounded-full transition"
               >
                 Gizle
               </button>
@@ -311,25 +309,25 @@ export default function TenantDetailPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] p-6 mb-6">
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="display-md text-[#1d1d1f]">
                 {u.businessName || u.name}
               </h2>
               {u.isSuperAdmin && (
-                <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                <span className="text-[11px] bg-[#0071e3]/10 text-[#0071e3] px-2 py-0.5 rounded-full font-medium tracking-tight inline-flex items-center gap-1">
                   <Shield size={10} /> SUPER ADMIN
                 </span>
               )}
               {u.suspended && (
-                <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                <span className="text-[11px] bg-[#ff453a]/10 text-[#ff453a] px-2 py-0.5 rounded-full font-medium tracking-tight inline-flex items-center gap-1">
                   <Ban size={10} /> ASKIDA
                 </span>
               )}
             </div>
-            <div className="text-sm text-slate-500 flex items-center gap-3">
+            <div className="text-[13px] text-[#6e6e73] tracking-tight flex items-center gap-3">
               <span className="inline-flex items-center gap-1">
                 <Mail size={12} /> {u.email}
               </span>
@@ -344,7 +342,7 @@ export default function TenantDetailPage() {
               </span>
             </div>
             {u.suspendReason && (
-              <p className="text-sm text-red-700 mt-2">
+              <p className="text-[13px] text-[#ff453a] mt-2 tracking-tight">
                 Askı sebebi: {u.suspendReason}
               </p>
             )}
@@ -355,10 +353,10 @@ export default function TenantDetailPage() {
               onClick={toggleSuspend}
               disabled={busy}
               className={
-                "px-3 py-2 rounded-lg text-sm font-medium inline-flex items-center gap-2 disabled:opacity-50 " +
+                "px-4 h-10 rounded-full text-[13px] font-medium tracking-tight inline-flex items-center gap-2 disabled:opacity-50 transition " +
                 (u.suspended
-                  ? "bg-green-600 text-white hover:bg-green-700"
-                  : "bg-red-600 text-white hover:bg-red-700")
+                  ? "bg-[#1d1d1f] text-white hover:bg-black"
+                  : "bg-[#ff453a] text-white hover:opacity-90")
               }
             >
               {u.suspended ? (
@@ -374,7 +372,7 @@ export default function TenantDetailPage() {
             <button
               onClick={togglePromote}
               disabled={busy}
-              className="px-3 py-2 rounded-lg text-sm font-medium border border-slate-300 hover:bg-slate-50 inline-flex items-center gap-2 disabled:opacity-50"
+              className="px-4 h-10 rounded-full text-[13px] font-medium tracking-tight border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7] inline-flex items-center gap-2 disabled:opacity-50 transition"
             >
               {u.isSuperAdmin ? (
                 <>
@@ -390,7 +388,7 @@ export default function TenantDetailPage() {
               <button
                 onClick={impersonate}
                 disabled={busy}
-                className="px-3 py-2 rounded-lg text-sm font-medium bg-amber-500 text-white hover:bg-amber-600 inline-flex items-center gap-2 disabled:opacity-50"
+                className="px-4 h-10 rounded-full text-[13px] font-medium tracking-tight bg-[#1d1d1f] text-white hover:bg-black inline-flex items-center gap-2 disabled:opacity-50 transition"
                 title="Bu hesap adına geçici olarak panel kullan"
               >
                 <UserCheck size={14} /> Impersonate
@@ -399,7 +397,7 @@ export default function TenantDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-100">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-[#f5f5f7]">
           <Stat label="Kişi" value={u._count.contacts} />
           <Stat label="Mesaj" value={u._count.messages} />
           <Stat label="Broadcast" value={u._count.broadcasts} />
@@ -412,8 +410,8 @@ export default function TenantDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-3 inline-flex items-center gap-2">
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3 inline-flex items-center gap-2">
             <CreditCard size={16} /> Plan
           </h3>
           <div className="flex gap-2">
@@ -423,10 +421,10 @@ export default function TenantDetailPage() {
                 disabled={busy}
                 onClick={() => changePlan(p)}
                 className={
-                  "px-3 py-2 rounded-lg text-sm font-medium border flex-1 disabled:opacity-50 " +
+                  "px-4 h-10 rounded-full text-[13px] font-medium tracking-tight flex-1 disabled:opacity-50 transition " +
                   (u.plan === p
-                    ? "bg-amber-500 text-white border-amber-500"
-                    : "border-slate-300 hover:bg-slate-50")
+                    ? "bg-[#1d1d1f] text-white hover:bg-black"
+                    : "border border-[#d2d2d7] text-[#1d1d1f] hover:bg-[#f5f5f7]")
                 }
               >
                 {p}
@@ -435,9 +433,9 @@ export default function TenantDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-3">Profil</h3>
-          <dl className="text-sm space-y-1">
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3">Profil</h3>
+          <dl className="text-[13px] space-y-1">
             <Row k="İşletme" v={u.businessName || "—"} />
             <Row k="Tür" v={u.businessType || "—"} />
             <Row k="Telefon" v={u.phone || "—"} />
@@ -451,16 +449,16 @@ export default function TenantDetailPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-5 mb-6">
-        <h3 className="font-semibold text-slate-900 mb-3 inline-flex items-center gap-2">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5 mb-6">
+        <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3 inline-flex items-center gap-2">
           <Activity size={16} /> Admin İşlemleri
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <div className="border border-slate-200 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+          <div className="border border-[#d2d2d7] rounded-xl p-3">
+            <h4 className="text-[13px] font-medium text-[#1d1d1f] mb-2 inline-flex items-center gap-1.5 tracking-tight">
               <Clock size={14} /> Trial Süresini Uzat
             </h4>
-            <p className="text-xs text-slate-500 mb-2">
+            <p className="text-[11px] text-[#6e6e73] mb-2 tracking-tight">
               Kullanıcıya ek deneme günü tanı.
             </p>
             <div className="flex gap-1.5">
@@ -469,7 +467,7 @@ export default function TenantDetailPage() {
                   key={d}
                   onClick={() => extendTrial(d)}
                   disabled={busy}
-                  className="flex-1 text-xs px-2 py-1.5 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 disabled:opacity-50"
+                  className="flex-1 text-[12px] px-2 h-8 border border-[#d2d2d7] text-[#1d1d1f] rounded-full hover:bg-[#f5f5f7] disabled:opacity-50 transition font-medium tracking-tight"
                 >
                   +{d}g
                 </button>
@@ -477,33 +475,33 @@ export default function TenantDetailPage() {
             </div>
           </div>
 
-          <div className="border border-slate-200 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+          <div className="border border-[#d2d2d7] rounded-xl p-3">
+            <h4 className="text-[13px] font-medium text-[#1d1d1f] mb-2 inline-flex items-center gap-1.5 tracking-tight">
               <KeyRound size={14} /> Şifre Sıfırla
             </h4>
-            <p className="text-xs text-slate-500 mb-2">
+            <p className="text-[11px] text-[#6e6e73] mb-2 tracking-tight">
               24 saat geçerli URL. Kullanıcıya elle ilet.
             </p>
             <button
               onClick={generatePasswordReset}
               disabled={busy || u.isSuperAdmin}
-              className="w-full text-xs px-2 py-1.5 bg-amber-500 text-white rounded hover:bg-amber-600 disabled:opacity-50"
+              className="w-full text-[12px] px-2 h-8 bg-[#1d1d1f] text-white rounded-full hover:bg-black disabled:opacity-50 transition font-medium tracking-tight"
             >
               URL Oluştur
             </button>
           </div>
 
-          <div className="border border-slate-200 rounded-lg p-3">
-            <h4 className="text-sm font-medium text-slate-900 mb-2 inline-flex items-center gap-1.5">
+          <div className="border border-[#d2d2d7] rounded-xl p-3">
+            <h4 className="text-[13px] font-medium text-[#1d1d1f] mb-2 inline-flex items-center gap-1.5 tracking-tight">
               <Trash2 size={14} /> Kuyruğu Temizle
             </h4>
-            <p className="text-xs text-slate-500 mb-2">
+            <p className="text-[11px] text-[#6e6e73] mb-2 tracking-tight">
               Failed mesajları sil. Retry engelini kaldırır.
             </p>
             <button
               onClick={clearFailed}
               disabled={busy}
-              className="w-full text-xs px-2 py-1.5 bg-slate-100 text-slate-700 rounded hover:bg-slate-200 disabled:opacity-50"
+              className="w-full text-[12px] px-2 h-8 border border-[#d2d2d7] text-[#1d1d1f] rounded-full hover:bg-[#f5f5f7] disabled:opacity-50 transition font-medium tracking-tight"
             >
               Temizle
             </button>
@@ -512,52 +510,52 @@ export default function TenantDetailPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-3">Son 10 Mesaj</h3>
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3">Son 10 Mesaj</h3>
           {data.recentMessages.length === 0 ? (
-            <p className="text-sm text-slate-400">Henüz mesaj yok</p>
+            <p className="text-[13px] text-[#86868b]">Henüz mesaj yok</p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-[#f5f5f7]">
               {data.recentMessages.map((m) => (
-                <li key={m.id} className="py-2 text-sm">
+                <li key={m.id} className="py-2 text-[13px]">
                   <div className="flex items-center gap-2">
                     <span
                       className={
-                        "text-xs px-1.5 py-0.5 rounded " +
+                        "text-[11px] px-1.5 py-0.5 rounded-full font-medium tracking-tight " +
                         (m.direction === "incoming"
-                          ? "bg-blue-50 text-blue-700"
-                          : "bg-green-50 text-green-700")
+                          ? "bg-[#0071e3]/10 text-[#0071e3]"
+                          : "bg-[#30d158]/10 text-[#1d7a3a]")
                       }
                     >
                       {m.direction === "incoming" ? "IN" : "OUT"}
                     </span>
-                    <span className="text-xs text-slate-500">{m.phone}</span>
-                    <span className="text-xs text-slate-400 ml-auto">
+                    <span className="text-[11px] text-[#6e6e73]">{m.phone}</span>
+                    <span className="text-[11px] text-[#86868b] ml-auto">
                       {new Date(m.createdAt).toLocaleString("tr-TR")}
                     </span>
                   </div>
-                  <p className="text-slate-700 mt-1 truncate">{m.content}</p>
+                  <p className="text-[#1d1d1f] mt-1 truncate">{m.content}</p>
                 </li>
               ))}
             </ul>
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="font-semibold text-slate-900 mb-3">Son Broadcast&apos;ler</h3>
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3">Son Broadcast&apos;ler</h3>
           {data.recentBroadcasts.length === 0 ? (
-            <p className="text-sm text-slate-400">Henüz broadcast yok</p>
+            <p className="text-[13px] text-[#86868b]">Henüz broadcast yok</p>
           ) : (
-            <ul className="divide-y divide-slate-100">
+            <ul className="divide-y divide-[#f5f5f7]">
               {data.recentBroadcasts.map((b) => (
-                <li key={b.id} className="py-2 text-sm">
+                <li key={b.id} className="py-2 text-[13px]">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-slate-900">{b.name}</span>
-                    <span className="text-xs bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="font-medium text-[#1d1d1f]">{b.name}</span>
+                    <span className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-2 py-0.5 rounded-full font-medium tracking-tight">
                       {b.status}
                     </span>
                   </div>
-                  <div className="text-xs text-slate-500 mt-1">
+                  <div className="text-[11px] text-[#6e6e73] mt-1">
                     {b.sentCount} gönderildi, {b.failedCount} başarısız •{" "}
                     {new Date(b.createdAt).toLocaleDateString("tr-TR")}
                   </div>
@@ -574,8 +572,8 @@ export default function TenantDetailPage() {
 function Stat({ label, value }: { label: string; value: number | string }) {
   return (
     <div>
-      <div className="text-xs text-slate-500">{label}</div>
-      <div className="text-lg font-bold text-slate-900">{typeof value === "number" ? value.toLocaleString("tr-TR") : value}</div>
+      <div className="text-[11px] text-[#6e6e73] tracking-tight">{label}</div>
+      <div className="text-[18px] font-semibold text-[#1d1d1f] tracking-tight">{typeof value === "number" ? value.toLocaleString("tr-TR") : value}</div>
     </div>
   );
 }
@@ -583,8 +581,8 @@ function Stat({ label, value }: { label: string; value: number | string }) {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex justify-between gap-2">
-      <dt className="text-slate-500">{k}</dt>
-      <dd className="text-slate-900 text-right truncate">{v}</dd>
+      <dt className="text-[#6e6e73]">{k}</dt>
+      <dd className="text-[#1d1d1f] text-right truncate">{v}</dd>
     </div>
   );
 }

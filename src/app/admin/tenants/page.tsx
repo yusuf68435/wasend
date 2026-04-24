@@ -24,10 +24,10 @@ interface Tenant {
   };
 }
 
-const PLAN_COLOR: Record<string, string> = {
-  STARTER: "bg-gray-100 text-gray-700",
-  PRO: "bg-blue-100 text-blue-700",
-  BUSINESS: "bg-purple-100 text-purple-700",
+const PLAN_BADGE: Record<string, string> = {
+  STARTER: "bg-[#f5f5f7] text-[#6e6e73]",
+  PRO: "bg-[#0071e3]/10 text-[#0071e3]",
+  BUSINESS: "bg-[#1d1d1f] text-white",
 };
 
 export default function TenantsPage() {
@@ -114,14 +114,14 @@ export default function TenantsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900">Kiracılar</h2>
-        <p className="text-slate-500 text-sm mt-1">
+        <h2 className="display-md text-[#1d1d1f]">Kiracılar</h2>
+        <p className="text-[13px] text-[#6e6e73] tracking-tight mt-1">
           Tüm platform kullanıcıları. Detay için satıra tıklayın.
         </p>
       </div>
 
       {msg && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-900 text-sm px-3 py-2 rounded">
+        <div className="mb-4 bg-[#ff9f0a]/10 border border-[#ff9f0a]/20 text-[#ff9f0a] rounded-2xl px-4 py-3 text-[13px] tracking-tight">
           {msg}
         </div>
       )}
@@ -130,7 +130,7 @@ export default function TenantsPage() {
         <div className="relative flex-1 max-w-md">
           <Search
             size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-[#86868b]"
             aria-hidden="true"
           />
           <input
@@ -138,14 +138,14 @@ export default function TenantsPage() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="E-posta, isim, işletme veya telefon ara..."
             aria-label="Kiracı ara"
-            className="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+            className="w-full h-10 pl-9 pr-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
         </div>
         <select
           value={plan}
           onChange={(e) => setPlan(e.target.value)}
           aria-label="Plan filtresi"
-          className="px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm"
+          className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
         >
           <option value="">Tüm planlar</option>
           <option value="STARTER">STARTER</option>
@@ -156,7 +156,7 @@ export default function TenantsPage() {
           value={status}
           onChange={(e) => setStatus(e.target.value)}
           aria-label="Durum filtresi"
-          className="px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm"
+          className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
         >
           <option value="">Tüm durumlar</option>
           <option value="active">Aktif</option>
@@ -166,7 +166,7 @@ export default function TenantsPage() {
           value={sort}
           onChange={(e) => setSort(e.target.value)}
           aria-label="Sıralama"
-          className="px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm"
+          className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
         >
           <option value="createdAt">En Yeni</option>
           <option value="lastSeenAt">Son Giriş</option>
@@ -174,7 +174,7 @@ export default function TenantsPage() {
         </select>
         <a
           href={buildExportHref()}
-          className="inline-flex items-center gap-2 px-3 py-2 border border-slate-300 rounded-lg bg-white text-sm hover:bg-slate-50"
+          className="inline-flex items-center gap-2 border border-[#d2d2d7] text-[#1d1d1f] px-4 h-10 rounded-full text-[13px] font-medium tracking-tight hover:bg-[#f5f5f7] transition"
           title="Mevcut filtreleri CSV olarak indir"
         >
           <Download size={14} /> CSV
@@ -182,48 +182,48 @@ export default function TenantsPage() {
       </div>
 
       {selected.size > 0 && (
-        <div className="mb-3 bg-amber-500/10 border border-amber-300 rounded-lg px-4 py-2 flex items-center gap-3">
-          <span className="text-sm font-medium text-amber-900">
+        <div className="mb-3 bg-[#f5f5f7] border border-[#d2d2d7] text-[#1d1d1f] rounded-2xl px-4 py-3 flex items-center gap-3">
+          <span className="text-[13px] font-medium tracking-tight">
             {selected.size} kiracı seçildi
           </span>
           <div className="flex-1" />
           <button
             onClick={() => setBulkDialogOpen("suspend")}
-            className="text-xs px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            className="bg-[#ff453a] text-white px-4 h-8 rounded-full text-[12px] font-medium tracking-tight hover:opacity-90 transition"
           >
             Toplu Askıya Al
           </button>
           <button
             onClick={() => setBulkDialogOpen("unsuspend")}
-            className="text-xs px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="bg-[#1d1d1f] text-white px-4 h-8 rounded-full text-[12px] font-medium tracking-tight hover:bg-black transition"
           >
             Toplu Askıyı Kaldır
           </button>
           <button
             onClick={() => setSelected(new Set())}
-            className="text-xs px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-lg"
+            className="text-[12px] px-3 h-8 text-[#6e6e73] hover:bg-white rounded-full transition"
           >
             Seçimi Temizle
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] overflow-hidden">
         {loading ? (
-          <p className="text-center text-slate-400 py-12">Yükleniyor...</p>
+          <p className="text-center text-[#86868b] text-[13px] py-12">Yükleniyor...</p>
         ) : tenants.length === 0 ? (
-          <p className="text-center text-slate-400 py-12">Kayıt bulunamadı</p>
+          <p className="text-center text-[#86868b] text-[13px] py-12">Kayıt bulunamadı</p>
         ) : (
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr className="text-left text-xs text-slate-500 uppercase">
+            <thead>
+              <tr className="text-left text-[11px] text-[#86868b] uppercase tracking-tight border-b border-[#d2d2d7]">
                 <th className="px-3 py-2 w-8">
                   <input
                     type="checkbox"
                     checked={selected.size === tenants.length && tenants.length > 0}
                     onChange={toggleAll}
                     aria-label="Tümünü seç"
-                    className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                    className="h-4 w-4 rounded-[6px] border-[#d2d2d7] text-[#1d1d1f] focus:ring-[#1d1d1f]/20"
                   />
                 </th>
                 <th className="px-4 py-2">Kiracı</th>
@@ -234,13 +234,13 @@ export default function TenantsPage() {
                 <th className="px-4 py-2">Durum</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#f5f5f7]">
               {tenants.map((t) => {
                 const isSelected = selected.has(t.id);
                 return (
                   <tr
                     key={t.id}
-                    className={`hover:bg-slate-50 ${isSelected ? "bg-amber-50" : ""}`}
+                    className={`hover:bg-[#fbfbfd] ${isSelected ? "bg-[#f5f5f7]" : ""}`}
                   >
                     <td className="px-3 py-3">
                       <input
@@ -248,51 +248,51 @@ export default function TenantsPage() {
                         checked={isSelected}
                         onChange={() => toggleOne(t.id)}
                         aria-label={isSelected ? "Seçimi kaldır" : "Seç"}
-                        className="h-4 w-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500"
+                        className="h-4 w-4 rounded-[6px] border-[#d2d2d7] text-[#1d1d1f] focus:ring-[#1d1d1f]/20"
                       />
                     </td>
                     <td className="px-4 py-3">
                       <Link
                         href={`/admin/tenants/${t.id}`}
-                        className="text-sm text-slate-900 hover:underline flex items-center gap-2"
+                        className="text-[13px] text-[#1d1d1f] hover:underline flex items-center gap-2"
                       >
                         {t.isSuperAdmin && (
-                          <Shield size={12} className="text-amber-500" aria-label="Super admin" />
+                          <Shield size={12} className="text-[#0071e3]" aria-label="Super admin" />
                         )}
                         <div>
                           <div className="font-medium">{t.businessName || t.name}</div>
-                          <div className="text-xs text-slate-500">{t.email}</div>
+                          <div className="text-[11px] text-[#6e6e73]">{t.email}</div>
                         </div>
                       </Link>
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={
-                          "text-xs px-2 py-0.5 rounded " +
-                          (PLAN_COLOR[t.plan] || "bg-slate-100 text-slate-700")
+                          "text-[11px] px-2 py-0.5 rounded-full font-medium tracking-tight " +
+                          (PLAN_BADGE[t.plan] || "bg-[#f5f5f7] text-[#6e6e73]")
                         }
                       >
                         {t.plan}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
+                    <td className="px-4 py-3 text-[13px] text-[#1d1d1f]">
                       {t._count.contacts}
                     </td>
-                    <td className="px-4 py-3 text-sm text-slate-700">
+                    <td className="px-4 py-3 text-[13px] text-[#1d1d1f]">
                       {t._count.messages}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
+                    <td className="px-4 py-3 text-[11px] text-[#6e6e73]">
                       {t.lastSeenAt
                         ? new Date(t.lastSeenAt).toLocaleDateString("tr-TR")
                         : "—"}
                     </td>
                     <td className="px-4 py-3">
                       {t.suspended ? (
-                        <span className="text-xs text-red-700 bg-red-50 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                        <span className="text-[11px] bg-[#ff453a]/10 text-[#ff453a] px-2 py-0.5 rounded-full font-medium tracking-tight inline-flex items-center gap-1">
                           <Ban size={10} /> Askıda
                         </span>
                       ) : (
-                        <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded">
+                        <span className="text-[11px] bg-[#30d158]/10 text-[#1d7a3a] px-2 py-0.5 rounded-full font-medium tracking-tight">
                           Aktif
                         </span>
                       )}

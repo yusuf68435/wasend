@@ -84,29 +84,29 @@ export default function SecurityPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 inline-flex items-center gap-2">
+        <h2 className="display-md text-[#1d1d1f] inline-flex items-center gap-2">
           <Shield size={22} /> Güvenlik
         </h2>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-[13px] text-[#6e6e73] tracking-tight mt-1">
           Admin hesabın için iki aşamalı doğrulama (TOTP).
         </p>
       </div>
 
       {msg && (
-        <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-900 text-sm px-3 py-2 rounded">
+        <div className="mb-4 bg-[#ff9f0a]/10 border border-[#ff9f0a]/20 text-[#ff9f0a] rounded-2xl px-4 py-3 text-[13px] tracking-tight">
           {msg}
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 p-5 max-w-xl">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] p-6 max-w-xl">
         {status === null ? (
-          <p className="text-slate-400">Yükleniyor...</p>
+          <p className="text-[#86868b] text-[13px]">Yükleniyor...</p>
         ) : status.totpEnabled ? (
           <div>
-            <div className="flex items-center gap-2 text-green-700 font-medium mb-3">
+            <div className="flex items-center gap-2 text-[#1d7a3a] font-medium mb-3 tracking-tight">
               <ShieldCheck size={18} /> 2FA Aktif
             </div>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-[13px] text-[#6e6e73] tracking-tight mb-4">
               Her admin girişinde authenticator uygulaman kodu sorar. Kapatmak için
               mevcut 6 haneli kodu gir.
             </p>
@@ -118,13 +118,13 @@ export default function SecurityPage() {
                 value={disableToken}
                 onChange={(e) => setDisableToken(e.target.value)}
                 placeholder="000000"
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg font-mono"
+                className="flex-1 h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition font-mono"
                 required
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                className="bg-[#ff453a] text-white px-4 h-10 rounded-full text-[13px] font-medium tracking-tight hover:opacity-90 transition disabled:opacity-50"
               >
                 Kapat
               </button>
@@ -132,7 +132,7 @@ export default function SecurityPage() {
           </div>
         ) : enrollQr && enrollSecret ? (
           <div>
-            <p className="text-sm text-slate-700 mb-3">
+            <p className="text-[13px] text-[#1d1d1f] tracking-tight mb-3">
               1) Authenticator uygulamanda QR&apos;ı tara veya secret&apos;i elle gir.
               <br />
               2) Üretilen 6 haneli kodu gir.
@@ -146,8 +146,8 @@ export default function SecurityPage() {
                 unoptimized
               />
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-slate-500 mb-1">Manuel secret:</p>
-                <code className="block text-xs bg-slate-100 p-2 rounded font-mono break-all">
+                <p className="text-[11px] text-[#6e6e73] mb-1 tracking-tight">Manuel secret:</p>
+                <code className="block text-[11px] bg-[#f5f5f7] text-[#1d1d1f] p-2 rounded-xl font-mono break-all">
                   {enrollSecret}
                 </code>
               </div>
@@ -160,13 +160,13 @@ export default function SecurityPage() {
                 value={confirmToken}
                 onChange={(e) => setConfirmToken(e.target.value)}
                 placeholder="000000"
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg font-mono"
+                className="flex-1 h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition font-mono"
                 required
               />
               <button
                 type="submit"
                 disabled={busy}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+                className="bg-[#1d1d1f] text-white px-4 h-10 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition disabled:opacity-50"
               >
                 Onayla
               </button>
@@ -174,14 +174,14 @@ export default function SecurityPage() {
           </div>
         ) : (
           <div>
-            <p className="text-sm text-slate-600 mb-4">
+            <p className="text-[13px] text-[#6e6e73] tracking-tight mb-4">
               2FA kapalı. Aktifleştirerek admin panele yetkisiz erişimi zorlaştırın.
               Google Authenticator, 1Password veya Authy ile kullanabilirsiniz.
             </p>
             <button
               onClick={startEnroll}
               disabled={busy}
-              className="px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 disabled:opacity-50"
+              className="bg-[#1d1d1f] text-white px-4 h-10 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition disabled:opacity-50"
             >
               2FA&apos;yı Aktifleştir
             </button>

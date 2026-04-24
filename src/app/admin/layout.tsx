@@ -11,7 +11,7 @@ export default async function AdminLayout({
   return (
     <div
       data-admin
-      className="flex min-h-screen bg-slate-50 dark:bg-slate-950 dark:text-slate-100"
+      className="flex min-h-screen bg-[#fbfbfd] text-[#1d1d1f]"
     >
       <AdminSidebar adminName={admin.name || admin.email} />
       <main className="flex-1 min-w-0 p-4 md:p-8 pt-16 md:pt-8 overflow-x-auto">

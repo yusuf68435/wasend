@@ -18,10 +18,10 @@ interface Announcement {
 }
 
 const LEVEL_ICON: Record<string, { icon: React.ReactNode; cls: string }> = {
-  info: { icon: <Info size={14} />, cls: "bg-blue-50 text-blue-700 border-blue-200" },
-  warning: { icon: <AlertTriangle size={14} />, cls: "bg-yellow-50 text-yellow-700 border-yellow-200" },
-  critical: { icon: <AlertTriangle size={14} />, cls: "bg-red-50 text-red-700 border-red-200" },
-  success: { icon: <CheckCircle2 size={14} />, cls: "bg-green-50 text-green-700 border-green-200" },
+  info: { icon: <Info size={14} />, cls: "bg-[#0071e3]/10 text-[#0071e3]" },
+  warning: { icon: <AlertTriangle size={14} />, cls: "bg-[#ff9f0a]/10 text-[#ff9f0a]" },
+  critical: { icon: <AlertTriangle size={14} />, cls: "bg-[#ff453a]/10 text-[#ff453a]" },
+  success: { icon: <CheckCircle2 size={14} />, cls: "bg-[#30d158]/10 text-[#1d7a3a]" },
 };
 
 export default function AnnouncementsPage() {
@@ -87,35 +87,37 @@ export default function AnnouncementsPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 inline-flex items-center gap-2">
+        <h2 className="display-md text-[#1d1d1f] inline-flex items-center gap-2">
           <Megaphone size={22} /> Sistem Duyuruları
         </h2>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-[13px] text-[#6e6e73] tracking-tight mt-1">
           Tüm kiracılara (veya belirli plana) gösterilecek duyuru bannerları.
         </p>
       </div>
 
       {error && (
-        <div className="mb-4 bg-red-50 text-red-700 p-3 rounded text-sm">{error}</div>
+        <div className="mb-4 bg-[#ff453a]/10 border border-[#ff453a]/20 text-[#ff453a] rounded-2xl px-4 py-3 text-[13px] tracking-tight">
+          {error}
+        </div>
       )}
 
       <form
         onSubmit={create}
-        className="bg-white rounded-xl border border-slate-200 p-6 mb-6 space-y-4"
+        className="bg-white rounded-2xl border border-[#d2d2d7] p-6 mb-6 space-y-4"
       >
-        <h3 className="font-semibold text-slate-900">Yeni Duyuru</h3>
+        <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f]">Yeni Duyuru</h3>
         <div className="grid grid-cols-3 gap-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
             placeholder="Başlık"
-            className="col-span-2 px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
+            className="col-span-2 h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
           <select
             value={level}
             onChange={(e) => setLevel(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           >
             <option value="info">Bilgi</option>
             <option value="success">Başarı</option>
@@ -129,13 +131,13 @@ export default function AnnouncementsPage() {
           required
           rows={3}
           placeholder="İçerik..."
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-full px-3.5 py-2.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
         />
         <div className="grid grid-cols-2 gap-3">
           <select
             value={audience}
             onChange={(e) => setAudience(e.target.value)}
-            className="px-3 py-2 border border-slate-300 rounded-lg"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           >
             <option value="all">Herkes</option>
             <option value="starter">Starter planı</option>
@@ -147,41 +149,41 @@ export default function AnnouncementsPage() {
             value={endsAt}
             onChange={(e) => setEndsAt(e.target.value)}
             placeholder="Bitiş (opsiyonel)"
-            className="px-3 py-2 border border-slate-300 rounded-lg"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[14px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
         </div>
         <button
           type="submit"
-          className="bg-amber-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-amber-600 inline-flex items-center gap-2"
+          className="bg-[#1d1d1f] text-white px-4 h-10 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition inline-flex items-center gap-2"
         >
           <Plus size={16} /> Yayınla
         </button>
       </form>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] overflow-hidden">
         {items.length === 0 ? (
-          <p className="text-center text-slate-400 py-12">Henüz duyuru yok</p>
+          <p className="text-center text-[#86868b] text-[13px] py-12">Henüz duyuru yok</p>
         ) : (
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-[#f5f5f7]">
             {items.map((a) => {
               const style = LEVEL_ICON[a.level] || LEVEL_ICON.info;
               return (
                 <div key={a.id} className="p-4 flex items-start gap-4">
-                  <div className={`px-2 py-1 rounded border text-xs inline-flex items-center gap-1 ${style.cls}`}>
+                  <div className={`px-2 py-1 rounded-full text-[11px] font-medium tracking-tight inline-flex items-center gap-1 ${style.cls}`}>
                     {style.icon} {a.level}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-slate-900">{a.title}</span>
+                      <span className="font-medium text-[#1d1d1f] text-[14px] tracking-tight">{a.title}</span>
                       {a.isActive ? (
-                        <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded">aktif</span>
+                        <span className="text-[11px] bg-[#30d158]/10 text-[#1d7a3a] px-2 py-0.5 rounded-full font-medium tracking-tight">aktif</span>
                       ) : (
-                        <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded">pasif</span>
+                        <span className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-2 py-0.5 rounded-full font-medium tracking-tight">pasif</span>
                       )}
-                      <span className="text-xs text-slate-400">· hedef: {a.audience}</span>
+                      <span className="text-[11px] text-[#86868b]">· hedef: {a.audience}</span>
                     </div>
-                    <p className="text-sm text-slate-600 whitespace-pre-wrap">{a.content}</p>
-                    <div className="text-xs text-slate-400 mt-2">
+                    <p className="text-[13px] text-[#1d1d1f] whitespace-pre-wrap tracking-tight">{a.content}</p>
+                    <div className="text-[11px] text-[#86868b] mt-2">
                       {a._count.dismissals} kişi kapattı · {a.createdBy.email} ·{" "}
                       {new Date(a.createdAt).toLocaleString("tr-TR")}
                     </div>
@@ -189,8 +191,8 @@ export default function AnnouncementsPage() {
                   <button
                     onClick={() => toggle(a.id, a.isActive)}
                     className={
-                      "p-2 rounded-lg " +
-                      (a.isActive ? "text-green-600 hover:bg-green-50" : "text-slate-400 hover:bg-slate-50")
+                      "p-2 rounded-full transition " +
+                      (a.isActive ? "text-[#1d7a3a] hover:bg-[#30d158]/10" : "text-[#86868b] hover:bg-[#f5f5f7]")
                     }
                     title={a.isActive ? "Pasifleştir" : "Aktifleştir"}
                   >
@@ -198,7 +200,7 @@ export default function AnnouncementsPage() {
                   </button>
                   <button
                     onClick={() => remove(a.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                    className="p-2 text-[#ff453a] hover:bg-[#ff453a]/10 rounded-full transition"
                   >
                     <Trash2 size={16} />
                   </button>

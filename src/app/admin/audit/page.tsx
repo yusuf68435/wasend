@@ -15,16 +15,16 @@ interface AuditLog {
 }
 
 const ACTION_COLOR: Record<string, string> = {
-  "tenant.suspend": "text-red-700",
-  "tenant.unsuspend": "text-green-700",
-  "tenant.bulk.suspend": "text-red-700",
-  "tenant.bulk.unsuspend": "text-green-700",
-  "tenant.plan.change": "text-amber-700",
-  "admin.promote": "text-purple-700",
-  "admin.demote": "text-slate-700",
-  "announcement.create": "text-blue-700",
-  "announcement.delete": "text-red-700",
-  "announcement.toggle": "text-slate-700",
+  "tenant.suspend": "text-[#ff453a]",
+  "tenant.unsuspend": "text-[#1d7a3a]",
+  "tenant.bulk.suspend": "text-[#ff453a]",
+  "tenant.bulk.unsuspend": "text-[#1d7a3a]",
+  "tenant.plan.change": "text-[#ff9f0a]",
+  "admin.promote": "text-[#0071e3]",
+  "admin.demote": "text-[#6e6e73]",
+  "announcement.create": "text-[#0071e3]",
+  "announcement.delete": "text-[#ff453a]",
+  "announcement.toggle": "text-[#6e6e73]",
 };
 
 export default function AuditPage() {
@@ -66,22 +66,22 @@ export default function AuditPage() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-slate-900 inline-flex items-center gap-2">
+        <h2 className="display-md text-[#1d1d1f] inline-flex items-center gap-2">
           <ScrollText size={22} /> Denetim Kaydı
         </h2>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-[13px] text-[#6e6e73] tracking-tight mt-1">
           Tüm admin eylemlerinin değişmez kaydı (aktör, hedef, IP, zaman).
         </p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-4 mb-4">
+      <div className="bg-white border border-[#d2d2d7] rounded-2xl p-5 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <FilterIcon size={16} className="text-slate-400" />
-          <span className="text-sm font-medium text-slate-700">Filtreler</span>
+          <FilterIcon size={16} className="text-[#86868b]" />
+          <span className="text-[13px] font-medium text-[#1d1d1f] tracking-tight">Filtreler</span>
           {hasFilter && (
             <button
               onClick={clearAll}
-              className="ml-auto text-xs text-slate-500 hover:text-slate-900 inline-flex items-center gap-1"
+              className="ml-auto text-[11px] text-[#6e6e73] hover:text-[#1d1d1f] inline-flex items-center gap-1 tracking-tight"
             >
               <X size={12} /> Temizle
             </button>
@@ -92,7 +92,7 @@ export default function AuditPage() {
             value={action}
             onChange={(e) => setAction(e.target.value)}
             aria-label="Eylem filtresi"
-            className="px-3 py-1.5 border border-slate-300 rounded-lg bg-white text-sm"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[13px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           >
             <option value="">Tüm eylemler</option>
             <option value="tenant.suspend">Askıya alma</option>
@@ -109,43 +109,43 @@ export default function AuditPage() {
             onChange={(e) => setActor(e.target.value)}
             placeholder="Aktör (e-posta içerir)"
             aria-label="Aktör email filtresi"
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[13px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
           <input
             value={targetId}
             onChange={(e) => setTargetId(e.target.value)}
             placeholder="Hedef ID (tam)"
             aria-label="Hedef ID filtresi"
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm font-mono"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[13px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition font-mono"
           />
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => setDateFrom(e.target.value)}
             aria-label="Başlangıç tarihi"
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[13px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
           <input
             type="date"
             value={dateTo}
             onChange={(e) => setDateTo(e.target.value)}
             aria-label="Bitiş tarihi"
-            className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm"
+            className="h-10 px-3.5 bg-white border border-[#d2d2d7] rounded-xl text-[13px] text-[#1d1d1f] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
           />
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl border border-[#d2d2d7] overflow-hidden">
         {loading ? (
-          <p className="text-center text-slate-400 py-12">Yükleniyor...</p>
+          <p className="text-center text-[#86868b] text-[13px] py-12">Yükleniyor...</p>
         ) : logs.length === 0 ? (
-          <p className="text-center text-slate-400 py-12">
+          <p className="text-center text-[#86868b] text-[13px] py-12">
             {hasFilter ? "Filtreye uygun kayıt yok" : "Henüz admin eylemi yok"}
           </p>
         ) : (
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr className="text-left text-xs text-slate-500 uppercase">
+            <thead>
+              <tr className="text-left text-[11px] text-[#86868b] uppercase tracking-tight border-b border-[#d2d2d7]">
                 <th className="px-4 py-2">Zaman</th>
                 <th className="px-4 py-2">Aktör</th>
                 <th className="px-4 py-2">Eylem</th>
@@ -154,31 +154,31 @@ export default function AuditPage() {
                 <th className="px-4 py-2">IP</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#f5f5f7]">
               {logs.map((l) => (
-                <tr key={l.id} className="text-sm">
-                  <td className="px-4 py-2 text-xs text-slate-500 whitespace-nowrap">
+                <tr key={l.id} className="hover:bg-[#fbfbfd]">
+                  <td className="px-4 py-2 text-[11px] text-[#6e6e73] whitespace-nowrap">
                     {new Date(l.createdAt).toLocaleString("tr-TR")}
                   </td>
-                  <td className="px-4 py-2 text-slate-700 text-xs">
+                  <td className="px-4 py-2 text-[11px] text-[#1d1d1f]">
                     {l.actor.email}
                   </td>
                   <td
                     className={
-                      "px-4 py-2 text-xs font-mono " +
-                      (ACTION_COLOR[l.action] || "text-slate-700")
+                      "px-4 py-2 text-[11px] font-mono " +
+                      (ACTION_COLOR[l.action] || "text-[#1d1d1f]")
                     }
                   >
                     {l.action}
                   </td>
-                  <td className="px-4 py-2 text-xs text-slate-500">
+                  <td className="px-4 py-2 text-[11px] text-[#6e6e73]">
                     {l.targetType}
                     {l.targetId ? ` (${l.targetId.slice(0, 8)}…)` : ""}
                   </td>
-                  <td className="px-4 py-2 text-xs text-slate-500 max-w-xs truncate">
+                  <td className="px-4 py-2 text-[11px] text-[#6e6e73] max-w-xs truncate">
                     {l.details || "—"}
                   </td>
-                  <td className="px-4 py-2 text-xs text-slate-500 font-mono">
+                  <td className="px-4 py-2 text-[11px] text-[#6e6e73] font-mono">
                     {l.ip || "—"}
                   </td>
                 </tr>
