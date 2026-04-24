@@ -127,43 +127,21 @@ body {
 
 /* Skip-to-content destekli olsaydı burada ek CSS eklenebilir */
 
-/* Admin panel dark mode — [data-admin] wrapper'ı altındaki tüm Tailwind
-   bg-white / border-slate-200 / text-slate-900 gibi sınıfları dark modda
-   tersine çevir. Her sayfada dark: variant eklemeye gerek kalmadan
-   uniform dark UI. */
-.dark [data-admin] .bg-white {
-  background-color: rgb(30 41 59) !important; /* slate-800 */
+/* Admin panel artık Apple token'larını kullanıyor — eski slate tabanlı
+   [data-admin] override katmanı kaldırıldı. Genel .dark override'ları
+   (aşağıda) admin sayfalarında da otomatik çalışır. */
+
+/* Form elemanları — dark modda input/select/textarea nötr yüzey + light text */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark select,
+.dark textarea {
+  background-color: var(--surface);
+  color: var(--foreground);
+  border-color: var(--border);
 }
-.dark [data-admin] .bg-slate-50 {
-  background-color: rgb(15 23 42) !important; /* slate-900 */
-}
-.dark [data-admin] .border-slate-100,
-.dark [data-admin] .border-slate-200 {
-  border-color: rgb(51 65 85) !important; /* slate-700 */
-}
-.dark [data-admin] .text-slate-900 {
-  color: rgb(241 245 249) !important; /* slate-100 */
-}
-.dark [data-admin] .text-slate-700 {
-  color: rgb(203 213 225) !important; /* slate-300 */
-}
-.dark [data-admin] .text-slate-600,
-.dark [data-admin] .text-slate-500 {
-  color: rgb(148 163 184) !important; /* slate-400 */
-}
-.dark [data-admin] .divide-slate-100 > * + *,
-.dark [data-admin] .divide-slate-50 > * + * {
-  border-color: rgb(51 65 85) !important;
-}
-.dark [data-admin] input,
-.dark [data-admin] select,
-.dark [data-admin] textarea {
-  background-color: rgb(15 23 42);
-  color: rgb(241 245 249);
-  border-color: rgb(51 65 85);
-}
-.dark [data-admin] .hover\:bg-slate-50:hover {
-  background-color: rgb(51 65 85) !important;
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--muted-2);
 }
 
 /* Dark mode otomatik çevrim katmanı — Apple-paletindeki sabit hex'leri
@@ -218,8 +196,11 @@ body {
 .dark .text-black {
   color: var(--foreground);
 }
+/* `.text-white` daima `.bg-[#1d1d1f]` / `.bg-black` ile eşleşiyor (dark pill).
+   Dark modda bu ikili ters döner: bg açık → text koyu. Aksi halde beyaz-
+   üstüne-beyaz çıkar. */
 .dark .text-white {
-  color: var(--foreground);
+  color: var(--background);
 }
 .dark .border-\[\#d2d2d7\] {
   border-color: var(--border);
