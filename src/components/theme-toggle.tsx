@@ -5,20 +5,24 @@ import { Moon, Sun, Monitor } from "lucide-react";
 import { useEffect, useState } from "react";
 
 /**
- * Üç-modlu theme toggle: light / dark / system.
- * Sidebar footer'da ya da settings'te kullanılır.
+ * Apple macOS segmented control — light / dark / system.
+ * Rounded-full kapsayıcı, aktif yaprak white surface + hafif gölge.
  */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Hydration mismatch önle — theme mount sonrası render
   useEffect(() => {
     queueMicrotask(() => setMounted(true));
   }, []);
 
   if (!mounted) {
-    return <div className="h-9 w-28 bg-gray-100 rounded-lg animate-pulse" aria-hidden="true" />;
+    return (
+      <div
+        className="h-7 w-[84px] bg-[#f5f5f7] rounded-full animate-pulse"
+        aria-hidden="true"
+      />
+    );
   }
 
   const options = [
@@ -29,7 +33,7 @@ export function ThemeToggle() {
 
   return (
     <div
-      className="inline-flex gap-0.5 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg"
+      className="inline-flex items-center gap-0.5 bg-[#f5f5f7] p-0.5 rounded-full"
       role="radiogroup"
       aria-label="Tema seçimi"
     >
@@ -45,13 +49,13 @@ export function ThemeToggle() {
             title={label}
             onClick={() => setTheme(value)}
             className={
-              "p-1.5 rounded-md transition " +
+              "h-6 w-6 inline-flex items-center justify-center rounded-full transition " +
               (selected
-                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200")
+                ? "bg-white text-[#1d1d1f] shadow-[0_1px_2px_rgba(0,0,0,0.08)]"
+                : "text-[#86868b] hover:text-[#1d1d1f]")
             }
           >
-            <Icon size={14} />
+            <Icon size={13} strokeWidth={1.75} />
           </button>
         );
       })}
