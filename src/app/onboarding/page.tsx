@@ -28,6 +28,7 @@ import {
   Building2,
   Phone as PhoneIcon,
 } from "lucide-react";
+import { MetaEmbeddedSignupButton } from "@/components/meta-embedded-signup-button";
 
 type Status = {
   completed: boolean;
@@ -301,9 +302,17 @@ export default function OnboardingPage() {
           </div>
           <h1 className="display-md text-[#1d1d1f] mb-3">WhatsApp&apos;ı bağla</h1>
           <p className="text-[15px] text-[#6e6e73] tracking-tight leading-relaxed mb-6">
-            Meta Business Manager&apos;dan <b>Phone Number ID</b>&apos;ni kopyala ve
-            aşağıya yapıştır.
+            En kolay yol: Meta hesabınla tek tıkla bağlan. Alternatif olarak
+            Phone Number ID&apos;yi manuel yapıştırabilirsin.
           </p>
+
+          {/* Meta Embedded Signup — env yapılandırılıysa görünür */}
+          <div className="mb-6">
+            <MetaEmbeddedSignupButton
+              label="Meta ile Bağlan (tek tık)"
+              onSuccess={() => saveAndAdvance({}, 3)}
+            />
+          </div>
 
           <div className="bg-[#f5f5f7] rounded-2xl p-5 mb-6">
             <p className="text-[12px] text-[#6e6e73] tracking-tight mb-3 font-medium uppercase">

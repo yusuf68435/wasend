@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import { WhatsAppSetupGuide } from "@/components/whatsapp-setup-guide";
+import { MetaEmbeddedSignupButton } from "@/components/meta-embedded-signup-button";
 
 const DAY_LABELS = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 
@@ -94,6 +95,29 @@ export default function SettingsPage() {
 
       <div className="space-y-6">
         <WhatsAppSetupGuide />
+
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-full bg-[#1877F2]/10 flex items-center justify-center flex-shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+                <path d="M12 2C6.48 2 2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c5.05-.5 9-4.76 9-9.95 0-5.52-4.48-10-10-10z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-gray-900">Meta ile Hızlı Bağla</h3>
+              <p className="text-[13px] text-gray-500 mt-1 mb-4">
+                Tek tıkla Meta Business hesabınla WhatsApp&apos;ını WaSend&apos;e bağla.
+                Manuel token yapıştırmaya gerek yok — token, WABA ID ve webhook abone işlemi
+                otomatik yapılır.
+              </p>
+              <MetaEmbeddedSignupButton label="Meta ile Bağlan" />
+              <p className="text-[11px] text-gray-400 mt-3">
+                Buton görünmüyorsa yöneticiniz Meta Embedded Signup yapılandırmasını
+                henüz tamamlamamış demektir. Aşağıdaki manuel akışı kullanabilirsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">WhatsApp Business API Bağlantısı</h3>

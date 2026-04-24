@@ -35,6 +35,15 @@ const envSchema = z.object({
   WHATSAPP_APP_SECRET: z.string().optional(),
   WHATSAPP_WABA_ID: z.string().optional(),
 
+  // Meta Embedded Signup (Phase B) — opsiyonel. Ayarlı değilse
+  // /api/whatsapp/embedded-signup/* endpoint'leri 503 döner, UI butonu gizli.
+  // META_APP_ID + META_APP_SECRET + META_ES_CONFIG_ID üçü de gerekli.
+  META_APP_ID: z.string().optional(),
+  META_APP_SECRET: z.string().optional(),
+  META_ES_CONFIG_ID: z.string().optional(),
+  NEXT_PUBLIC_META_APP_ID: z.string().optional(),
+  NEXT_PUBLIC_META_ES_CONFIG_ID: z.string().optional(),
+
   // Opsiyonel servisler — DSN/key yoksa ilgili özellik pasif
   ANTHROPIC_API_KEY: z.string().optional(),
 
