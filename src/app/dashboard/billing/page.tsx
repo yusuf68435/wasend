@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CreditCard, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 interface Limits {
   contactLimit: number;
@@ -86,7 +86,9 @@ export default function BillingPage() {
   }
 
   if (!data) {
-    return <div className="text-gray-400 p-8">Yükleniyor...</div>;
+    return (
+      <div className="text-[#6e6e73] p-8 text-sm tracking-tight">Yükleniyor…</div>
+    );
   }
 
   const pctContacts = Math.min(
@@ -107,37 +109,37 @@ export default function BillingPage() {
   );
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 inline-flex items-center gap-2">
-          <CreditCard size={20} /> Faturalandırma
-        </h2>
-        <p className="text-gray-500 text-sm mt-1">
-          Mevcut plan, kullanım özeti ve yükseltme seçenekleri. Tüm fiyatlar KDV
-          dahil · iyzico ile güvenli ödeme.
+    <div className="max-w-[980px] mx-auto">
+      {/* Header */}
+      <header className="mb-10">
+        <span className="eyebrow text-[#16a34a]">Faturalandırma</span>
+        <h1 className="display-md text-[#1d1d1f] mt-2">Planın, kullanım, yükseltme.</h1>
+        <p className="text-[15px] text-[#6e6e73] mt-2 max-w-[560px] tracking-tight">
+          Tüm fiyatlar KDV dahil. iyzico ile güvenli ödeme, istediğin zaman iptal.
         </p>
-      </div>
+      </header>
 
       {error && (
-        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">
+        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-2xl text-sm mb-6 border border-red-100">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* Current plan + usage */}
+      <section className="bg-white rounded-3xl border border-[#d2d2d7] p-8 md:p-10 mb-10 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+        <div className="flex flex-wrap items-end justify-between gap-4 pb-6 border-b border-[#f5f5f7]">
           <div>
-            <p className="text-xs uppercase text-gray-500">Mevcut Plan</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="eyebrow text-[#6e6e73]">Mevcut plan</p>
+            <p className="text-[40px] font-semibold tracking-tight text-[#1d1d1f] leading-none mt-2">
               {PLAN_LABELS[data.plan] || data.plan}
             </p>
-            <p className="text-sm text-gray-500">
-              ₺{data.limits.priceTry}/ay
+            <p className="text-[15px] text-[#6e6e73] mt-2 tracking-tight">
+              ₺{data.limits.priceTry.toLocaleString("tr-TR")} / ay · KDV dahil
             </p>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
           <UsageCard
             label="Kişiler"
             used={data.usage.contacts}
@@ -145,7 +147,7 @@ export default function BillingPage() {
             pct={pctContacts}
           />
           <UsageCard
-            label="Aylık Toplu Mesaj"
+            label="Aylık toplu mesaj"
             used={data.usage.broadcastsThisMonth}
             limit={data.limits.broadcastsPerMonth}
             pct={pctBroadcasts}
@@ -157,16 +159,21 @@ export default function BillingPage() {
             pct={pctFlows}
           />
           <UsageCard
-            label="AI Token (ay)"
+            label="AI token (ay)"
             used={data.usage.aiTokensThisMonth}
             limit={data.limits.aiTokensPerMonth}
             pct={pctAi}
           />
         </div>
+      </section>
+
+      {/* Plans */}
+      <div className="mb-5 flex items-end justify-between">
+        <h2 className="display-md text-[#1d1d1f]">Planlar</h2>
+        <span className="text-sm text-[#6e6e73] tracking-tight">Yıllık abonelikte 2 ay bedava</span>
       </div>
 
-      <h3 className="font-semibold text-gray-900 mb-4">Planlar</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {PLAN_ORDER.map((plan) => {
           const limits = data.allPlans[plan];
           if (!limits) return null;
@@ -176,84 +183,131 @@ export default function BillingPage() {
           return (
             <div
               key={plan}
-              className={
-                "relative bg-white rounded-xl border p-6 transition " +
-                (isCurrent
-                  ? "border-green-500 ring-2 ring-green-100 shadow-sm"
-                  : isPopular
-                    ? "border-green-300 shadow-sm"
-                    : "border-gray-200")
-              }
+              className={`relative rounded-3xl p-8 flex flex-col transition ${
+                isPopular
+                  ? "bg-[#1d1d1f] text-white shadow-[0_10px_40px_rgba(0,0,0,0.15)]"
+                  : "bg-white text-[#1d1d1f] border border-[#d2d2d7] shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+              }`}
             >
-              {isPopular && !isCurrent && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-medium px-3 py-1 rounded-full">
+              {isPopular && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#16a34a] text-white text-[11px] font-semibold tracking-tight px-3 py-1 rounded-full">
                   En popüler
                 </span>
               )}
-              <div className="mb-3">
-                <h4 className="font-semibold text-gray-900">
+              {isCurrent && (
+                <span
+                  className={`absolute top-5 right-5 text-[11px] font-semibold tracking-tight px-2.5 py-1 rounded-full ${
+                    isPopular
+                      ? "bg-white/15 text-white"
+                      : "bg-[#16a34a]/10 text-[#16a34a]"
+                  }`}
+                >
+                  Aktif
+                </span>
+              )}
+
+              <div className="mb-6">
+                <h3 className="text-[17px] font-semibold tracking-tight">
                   {PLAN_LABELS[plan]}
-                </h4>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  ₺{limits.priceTry.toLocaleString("tr-TR")}
-                  <span className="text-sm font-normal text-gray-500">/ay</span>
-                </p>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
-                    %17 yıllık indirim
+                </h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="text-[48px] font-semibold tracking-tight leading-none">
+                    ₺{limits.priceTry.toLocaleString("tr-TR")}
                   </span>
-                  <span className="text-xs text-gray-500">₺{annualPrice}/yıl</span>
+                  <span
+                    className={`text-[15px] ${isPopular ? "text-white/60" : "text-[#6e6e73]"}`}
+                  >
+                    /ay
+                  </span>
                 </div>
+                <p
+                  className={`text-[13px] mt-2 tracking-tight ${
+                    isPopular ? "text-white/60" : "text-[#6e6e73]"
+                  }`}
+                >
+                  ₺{annualPrice}/yıl · 2 ay bedava
+                </p>
               </div>
-              <ul className="text-sm text-gray-700 space-y-2 mb-4">
-                <FeatureLine value={`${limits.contactLimit.toLocaleString("tr-TR")} kişi`} />
-                <FeatureLine value={`${limits.broadcastsPerMonth}/ay toplu mesaj`} />
-                <FeatureLine value={`${limits.flows} akış`} />
+
+              <ul
+                className={`text-[14px] space-y-3 mb-8 flex-1 ${
+                  isPopular ? "text-white/85" : "text-[#1d1d1f]"
+                }`}
+              >
                 <FeatureLine
+                  dark={isPopular}
+                  value={`${limits.contactLimit.toLocaleString("tr-TR")} kişi`}
+                />
+                <FeatureLine
+                  dark={isPopular}
+                  value={`${limits.broadcastsPerMonth}/ay toplu mesaj`}
+                />
+                <FeatureLine dark={isPopular} value={`${limits.flows} akış`} />
+                <FeatureLine
+                  dark={isPopular}
                   value={`${(limits.aiTokensPerMonth / 1000).toLocaleString(
                     "tr-TR",
                   )}K AI token/ay`}
                 />
-                <FeatureLine value={`${limits.teamMembers} ekip üyesi`} />
+                <FeatureLine
+                  dark={isPopular}
+                  value={`${limits.teamMembers} ekip üyesi`}
+                />
               </ul>
+
               {isCurrent ? (
                 <button
                   disabled
-                  className="w-full py-2 rounded-lg font-medium bg-gray-100 text-gray-500 cursor-default"
+                  className={`w-full h-11 rounded-full text-[14px] font-semibold tracking-tight cursor-default ${
+                    isPopular
+                      ? "bg-white/10 text-white/70"
+                      : "bg-[#f5f5f7] text-[#6e6e73]"
+                  }`}
                 >
-                  Mevcut Plan
+                  Mevcut plan
                 </button>
               ) : plan === "STARTER" ? (
                 <button
                   disabled={changing}
                   onClick={() => changePlan(plan)}
-                  className="w-full py-2 rounded-lg font-medium bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
+                  className="w-full h-11 rounded-full text-[14px] font-semibold tracking-tight bg-[#f5f5f7] text-[#1d1d1f] hover:bg-[#e8e8ed] transition disabled:opacity-50"
                 >
-                  {changing ? "..." : "Downgrade"}
+                  {changing ? "…" : "Başlangıç'a geç"}
                 </button>
               ) : (
                 <button
                   disabled={changing}
                   onClick={() => payWithIyzico(plan as "PRO" | "BUSINESS")}
-                  className="w-full py-2 rounded-lg font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                  className={`w-full h-11 rounded-full text-[14px] font-semibold tracking-tight transition disabled:opacity-50 ${
+                    isPopular
+                      ? "bg-white text-[#1d1d1f] hover:bg-white/90"
+                      : "bg-[#1d1d1f] text-white hover:bg-[#2c2c2e]"
+                  }`}
                 >
-                  {changing ? "..." : `iyzico ile Satın Al`}
+                  {changing ? "…" : "iyzico ile satın al"}
                 </button>
               )}
             </div>
           );
         })}
-      </div>
+      </section>
 
-      <div className="bg-green-50 border border-green-200 rounded-xl p-4 mt-6 flex gap-3">
-        <Check size={18} className="text-green-600 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-green-900">
-          <strong>iyzico ile güvenli ödeme:</strong> Tüm ödemeler KDV dahildir.
-          Yıllık abonelikte <strong>2 ay bedava</strong> (otomatik indirim
-          fatura ekranında uygulanır). İptal için tek tık yeterli — bir sonraki
-          dönem başına kadar aktif kalır.
+      {/* Payment note */}
+      <section className="mt-10 rounded-3xl border border-[#d2d2d7] bg-[#fbfbfd] p-6 flex gap-4">
+        <div className="shrink-0 w-10 h-10 rounded-full bg-[#16a34a]/10 text-[#16a34a] flex items-center justify-center">
+          <Check size={18} />
         </div>
-      </div>
+        <div>
+          <p className="text-[15px] font-semibold tracking-tight text-[#1d1d1f]">
+            iyzico ile güvenli ödeme
+          </p>
+          <p className="text-[13px] text-[#6e6e73] mt-1 tracking-tight leading-relaxed">
+            Tüm ödemeler KDV dahildir. Yıllık abonelikte 2 ay bedava — indirim
+            fatura ekranında otomatik uygulanır. İptal tek tık; bir sonraki dönem
+            başına kadar aktif kalır.
+          </p>
+        </div>
+      </section>
     </div>
   );
 }
@@ -269,28 +323,36 @@ function UsageCard({
   limit: number;
   pct: number;
 }) {
-  const color = pct > 90 ? "bg-red-500" : pct > 70 ? "bg-yellow-500" : "bg-green-500";
+  const color =
+    pct > 90 ? "bg-[#ff453a]" : pct > 70 ? "bg-[#ff9f0a]" : "bg-[#30d158]";
   return (
-    <div className="bg-gray-50 rounded-lg p-3">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className="text-lg font-bold text-gray-900 mt-1">
+    <div className="bg-[#f5f5f7] rounded-2xl p-4">
+      <p className="text-[12px] text-[#6e6e73] tracking-tight">{label}</p>
+      <p className="text-[22px] font-semibold tracking-tight text-[#1d1d1f] mt-1 leading-none">
         {used.toLocaleString("tr-TR")}
-        <span className="text-sm text-gray-400 font-normal">
+        <span className="text-[13px] text-[#86868b] font-normal">
+          {" "}
           /{limit.toLocaleString("tr-TR")}
         </span>
       </p>
-      <div className="w-full h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
-        <div className={"h-full " + color} style={{ width: `${pct}%` }} />
+      <div className="w-full h-1 bg-[#d2d2d7] rounded-full mt-3 overflow-hidden">
+        <div
+          className={`h-full rounded-full ${color}`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   );
 }
 
-function FeatureLine({ value }: { value: string }) {
+function FeatureLine({ value, dark }: { value: string; dark?: boolean }) {
   return (
-    <li className="flex items-center gap-2">
-      <Check size={14} className="text-green-600 flex-shrink-0" />
-      <span>{value}</span>
+    <li className="flex items-center gap-3">
+      <Check
+        size={14}
+        className={dark ? "text-[#30d158] shrink-0" : "text-[#16a34a] shrink-0"}
+      />
+      <span className="tracking-tight">{value}</span>
     </li>
   );
 }

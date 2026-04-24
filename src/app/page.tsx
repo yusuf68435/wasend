@@ -1,15 +1,15 @@
 import Link from "next/link";
 import {
-  MessageSquare,
   Bot,
-  Clock,
+  Calendar,
   Megaphone,
+  Sparkles,
+  BarChart3,
+  Shield,
+  Plug,
   ArrowRight,
   Check,
-  Zap,
-  Shield,
-  BarChart3,
-  Quote,
+  Plus,
 } from "lucide-react";
 
 const STRUCTURED_DATA = {
@@ -53,7 +53,8 @@ const STRUCTURED_DATA = {
             name: "Profesyonel",
             price: "1299",
             priceCurrency: "TRY",
-            description: "5.000 kişi, 100 toplu mesaj/ay, 1M AI token, 5 ekip üyesi",
+            description:
+              "5.000 kişi, 100 toplu mesaj/ay, 1M AI token, 5 ekip üyesi",
             url: "https://wasend.tech/#pricing",
           },
           {
@@ -110,230 +111,236 @@ const STRUCTURED_DATA = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#fbfbfd] text-[#1d1d1f]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(STRUCTURED_DATA) }}
       />
-      {/* Header */}
-      <header className="border-b border-gray-100 sticky top-0 bg-white/90 backdrop-blur z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-green-600">WaSend</h1>
-          <nav className="hidden md:flex items-center gap-6 text-sm text-gray-600">
-            <a href="#features" className="hover:text-gray-900">Özellikler</a>
-            <a href="#pricing" className="hover:text-gray-900">Fiyatlar</a>
-            <a href="#faq" className="hover:text-gray-900">SSS</a>
-            <Link href="/blog" className="hover:text-gray-900">Blog</Link>
-            <Link href="/changelog" className="hover:text-gray-900">Yenilikler</Link>
+
+      {/* NAV — Apple tarzı: transparan, ince, ortalanmış */}
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#fbfbfd]/80 border-b border-black/5">
+        <div className="max-w-[980px] mx-auto px-6 h-12 flex items-center justify-between text-[13px]">
+          <Link href="/" className="font-semibold tracking-tight text-[15px]">
+            WaSend
+          </Link>
+          <nav className="hidden md:flex items-center gap-8 text-[#1d1d1f]/80">
+            <a href="#features" className="hover:text-[#1d1d1f] transition-colors">
+              Özellikler
+            </a>
+            <a href="#pricing" className="hover:text-[#1d1d1f] transition-colors">
+              Fiyatlar
+            </a>
+            <a href="#compare" className="hover:text-[#1d1d1f] transition-colors">
+              Karşılaştır
+            </a>
+            <a href="#faq" className="hover:text-[#1d1d1f] transition-colors">
+              SSS
+            </a>
+            <Link href="/blog" className="hover:text-[#1d1d1f] transition-colors">
+              Blog
+            </Link>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-5">
             <Link
               href="/login"
-              className="text-sm font-medium text-gray-600 hover:text-gray-900"
+              className="text-[#1d1d1f]/80 hover:text-[#1d1d1f] transition-colors"
             >
-              Giriş Yap
+              Giriş
             </Link>
             <Link
               href="/register"
-              className="bg-green-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-green-700"
+              className="bg-[#1d1d1f] text-white px-4 py-1.5 rounded-full text-[13px] font-medium hover:bg-black transition-colors"
             >
-              Ücretsiz Başla
+              Başla
             </Link>
           </div>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
-        <div className="inline-block bg-green-50 text-green-700 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-          🟢 WhatsApp Business Cloud API Partner
-        </div>
-        <h2 className="text-4xl md:text-6xl font-bold text-gray-900 leading-tight max-w-4xl mx-auto">
-          Müşteri mesajlarına cevap vermekten{" "}
-          <span className="text-green-600">yoruldunuz mu?</span>
-        </h2>
-        <p className="text-lg text-gray-600 mt-6 max-w-2xl mx-auto leading-relaxed">
-          WaSend sayesinde randevu hatırlatmaları, sıkça sorulanlara cevaplar ve
-          toplu kampanyalar otomatik gönderilir. Siz işinize odaklanın, biz
-          WhatsApp&apos;ı halledelim.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
-          <Link
-            href="/register"
-            className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 inline-flex items-center gap-2 w-full sm:w-auto justify-center"
-          >
-            14 Gün Ücretsiz Başla <ArrowRight size={18} />
-          </Link>
-          <a
-            href="#features"
-            className="text-gray-600 hover:text-gray-900 px-6 py-3 text-sm font-medium"
-          >
-            Nasıl çalıştığını gör →
-          </a>
-        </div>
-        <p className="text-xs text-gray-400 mt-4">
-          Kredi kartı gerekmez · 5 dakikada kurulur · İstediğiniz zaman iptal ·
-          Paketler <strong className="text-gray-600">499 ₺&apos;den</strong> başlar (KDV dahil)
-        </p>
-
-        {/* Trust numbers */}
-        <div className="grid grid-cols-3 gap-4 mt-16 max-w-2xl mx-auto">
-          <TrustBadge value="%98" label="Otomatik cevap hızı" />
-          <TrustBadge value="7/24" label="Müşteri hizmeti" />
-          <TrustBadge value="KVKK" label="Uyumlu altyapı" />
-        </div>
-      </section>
-
-      {/* Problem / Solution */}
-      <section className="bg-slate-900 text-white py-20">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h3 className="text-3xl font-bold mb-4">
-                Her gün 100+ mesaja cevap yazıyorsunuz
-              </h3>
-              <p className="text-slate-300 mb-6 leading-relaxed">
-                Randevu hatırlatmak için alarm kuruyorsunuz. Sıkça sorulanlara
-                3. kez aynı cevabı yazıyorsunuz. Toplu duyuruları 50 kişiye tek
-                tek gönderiyorsunuz.
-              </p>
-              <p className="text-slate-300 leading-relaxed">
-                Bu zaman <strong className="text-white">asıl işinize ayırmalı</strong>.
-                WaSend bunu halleder.
-              </p>
-            </div>
-            <div className="bg-slate-800 rounded-xl p-6 space-y-3">
-              <SolutionItem
-                before="Sabah 8:00 — randevu hatırlatma SMS'leri"
-                after="Otomatik, bir gün önce 18:00'da"
+      {/* HERO — büyük display type, merkezi, nefes alan */}
+      <section className="pt-24 pb-32 md:pt-32 md:pb-40 px-6">
+        <div className="max-w-[980px] mx-auto text-center">
+          <p className="eyebrow text-[#16a34a] mb-6">
+            WhatsApp Business Cloud API · Türkiye
+          </p>
+          <h1 className="display-xl mb-6">
+            WhatsApp&apos;ı,
+            <br />
+            <span className="text-[#16a34a]">akıllı işle.</span>
+          </h1>
+          <p className="text-[21px] md:text-[24px] leading-[1.3] text-[#6e6e73] max-w-[680px] mx-auto font-normal">
+            Otomatik cevap, randevu hatırlatma, toplu mesaj, AI chatbot ve
+            analitik. Hepsi tek bir sessiz panelde.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+            <Link
+              href="/register"
+              className="group inline-flex items-center gap-1.5 bg-[#16a34a] text-white px-6 py-3 rounded-full text-[17px] font-medium hover:bg-[#15803d] transition-all"
+            >
+              14 gün ücretsiz başla
+              <ArrowRight
+                size={16}
+                className="transition-transform group-hover:translate-x-0.5"
               />
-              <SolutionItem
-                before="3 saniyede bir fiyat sorusu cevabı"
-                after="Anahtar kelime → otomatik cevap"
-              />
-              <SolutionItem
-                before="Kampanya için 200 kişiye tek tek mesaj"
-                after="Tek tıkla 200'e gönder, rate limit kontrolü biz"
-              />
-            </div>
+            </Link>
+            <Link
+              href="#features"
+              className="inline-flex items-center gap-1 text-[17px] text-[#16a34a] hover:underline underline-offset-4 px-2 py-3"
+            >
+              Daha fazlasını gör
+              <ArrowRight size={14} />
+            </Link>
           </div>
+          <p className="text-[13px] text-[#6e6e73] mt-6">
+            499 ₺/ay&apos;dan başlar · KDV dahil · Kredi kartı gerekmez
+          </p>
+        </div>
+
+        {/* Hero görseli yerine rafine istatistik satırı */}
+        <div className="max-w-[980px] mx-auto mt-20 grid grid-cols-3 gap-4 md:gap-12">
+          <HeroStat value="%98" label="Otomatik cevap hızı" />
+          <HeroStat value="7/24" label="Müşteri hizmeti" />
+          <HeroStat value="KVKK" label="Uyumlu altyapı" />
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" className="py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900">
-              İşletmenizin ihtiyacı olan her şey
-            </h3>
-            <p className="text-gray-500 mt-3">
-              WhatsApp Cloud API üzerine kurulmuş, 12 katmanlı güvenlik ve
-              ölçeklenebilir altyapı.
+      {/* PROBLEM / SOLUTION — Apple tarzı koyu "shelf" */}
+      <section className="bg-[#1d1d1f] text-white py-32 px-6">
+        <div className="max-w-[980px] mx-auto">
+          <div className="max-w-[720px] mb-16">
+            <p className="eyebrow text-[#86868b] mb-4">Neden WaSend</p>
+            <h2 className="display-lg mb-6">
+              Her gün aynı mesajı <br />
+              yazmaktan yoruldunuz.
+            </h2>
+            <p className="text-[21px] leading-[1.35] text-[#86868b]">
+              Randevu hatırlatması için alarm kuruyor, fiyat sorularına 3. kez
+              aynı cevabı yazıyor, toplu duyuruları 50 kişiye tek tek
+              gönderiyorsunuz. WaSend bunları bir kerede devralır.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              {
-                icon: Bot,
-                title: "Otomatik Cevap",
-                desc: "Anahtar kelime bazlı kurallar + AI fallback (Claude). 7/24 müşteri hizmeti.",
-              },
-              {
-                icon: Clock,
-                title: "Randevu Hatırlatma",
-                desc: "Zamanlanmış mesajlar, timezone aware. Gelmiyen müşteri derdini unutun.",
-              },
-              {
-                icon: Megaphone,
-                title: "Toplu Mesaj",
-                desc: "Segment bazlı kampanya. Opt-out yönetimi, dakika başı rate limit otomatik.",
-              },
-              {
-                icon: Zap,
-                title: "Görsel Akış Editörü",
-                desc: "Sürükle-bırak chatbot akışları. Koşul, aksiyon, insan devretme.",
-              },
-              {
-                icon: BarChart3,
-                title: "Canlı Analitik",
-                desc: "Mesaj teslim oranı, en çok tetiklenen kurallar, müşteri büyümesi.",
-              },
-              {
-                icon: MessageSquare,
-                title: "CSV İçe Aktarım",
-                desc: "10.000 kişiye kadar tek dosyayla içe aktar. Duplikasyon kontrolü dahil.",
-              },
-              {
-                icon: Shield,
-                title: "KVKK + GDPR Uyumlu",
-                desc: "Otomatik opt-out, veri dışa aktarımı, hesap silme — tek tıkla.",
-              },
-              {
-                icon: Check,
-                title: "Public API + Webhook",
-                desc: "CRM'inize bağlayın. HMAC-imzalı event'ler, 10+ tetikleyici.",
-              },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div
-                key={title}
-                className="bg-white rounded-xl p-5 border border-gray-200 hover:border-green-300 hover:shadow-sm transition"
-              >
-                <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center mb-3">
-                  <Icon size={20} className="text-green-600" />
-                </div>
-                <h4 className="font-semibold text-gray-900 mb-1">{title}</h4>
-                <p className="text-sm text-gray-500">{desc}</p>
-              </div>
-            ))}
+
+          <div className="grid md:grid-cols-3 gap-4">
+            <BeforeAfterCard
+              before="Sabah 8:00 — tek tek hatırlatma"
+              after="Bir gün önce 18:00'da otomatik"
+            />
+            <BeforeAfterCard
+              before="Aynı fiyat sorusuna üçüncü cevap"
+              after="Anahtar kelime → anında cevap"
+            />
+            <BeforeAfterCard
+              before="200 kişiye tek tek duyuru"
+              after="Tek tıkla gönder, rate limit biz"
+            />
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-gray-50 py-20">
-        <div className="max-w-5xl mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Türkiye&apos;den işletme sahipleri ne diyor?
-          </h3>
-          <div className="grid md:grid-cols-3 gap-6">
-            <Testimonial
-              quote="Randevularımın %30'u gelmiyordu. WaSend ile bir gün önce otomatik hatırlatma gönderiyorum, artık neredeyse herkes geliyor."
+      {/* FEATURES — büyük kartlar, Apple iPhone feature sayfası */}
+      <section id="features" className="py-32 px-6">
+        <div className="max-w-[980px] mx-auto">
+          <div className="text-center mb-20">
+            <p className="eyebrow text-[#16a34a] mb-4">Özellikler</p>
+            <h2 className="display-lg">
+              İşletmenizin WhatsApp&apos;taki <br />
+              tüm derdi, tek panelde.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FeatureCard
+              icon={Bot}
+              title="Otomatik Cevap"
+              desc="Anahtar kelime kuralları + Claude AI fallback. Gelen her mesaj 2 saniye içinde cevaplanır."
+              large
+            />
+            <FeatureCard
+              icon={Calendar}
+              title="Randevu Hatırlatma"
+              desc="Timezone-aware zamanlanmış mesajlar. Gelmeyen müşteri derdini unutun."
+              large
+            />
+            <FeatureCard
+              icon={Megaphone}
+              title="Toplu Mesaj"
+              desc="Segment bazlı kampanya, opt-out yönetimi, dakika başı rate limit otomatik."
+            />
+            <FeatureCard
+              icon={Sparkles}
+              title="Görsel Akış Editörü"
+              desc="Sürükle-bırak chatbot akışları. Koşul, aksiyon, insan devretme."
+            />
+            <FeatureCard
+              icon={BarChart3}
+              title="Canlı Analitik"
+              desc="Mesaj teslim oranı, tetiklenen kurallar, müşteri büyümesi."
+            />
+            <FeatureCard
+              icon={Shield}
+              title="KVKK + GDPR"
+              desc="Otomatik opt-out, veri dışa aktarımı, hesap silme — tek tık."
+            />
+            <FeatureCard
+              icon={Plug}
+              title="Public API + Webhook"
+              desc="CRM'inize bağlayın. HMAC-imzalı event'ler, 10+ tetikleyici."
+              large
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS — tek büyük alıntı vurgulu */}
+      <section className="py-32 px-6 bg-[#f5f5f7]">
+        <div className="max-w-[980px] mx-auto">
+          <div className="text-center mb-16">
+            <p className="eyebrow text-[#16a34a] mb-4">Müşteriler</p>
+            <h2 className="display-lg">Türkiye&apos;den işletme sahipleri.</h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-4">
+            <Quote
+              quote="Randevularımın %30'u gelmiyordu. WaSend'le bir gün önce otomatik hatırlatma gönderiyorum, artık neredeyse herkes geliyor."
               name="Elif K."
-              role="Kuaför salonu · İstanbul"
+              role="Kuaför Salonu"
+              city="İstanbul"
             />
-            <Testimonial
-              quote="Müşterilere 'sipariş hazır' mesajı göndermek için 2 kişi tutuyorduk. Şimdi broadcast ile 10 saniyede halloluyor."
+            <Quote
+              quote="'Sipariş hazır' mesajı için 2 kişi tutuyorduk. Şimdi broadcast ile 10 saniyede halloluyor."
               name="Murat S."
-              role="Restoran · Ankara"
+              role="Restoran"
+              city="Ankara"
             />
-            <Testimonial
-              quote="Fiyat soruları artık anında cevaplanıyor. WhatsApp'tan günde 4 saat tasarruf ediyorum, o süre randevuları yöneteceğime bakıyorum."
+            <Quote
+              quote="Fiyat soruları anında cevaplanıyor. WhatsApp'tan günde 4 saat kazandım."
               name="Dr. Ayşe T."
-              role="Klinik · İzmir"
+              role="Klinik"
+              city="İzmir"
             />
           </div>
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="pricing" className="py-20">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold text-gray-900 mb-3">
-              Türkiye&apos;nin en şeffaf WhatsApp otomasyon fiyatları
-            </h3>
-            <p className="text-gray-500">
-              499 ₺&apos;den başlar · KDV dahil · 14 gün ücretsiz deneme · Kredi kartı gerekmez
+      {/* PRICING — Apple Pay tarzı temiz kartlar */}
+      <section id="pricing" className="py-32 px-6">
+        <div className="max-w-[980px] mx-auto">
+          <div className="text-center mb-20">
+            <p className="eyebrow text-[#16a34a] mb-4">Fiyatlandırma</p>
+            <h2 className="display-lg mb-4">
+              Basit, şeffaf, <br />
+              yıllık ödemede iki ay bedava.
+            </h2>
+            <p className="text-[19px] text-[#6e6e73]">
+              14 gün ücretsiz deneme · Kredi kartı gerekmez · KDV dahil
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            <PriceCard
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <PricingCard
               name="Başlangıç"
+              tagline="Tek çalışan işletmeler"
               price="499"
               annualPrice="4.790"
-              tagline="Tek çalışan işletmeler · Kuaför, klinik, butik"
               features={[
                 "500 kişi",
                 "10 toplu mesaj/ay",
@@ -342,11 +349,11 @@ export default function HomePage() {
                 "Email destek",
               ]}
             />
-            <PriceCard
+            <PricingCard
               name="Profesyonel"
+              tagline="Büyüyen KOBİ'ler"
               price="1.299"
               annualPrice="12.470"
-              tagline="Büyüyen KOBİ'ler · E-ticaret, restoran zincirleri"
               popular
               features={[
                 "5.000 kişi",
@@ -357,11 +364,11 @@ export default function HomePage() {
                 "Öncelikli destek",
               ]}
             />
-            <PriceCard
+            <PricingCard
               name="İşletme"
+              tagline="Kurumsal ekipler"
               price="2.999"
               annualPrice="28.790"
-              tagline="Yüksek hacim + entegrasyon · Kurumsal ekipler"
               features={[
                 "50.000 kişi",
                 "1.000 toplu mesaj/ay",
@@ -374,420 +381,453 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Rakip karşılaştırma — SEO için "whatsapp otomasyon fiyat karşılaştırma" */}
-          <div className="mt-16 max-w-4xl mx-auto">
-            <div className="text-center mb-8">
-              <div className="inline-block bg-green-50 text-green-700 text-xs font-medium px-3 py-1 rounded-full mb-3">
-                💰 Fiyat karşılaştırması
-              </div>
-              <h4 className="text-2xl font-bold text-gray-900 mb-2">
-                Türkiye pazarında en uygun fiyat
-              </h4>
-              <p className="text-sm text-gray-500">
-                Aynı özellik setinde rakiplerin aylık başlangıç fiyatları
-              </p>
-            </div>
-
-            {/* Desktop: tablo · Mobil: kart listesi */}
-            <div className="hidden md:block bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-              <div className="grid grid-cols-12 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-500 text-xs uppercase tracking-wider font-medium">
-                <div className="col-span-4 px-6 py-4">Platform</div>
-                <div className="col-span-3 px-6 py-4 text-right">Başlangıç</div>
-                <div className="col-span-3 px-6 py-4 text-right">Orta paket</div>
-                <div className="col-span-2 px-6 py-4 text-right">Fark</div>
-              </div>
-              <CompareRow platform="WaSend" starter="499 ₺" mid="1.299 ₺" diff="—" highlighted />
-              <CompareRow platform="Infoset" starter="880 ₺" mid="2.880 ₺" diff="+%76" />
-              <CompareRow platform="DialogTab" starter="~850 ₺" mid="~1.700 ₺ + $49" diff="+%70" />
-              <CompareRow platform="Yapaytech" starter="~1.750 ₺" mid="Özel teklif" diff="+%250" />
-              <CompareRow platform="Wati" starter="~1.750 ₺" mid="~3.500 ₺" diff="+%250" />
-            </div>
-
-            {/* Mobil kart listesi */}
-            <div className="md:hidden space-y-2">
-              <CompareCard platform="WaSend" starter="499 ₺" mid="1.299 ₺" diff="—" highlighted />
-              <CompareCard platform="Infoset" starter="880 ₺" mid="2.880 ₺" diff="+%76" />
-              <CompareCard platform="DialogTab" starter="~850 ₺" mid="~1.700 ₺" diff="+%70" />
-              <CompareCard platform="Yapaytech" starter="~1.750 ₺" mid="Özel teklif" diff="+%250" />
-              <CompareCard platform="Wati" starter="~1.750 ₺" mid="~3.500 ₺" diff="+%250" />
-            </div>
-
-            <p className="text-xs text-gray-400 mt-4 text-center">
-              Fiyatlar Nisan 2026 · rakiplerin resmi sayfalarından alınmıştır · kur ve paket kapsamı değişebilir
-            </p>
-          </div>
-
-          <p className="text-center text-xs text-gray-400 mt-10 max-w-2xl mx-auto">
-            Tüm fiyatlar KDV dahildir. Yıllık ödemede <strong>2 ay bedava</strong>.
-            Meta WhatsApp Business Cloud API conversation ücretleri Meta tarafından
-            ayrıca fatura edilir (utility ~0,02 ₺, marketing ~0,08 ₺/mesaj); WaSend
-            sadece platform ücretini tahsil eder.
+          <p className="text-center text-[13px] text-[#6e6e73] mt-10 max-w-[640px] mx-auto leading-relaxed">
+            Meta WhatsApp Cloud API konuşma ücretleri ayrıca Meta tarafından
+            fatura edilir (utility ~0,02 ₺, marketing ~0,08 ₺/mesaj). WaSend
+            yalnızca platform ücretini tahsil eder.
           </p>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section id="faq" className="bg-gray-50 py-20">
-        <div className="max-w-3xl mx-auto px-6">
-          <h3 className="text-3xl font-bold text-center text-gray-900 mb-12">
-            Sıkça sorulanlar
-          </h3>
-          <div className="space-y-4">
-            {[
-              {
-                q: "WhatsApp Business otomasyon yazılımı Türkiye'de ne kadar?",
-                a: "Türkiye pazarında WhatsApp Business otomasyon paketleri genellikle aylık 850 ₺ (giriş seviyesi) ile 3.500 ₺ (kurumsal) arasında değişir. WaSend Başlangıç 499 ₺, Profesyonel 1.299 ₺, İşletme 2.999 ₺/ay. Yıllık ödemede 2 ay bedava. Tüm fiyatlar KDV dahildir.",
-              },
-              {
-                q: "Toplu WhatsApp mesaj göndermek için ekstra ücret öder miyim?",
-                a: "Platform ücreti dışında Meta WhatsApp Cloud API mesaj başına ücret alır: utility (sipariş/randevu bildirimi) yaklaşık 0,02 ₺, marketing kategorisi ~0,08 ₺. Kullanıcı başlattığı service konuşmaları 1 Kasım 2024'ten itibaren ücretsizdir. WaSend bu ücretleri Meta'dan direkt fatura alır, aracı kâr eklemez.",
-              },
-              {
-                q: "Kurulum için ne gerekli?",
-                a: "Meta Business hesabı + onaylı WhatsApp Business numarası. WaSend panelinden Phone Number ID ve API token'ını gir, 5 dakika.",
-              },
-              {
-                q: "Ücretsiz deneme sınırı var mı?",
-                a: "14 gün boyunca tüm Profesyonel plan özellikleri açık. Mesaj ve kişi sınırları plan limitlerinin yarısı kadar. Deneme sonunda Başlangıç planına otomatik düşer ya da iptal edebilirsin.",
-              },
-              {
-                q: "Neden Infoset, Wati veya DialogTab yerine WaSend?",
-                a: "Aynı özellik seti (WhatsApp Cloud API + toplu mesaj + akış editörü + AI fallback) için ortalama %40–60 daha uygun. Tüm fiyatlar KDV dahil ve şeffaf — ekstra agent ücreti, kurulum bedeli ya da gizli maliyet yoktur. Türkiye lokalizasyonu, KVKK uyumu ve iyzico ile TL ödeme yerleşik.",
-              },
-              {
-                q: "Müşteri onayı olmadan mesaj atabilir miyim?",
-                a: "Hayır. WhatsApp Business Policy ve KVKK gereği sadece onay vermiş (opt-in) kişilere mesaj atılabilir. Platform otomatik opt-out yönetimi (dur/stop/iptal) sağlar.",
-              },
-              {
-                q: "Verilerim güvende mi?",
-                a: "Evet. Frankfurt lokasyonlu VPS'te (AB sınırları içinde), scram-sha-256 kimlik doğrulama, günlük otomatik yedek, KVKK tam uyum. /privacy sayfasında detay.",
-              },
-              {
-                q: "İptal etmek kolay mı?",
-                a: "Ayarlar → Hesap → Hesabımı Sil. Bir tık. 30 gün veri saklanır, sonra otomatik silinir.",
-              },
-            ].map((f) => (
-              <details
-                key={f.q}
-                className="bg-white border border-gray-200 rounded-xl p-5 group"
-              >
-                <summary className="font-semibold text-gray-900 cursor-pointer list-none flex items-center justify-between">
-                  {f.q}
-                  <ArrowRight
-                    size={16}
-                    className="text-gray-400 transition-transform group-open:rotate-90"
-                  />
-                </summary>
-                <p className="text-sm text-gray-600 mt-3 leading-relaxed">{f.a}</p>
-              </details>
+      {/* COMPARE — yatay bar chart görselliği */}
+      <section id="compare" className="py-32 px-6 bg-[#f5f5f7]">
+        <div className="max-w-[980px] mx-auto">
+          <div className="text-center mb-16">
+            <p className="eyebrow text-[#16a34a] mb-4">Karşılaştırma</p>
+            <h2 className="display-lg mb-4">
+              Aynı özellik seti, <br />
+              yarı yarıya fiyat.
+            </h2>
+            <p className="text-[19px] text-[#6e6e73]">
+              Türkiye pazarındaki rakiplerin aylık başlangıç fiyatları
+            </p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-[0_4px_20px_rgba(0,0,0,0.04)]">
+            <div className="space-y-5">
+              <CompareBar platform="WaSend" price={499} max={1750} us />
+              <CompareBar platform="Infoset" price={880} max={1750} />
+              <CompareBar platform="DialogTab" price={850} max={1750} />
+              <CompareBar platform="Yapaytech" price={1750} max={1750} />
+              <CompareBar platform="Wati" price={1750} max={1750} />
+            </div>
+          </div>
+
+          <p className="text-[13px] text-[#6e6e73] mt-6 text-center">
+            Fiyatlar Nisan 2026 · rakiplerin resmi sayfalarından · kur ve paket kapsamı değişebilir
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ — Apple-style accordion */}
+      <section id="faq" className="py-32 px-6">
+        <div className="max-w-[820px] mx-auto">
+          <div className="text-center mb-16">
+            <p className="eyebrow text-[#16a34a] mb-4">SSS</p>
+            <h2 className="display-lg">Sıkça sorulanlar.</h2>
+          </div>
+          <div className="border-t border-[#d2d2d7]">
+            {FAQ_ITEMS.map((f) => (
+              <FAQItem key={f.q} question={f.q} answer={f.a} />
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-green-600 py-16">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <h3 className="text-3xl font-bold text-white mb-4">
-            Bugün başla, yarın zaman kazan
-          </h3>
-          <p className="text-green-100 mb-8 text-lg">
-            5 dakikalık kurulum. Kredi kartı yok. İstediğin zaman iptal.
+      {/* CTA — Apple end-of-page büyük CTA */}
+      <section className="py-32 px-6 bg-[#1d1d1f] text-white">
+        <div className="max-w-[820px] mx-auto text-center">
+          <h2 className="display-lg mb-6">
+            Bugün başla. <br />
+            Yarın zaman kazan.
+          </h2>
+          <p className="text-[21px] text-[#86868b] mb-10 max-w-[540px] mx-auto">
+            5 dakikalık kurulum. Kredi kartı istenmez. İstediğiniz zaman iptal.
           </p>
           <Link
             href="/register"
-            className="bg-white text-green-700 px-8 py-3 rounded-lg font-medium hover:bg-green-50 inline-flex items-center gap-2"
+            className="inline-flex items-center gap-2 bg-white text-[#1d1d1f] px-7 py-3.5 rounded-full text-[17px] font-medium hover:bg-[#f5f5f7] transition-colors"
           >
-            14 Gün Ücretsiz Dene <ArrowRight size={18} />
+            14 gün ücretsiz dene
+            <ArrowRight size={16} />
           </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-100 py-10">
-        <div className="max-w-6xl mx-auto px-6 text-sm text-gray-500 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <h4 className="text-lg font-bold text-green-600 mb-2">WaSend</h4>
-            <p className="text-xs text-gray-400">
-              WhatsApp Business otomasyonu için Türkiye&apos;nin modern platformu.
-            </p>
+      {/* FOOTER — Apple tarzı: ince, küçük, gri */}
+      <footer className="bg-[#f5f5f7] text-[#6e6e73] text-[12px] py-10 px-6">
+        <div className="max-w-[980px] mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-[#d2d2d7]">
+            <div>
+              <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
+                Ürün
+              </h5>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#features" className="hover:underline">
+                    Özellikler
+                  </a>
+                </li>
+                <li>
+                  <a href="#pricing" className="hover:underline">
+                    Fiyatlar
+                  </a>
+                </li>
+                <li>
+                  <a href="#compare" className="hover:underline">
+                    Karşılaştır
+                  </a>
+                </li>
+                <li>
+                  <a href="#faq" className="hover:underline">
+                    SSS
+                  </a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
+                Kaynaklar
+              </h5>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/blog" className="hover:underline">
+                    Blog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/changelog" className="hover:underline">
+                    Yenilikler
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/status" className="hover:underline">
+                    Sistem durumu
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
+                Yasal
+              </h5>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/privacy" className="hover:underline">
+                    Gizlilik
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/terms" className="hover:underline">
+                    Kullanım şartları
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h5 className="font-semibold text-[#1d1d1f] mb-3 text-[13px]">
+                İletişim
+              </h5>
+              <ul className="space-y-2">
+                <li>
+                  <a
+                    href="mailto:support@wasend.tech"
+                    className="hover:underline"
+                  >
+                    support@wasend.tech
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="mailto:privacy@wasend.tech"
+                    className="hover:underline"
+                  >
+                    privacy@wasend.tech
+                  </a>
+                </li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <h5 className="font-semibold text-gray-900 mb-3">Ürün</h5>
-            <ul className="space-y-2 text-xs">
-              <li><a href="#features" className="hover:text-gray-900">Özellikler</a></li>
-              <li><a href="#pricing" className="hover:text-gray-900">Fiyatlar</a></li>
-              <li><a href="#faq" className="hover:text-gray-900">SSS</a></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-semibold text-gray-900 mb-3">Yasal</h5>
-            <ul className="space-y-2 text-xs">
-              <li><Link href="/privacy" className="hover:text-gray-900">Gizlilik Politikası</Link></li>
-              <li><Link href="/terms" className="hover:text-gray-900">Kullanım Şartları</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h5 className="font-semibold text-gray-900 mb-3">İletişim</h5>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <a href="mailto:support@wasend.tech" className="hover:text-gray-900">
-                  support@wasend.tech
-                </a>
-              </li>
-              <li>
-                <a href="mailto:privacy@wasend.tech" className="hover:text-gray-900">
-                  privacy@wasend.tech
-                </a>
-              </li>
-            </ul>
-          </div>
+          <p className="pt-6">
+            &copy; 2026 WaSend. Türkiye&apos;nin WhatsApp Business otomasyon
+            platformu.
+          </p>
         </div>
-        <p className="text-center text-xs text-gray-400 mt-10">
-          &copy; 2026 WaSend. Tüm hakları saklıdır.
-        </p>
       </footer>
     </div>
   );
 }
 
-function CompareRow({
-  platform,
-  starter,
-  mid,
-  diff,
-  highlighted,
+/* ─── Alt component'ler ──────────────────────────────────────── */
+
+function HeroStat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="text-center">
+      <div className="text-[28px] md:text-[40px] font-semibold tracking-tight text-[#1d1d1f]">
+        {value}
+      </div>
+      <div className="text-[13px] text-[#6e6e73] mt-1">{label}</div>
+    </div>
+  );
+}
+
+function BeforeAfterCard({
+  before,
+  after,
 }: {
-  platform: string;
-  starter: string;
-  mid: string;
-  diff: string;
-  highlighted?: boolean;
+  before: string;
+  after: string;
 }) {
   return (
-    <div
-      className={`grid grid-cols-12 items-center text-sm border-t ${
-        highlighted
-          ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-100"
-          : "border-gray-100 hover:bg-gray-50"
-      } transition-colors`}
-    >
-      <div className="col-span-4 px-6 py-4 flex items-center gap-2">
-        <span
-          className={`font-semibold ${
-            highlighted ? "text-green-700" : "text-gray-800"
-          }`}
-        >
-          {platform}
-        </span>
-        {highlighted && (
-          <span className="inline-flex items-center gap-1 bg-green-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full">
-            <Check size={10} /> Biz
-          </span>
-        )}
-      </div>
-      <div
-        className={`col-span-3 px-6 py-4 text-right tabular-nums ${
-          highlighted ? "font-bold text-gray-900" : "text-gray-700"
-        }`}
-      >
-        {starter}
-      </div>
-      <div
-        className={`col-span-3 px-6 py-4 text-right tabular-nums ${
-          highlighted ? "font-bold text-gray-900" : "text-gray-700"
-        }`}
-      >
-        {mid}
-      </div>
-      <div className="col-span-2 px-6 py-4 text-right">
-        {highlighted ? (
-          <span className="text-gray-400">—</span>
-        ) : (
-          <span className="inline-block text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-            {diff}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function CompareCard({
-  platform,
-  starter,
-  mid,
-  diff,
-  highlighted,
-}: {
-  platform: string;
-  starter: string;
-  mid: string;
-  diff: string;
-  highlighted?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-xl p-4 border ${
-        highlighted
-          ? "bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm"
-          : "bg-white border-gray-200"
-      }`}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <span
-            className={`font-semibold ${
-              highlighted ? "text-green-700" : "text-gray-800"
-            }`}
-          >
-            {platform}
-          </span>
-          {highlighted && (
-            <span className="inline-flex items-center gap-1 bg-green-600 text-white text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full">
-              <Check size={10} /> Biz
-            </span>
-          )}
-        </div>
-        {!highlighted && (
-          <span className="text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-            {diff}
-          </span>
-        )}
-      </div>
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
-            Başlangıç
-          </p>
-          <p
-            className={`tabular-nums ${
-              highlighted ? "font-bold text-gray-900" : "text-gray-700"
-            }`}
-          >
-            {starter}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-gray-400 mb-0.5">
-            Orta paket
-          </p>
-          <p
-            className={`tabular-nums ${
-              highlighted ? "font-bold text-gray-900" : "text-gray-700"
-            }`}
-          >
-            {mid}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function TrustBadge({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="text-2xl md:text-3xl font-bold text-gray-900">{value}</div>
-      <div className="text-xs text-gray-500 mt-1">{label}</div>
-    </div>
-  );
-}
-
-function SolutionItem({ before, after }: { before: string; after: string }) {
-  return (
-    <div>
-      <p className="text-xs text-slate-400 line-through">{before}</p>
-      <p className="text-sm text-green-400 flex items-center gap-2 mt-0.5">
-        <Check size={14} /> {after}
+    <div className="bg-[#2c2c2e] rounded-2xl p-6">
+      <p className="text-[13px] text-[#86868b] line-through mb-2">{before}</p>
+      <p className="text-[15px] text-white flex items-start gap-2">
+        <Check size={16} className="text-[#30d158] mt-0.5 flex-shrink-0" />
+        <span>{after}</span>
       </p>
     </div>
   );
 }
 
-function Testimonial({
+function FeatureCard({
+  icon: Icon,
+  title,
+  desc,
+  large,
+}: {
+  icon: typeof Bot;
+  title: string;
+  desc: string;
+  large?: boolean;
+}) {
+  return (
+    <div
+      className={`bg-white rounded-3xl p-8 md:p-10 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow ${
+        large ? "md:col-span-2" : ""
+      }`}
+    >
+      <div className="w-11 h-11 rounded-2xl bg-[#16a34a]/10 flex items-center justify-center mb-6">
+        <Icon size={22} className="text-[#16a34a]" strokeWidth={1.75} />
+      </div>
+      <h3 className="display-md mb-3">{title}</h3>
+      <p className="text-[17px] text-[#6e6e73] leading-[1.45]">{desc}</p>
+    </div>
+  );
+}
+
+function Quote({
   quote,
   name,
   role,
+  city,
 }: {
   quote: string;
   name: string;
   role: string;
+  city: string;
 }) {
   return (
-    <div className="bg-white rounded-xl p-6 border border-gray-200">
-      <Quote size={24} className="text-green-500 mb-3" />
-      <p className="text-sm text-gray-700 leading-relaxed mb-4">{quote}</p>
-      <div>
-        <p className="font-semibold text-gray-900 text-sm">{name}</p>
-        <p className="text-xs text-gray-500">{role}</p>
+    <div className="bg-white rounded-3xl p-8 shadow-[0_4px_20px_rgba(0,0,0,0.04)] flex flex-col">
+      <p className="text-[17px] leading-[1.5] text-[#1d1d1f] flex-1">
+        &ldquo;{quote}&rdquo;
+      </p>
+      <div className="mt-6 pt-6 border-t border-[#d2d2d7]">
+        <p className="text-[15px] font-medium text-[#1d1d1f]">{name}</p>
+        <p className="text-[13px] text-[#6e6e73]">
+          {role} · {city}
+        </p>
       </div>
     </div>
   );
 }
 
-function PriceCard({
+function PricingCard({
   name,
+  tagline,
   price,
   annualPrice,
-  tagline,
   features,
   popular,
 }: {
   name: string;
+  tagline: string;
   price: string;
-  annualPrice?: string;
-  tagline?: string;
+  annualPrice: string;
   features: string[];
   popular?: boolean;
 }) {
   return (
     <div
-      className={`rounded-xl p-6 border ${
+      className={`relative rounded-3xl p-8 md:p-10 flex flex-col ${
         popular
-          ? "border-green-500 ring-2 ring-green-100 shadow-lg"
-          : "border-gray-200"
-      } bg-white relative`}
+          ? "bg-[#1d1d1f] text-white shadow-[0_10px_40px_rgba(0,0,0,0.15)]"
+          : "bg-white text-[#1d1d1f] shadow-[0_4px_20px_rgba(0,0,0,0.04)]"
+      }`}
     >
       {popular && (
-        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs font-medium px-3 py-1 rounded-full">
+        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#16a34a] text-white text-[11px] font-semibold uppercase tracking-wider px-3 py-1 rounded-full">
           En popüler
         </span>
       )}
-      <h4 className="font-semibold text-gray-900 mb-1">{name}</h4>
-      {tagline && <p className="text-xs text-gray-400 mb-4">{tagline}</p>}
-      <div className="mb-5">
-        <div className="flex items-baseline gap-1">
-          <span className="text-4xl font-bold text-gray-900">₺{price}</span>
-          <span className="text-gray-400 text-sm">/ay</span>
-        </div>
-        {annualPrice && (
-          <div className="mt-2 flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">
-              <Zap size={10} /> %17 yıllık indirim
-            </span>
-            <span className="text-xs text-gray-500">₺{annualPrice}/yıl</span>
-          </div>
-        )}
+      <div className="mb-6">
+        <h3 className="text-[22px] font-semibold tracking-tight">{name}</h3>
+        <p
+          className={`text-[13px] mt-0.5 ${
+            popular ? "text-[#86868b]" : "text-[#6e6e73]"
+          }`}
+        >
+          {tagline}
+        </p>
       </div>
-      <ul className="space-y-2 mb-6">
+      <div className="mb-8">
+        <div className="flex items-baseline gap-1">
+          <span className="text-[48px] font-semibold tracking-tight leading-none">
+            ₺{price}
+          </span>
+          <span
+            className={`text-[15px] ${popular ? "text-[#86868b]" : "text-[#6e6e73]"}`}
+          >
+            /ay
+          </span>
+        </div>
+        <p
+          className={`text-[13px] mt-2 ${
+            popular ? "text-[#86868b]" : "text-[#6e6e73]"
+          }`}
+        >
+          Yıllık ₺{annualPrice} &middot;{" "}
+          <span className={popular ? "text-[#30d158]" : "text-[#16a34a]"}>
+            2 ay bedava
+          </span>
+        </p>
+      </div>
+      <ul className="space-y-3 mb-8 flex-1">
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-sm text-gray-600">
-            <Check size={16} className="text-green-500 flex-shrink-0 mt-0.5" />
+          <li
+            key={f}
+            className="flex items-start gap-2.5 text-[15px] leading-[1.4]"
+          >
+            <Check
+              size={16}
+              className={`mt-0.5 flex-shrink-0 ${
+                popular ? "text-[#30d158]" : "text-[#16a34a]"
+              }`}
+            />
             <span>{f}</span>
           </li>
         ))}
       </ul>
       <Link
         href="/register"
-        className={`block text-center py-2.5 rounded-lg font-medium transition ${
+        className={`text-center py-3 rounded-full text-[15px] font-medium transition-colors ${
           popular
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "border border-gray-200 text-gray-700 hover:bg-gray-50"
+            ? "bg-white text-[#1d1d1f] hover:bg-[#f5f5f7]"
+            : "bg-[#1d1d1f] text-white hover:bg-black"
         }`}
       >
-        Ücretsiz Başla
+        Ücretsiz başla
       </Link>
     </div>
+  );
+}
+
+function CompareBar({
+  platform,
+  price,
+  max,
+  us,
+}: {
+  platform: string;
+  price: number;
+  max: number;
+  us?: boolean;
+}) {
+  const pct = Math.round((price / max) * 100);
+  return (
+    <div className="flex items-center gap-4">
+      <div className="w-24 md:w-32 text-[15px] flex items-center gap-2 flex-shrink-0">
+        <span
+          className={us ? "font-semibold text-[#1d1d1f]" : "text-[#1d1d1f]"}
+        >
+          {platform}
+        </span>
+        {us && (
+          <span className="text-[10px] bg-[#16a34a] text-white font-semibold px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+            Biz
+          </span>
+        )}
+      </div>
+      <div className="flex-1 h-9 bg-[#f5f5f7] rounded-full overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-[width] duration-700 ${
+            us
+              ? "bg-gradient-to-r from-[#16a34a] to-[#22c55e]"
+              : "bg-[#d2d2d7]"
+          }`}
+          style={{ width: `${Math.max(pct, 8)}%` }}
+        />
+      </div>
+      <div
+        className={`w-20 text-right text-[15px] tabular-nums ${
+          us ? "font-semibold text-[#1d1d1f]" : "text-[#6e6e73]"
+        }`}
+      >
+        {price.toLocaleString("tr-TR")} ₺
+      </div>
+    </div>
+  );
+}
+
+const FAQ_ITEMS = [
+  {
+    q: "WhatsApp Business otomasyon yazılımı Türkiye'de ne kadar?",
+    a: "Türkiye pazarında WhatsApp Business otomasyon paketleri genellikle aylık 850 ₺ (giriş seviyesi) ile 3.500 ₺ (kurumsal) arasında değişir. WaSend Başlangıç 499 ₺, Profesyonel 1.299 ₺, İşletme 2.999 ₺/ay. Yıllık ödemede 2 ay bedava. Tüm fiyatlar KDV dahildir.",
+  },
+  {
+    q: "Toplu WhatsApp mesaj göndermek için ekstra ücret öder miyim?",
+    a: "Platform ücreti dışında Meta WhatsApp Cloud API mesaj başına ücret alır: utility (sipariş/randevu bildirimi) yaklaşık 0,02 ₺, marketing kategorisi ~0,08 ₺. Kullanıcı başlattığı service konuşmaları 1 Kasım 2024'ten itibaren ücretsizdir. WaSend bu ücretleri Meta'dan direkt fatura alır, aracı kâr eklemez.",
+  },
+  {
+    q: "Kurulum için ne gerekli?",
+    a: "Meta Business hesabı + onaylı WhatsApp Business numarası. WaSend panelinden Phone Number ID ve API token'ını gir, 5 dakika.",
+  },
+  {
+    q: "Ücretsiz deneme sınırı var mı?",
+    a: "14 gün boyunca tüm Profesyonel plan özellikleri açık. Mesaj ve kişi sınırları plan limitlerinin yarısı kadar. Deneme sonunda Başlangıç planına otomatik düşer ya da iptal edebilirsin.",
+  },
+  {
+    q: "Neden Infoset, Wati veya DialogTab yerine WaSend?",
+    a: "Aynı özellik seti (WhatsApp Cloud API + toplu mesaj + akış editörü + AI fallback) için ortalama %40–60 daha uygun. Tüm fiyatlar KDV dahil ve şeffaf — ekstra agent ücreti, kurulum bedeli ya da gizli maliyet yoktur. Türkiye lokalizasyonu, KVKK uyumu ve iyzico ile TL ödeme yerleşik.",
+  },
+  {
+    q: "Müşteri onayı olmadan mesaj atabilir miyim?",
+    a: "Hayır. WhatsApp Business Policy ve KVKK gereği sadece onay vermiş (opt-in) kişilere mesaj atılabilir. Platform otomatik opt-out yönetimi (dur/stop/iptal) sağlar.",
+  },
+  {
+    q: "Verilerim güvende mi?",
+    a: "Evet. Frankfurt lokasyonlu VPS'te (AB sınırları içinde), scram-sha-256 kimlik doğrulama, günlük otomatik yedek, KVKK tam uyum. /privacy sayfasında detay.",
+  },
+  {
+    q: "İptal etmek kolay mı?",
+    a: "Ayarlar → Hesap → Hesabımı Sil. Bir tık. 30 gün veri saklanır, sonra otomatik silinir.",
+  },
+];
+
+function FAQItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <details className="group border-b border-[#d2d2d7] py-6">
+      <summary className="flex items-start justify-between gap-6 cursor-pointer list-none">
+        <span className="text-[19px] font-medium text-[#1d1d1f] leading-[1.35]">
+          {question}
+        </span>
+        <Plus
+          size={20}
+          className="text-[#6e6e73] flex-shrink-0 mt-1 transition-transform duration-300 group-open:rotate-45"
+        />
+      </summary>
+      <p className="text-[17px] text-[#6e6e73] leading-[1.5] mt-4 pr-8">
+        {answer}
+      </p>
+    </details>
   );
 }

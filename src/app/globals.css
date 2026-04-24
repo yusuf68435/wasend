@@ -3,19 +3,70 @@
 /* Class-based dark mode — next-themes ile uyumlu */
 @variant dark (&:where(.dark, .dark *));
 
+/* Apple-inspired design tokens:
+   - off-white (#fbfbfd = apple.com arka plan)
+   - grafit gri (#1d1d1f = apple.com başlık)
+   - sessiz gri (#6e6e73 = apple.com alt metin)
+   - accent yeşil korunur (WhatsApp imzası) */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #fbfbfd;
+  --foreground: #1d1d1f;
+  --muted: #6e6e73;
+  --surface: #ffffff;
+  --surface-elevated: #f5f5f7;
+  --border: #d2d2d7;
+  --accent: #16a34a;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  --background: #000000;
+  --foreground: #f5f5f7;
+  --muted: #86868b;
+  --surface: #1d1d1f;
+  --surface-elevated: #2c2c2e;
+  --border: #424245;
+  --accent: #22c55e;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-feature-settings: "kern", "liga", "calt", "ss01";
+  letter-spacing: -0.011em;
+}
+
+/* Apple-style display tipografi — büyük başlıklarda sıkı tracking */
+.display-xl {
+  font-size: clamp(3rem, 7vw, 5.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+.display-lg {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+.display-md {
+  font-size: clamp(1.875rem, 3vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+
+/* Apple eyebrow / küçük başlık: ince, harfler arası açık */
+.eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: none;
 }
 
 /* A11y: tüm interaktif elementler için net focus ring. Sadece klavye ile

@@ -6,7 +6,13 @@ import { CookieBanner } from "@/components/cookie-banner";
 import { Analytics } from "@/components/analytics";
 import Script from "next/script";
 
-const inter = Inter({ subsets: ["latin"] });
+// Inter, SF Pro'ya yakın metrics — Apple-style fallback stack ile birlikte
+// sistem fontları macOS/iOS'ta SF'i, diğerlerinde Inter'i kullanır.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://wasend.tech"),
@@ -64,8 +70,14 @@ export default function RootLayout({
   const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
   return (
-    <html lang="tr" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+    <html lang="tr" suppressHydrationWarning className={inter.variable}>
+      <body
+        className="antialiased"
+        style={{
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", var(--font-inter), "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        }}
+      >
         <Providers>{children}</Providers>
         <CookieBanner />
         <Analytics />
