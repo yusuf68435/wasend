@@ -4,6 +4,7 @@ import { verifyApiKey } from "@/lib/api-key";
 import { sendWhatsAppMessage, sendWhatsAppMedia } from "@/lib/whatsapp";
 import { v1SendMessageSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 export const maxDuration = 30;
 
@@ -26,8 +27,7 @@ export async function POST(request: Request) {
   }
   const { to, message, mediaType, mediaUrl } = parsed.data;
 
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  const { apiToken, phoneNumberId } = await resolveWACredentials(auth.userId);
   if (!apiToken || !phoneNumberId) {
     return NextResponse.json(
       { error: "WhatsApp API ayarları eksik" },

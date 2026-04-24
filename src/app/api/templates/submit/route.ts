@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { submitTemplateToMeta } from "@/lib/meta-templates";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -26,12 +27,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Template bulunamadı" }, { status: 404 });
   }
 
+  const { apiToken, wabaId } = await resolveWACredentials(userId);
   try {
     const { metaId } = await submitTemplateToMeta({
       name: template.name,
       language: template.language,
       category: template.category as "MARKETING" | "UTILITY" | "AUTHENTICATION",
       bodyText: template.bodyText,
+      apiToken,
+      wabaId,
     });
 
     const updated = await prisma.template.update({

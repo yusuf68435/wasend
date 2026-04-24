@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendMessageSchema, formatZodError } from "@/lib/validation";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -37,9 +38,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-
+  const { apiToken, phoneNumberId } = await resolveWACredentials(userId);
   if (!apiToken || !phoneNumberId) {
     return NextResponse.json(
       { error: "WhatsApp API ayarları eksik. Ayarlar sayfasından yapılandırın." },

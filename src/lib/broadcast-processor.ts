@@ -7,6 +7,7 @@ import {
 import { sleep } from "@/lib/rate-limit";
 import { parseRules, resolveSegmentContacts } from "@/lib/segment-resolver";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 const MEDIA_TYPES: readonly MediaType[] = [
   "image",
@@ -38,8 +39,17 @@ const STALE_SENDING_MS = 30 * 60_000; // 30 dk
 export async function processBroadcast(
   broadcastId: string,
 ): Promise<ProcessBroadcastResult> {
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
+  // Credentials resolution broadcast sahibi user'a göre yapılır (Phase C
+  // per-tenant). Owner fetch broadcast claim öncesi olsun ki env-only kurulumda
+  // bile erken fail edelim.
+  const broadcastPre = await prisma.broadcast.findUnique({
+    where: { id: broadcastId },
+    select: { userId: true },
+  });
+  if (!broadcastPre) throw new Error("Kampanya bulunamadı");
+  const { apiToken, phoneNumberId } = await resolveWACredentials(
+    broadcastPre.userId,
+  );
   if (!apiToken || !phoneNumberId) {
     throw new Error("WhatsApp API ayarları eksik");
   }

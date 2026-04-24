@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { verifyCronAuth } from "@/lib/cron-auth";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 export const maxDuration = 60;
 
@@ -9,13 +10,6 @@ export const maxDuration = 60;
 export async function GET(request: NextRequest) {
   const auth = verifyCronAuth(request);
   if (!auth.ok) return auth.response!;
-
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
-  const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-
-  if (!apiToken || !phoneNumberId) {
-    return NextResponse.json({ error: "WhatsApp API ayarları eksik" }, { status: 400 });
-  }
 
   // Find pending reminders whose contacts haven't opted out
   const now = new Date();
@@ -31,8 +25,36 @@ export async function GET(request: NextRequest) {
   let sentCount = 0;
   let skippedCount = 0;
 
+  // Per-user credential cache — aynı cron'da aynı user defalarca lookup'ı önler.
+  const credCache = new Map<
+    string,
+    { apiToken: string | null; phoneNumberId: string | null }
+  >();
+  async function getCreds(userId: string) {
+    const cached = credCache.get(userId);
+    if (cached) return cached;
+    const { apiToken, phoneNumberId } = await resolveWACredentials(userId);
+    const v = { apiToken, phoneNumberId };
+    credCache.set(userId, v);
+    return v;
+  }
+
   for (const reminder of pendingReminders) {
     if (reminder.contact.optedOut) {
+      await prisma.reminder.update({
+        where: { id: reminder.id },
+        data: { status: "skipped" },
+      });
+      skippedCount++;
+      continue;
+    }
+
+    const { apiToken, phoneNumberId } = await getCreds(reminder.userId);
+    if (!apiToken || !phoneNumberId) {
+      // Bu user'ın WA'sı yapılandırılmamış — skip et, hata verme.
+      console.warn(
+        `Reminder ${reminder.id} skipped: userId=${reminder.userId} WA credentials missing`,
+      );
       await prisma.reminder.update({
         where: { id: reminder.id },
         data: { status: "skipped" },

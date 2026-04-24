@@ -17,6 +17,7 @@ import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { formatZodError } from "@/lib/validation";
+import { resolveWACredentials } from "@/lib/wa-credentials";
 
 const bodySchema = z.object({
   to: z
@@ -53,25 +54,23 @@ export async function POST(req: Request) {
   }
   const { to } = parsed.data;
 
-  // Phone Number ID kullanıcıdan, token şimdilik global env'den (Phase C'de per-user olacak)
+  // Per-user token + phone ID, yoksa env fallback (Phase A/C hybrid).
   const u = await prisma.user.findUnique({
     where: { id: userId },
-    select: { phone: true, name: true },
+    select: { name: true },
   });
-  const phoneNumberId = u?.phone?.trim();
+  const { apiToken, phoneNumberId } = await resolveWACredentials(userId);
   if (!phoneNumberId) {
     return NextResponse.json(
       { error: "Önce WhatsApp Phone Number ID'ni kaydet." },
       { status: 400 },
     );
   }
-
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
   if (!apiToken) {
     return NextResponse.json(
       {
         error:
-          "Sistem WhatsApp API token'ı yapılandırılmamış. Yönetici ile iletişime geç.",
+          "WhatsApp API token'ı yapılandırılmamış. Ayarlar'dan kendi token'ını ekle veya yöneticiyle iletişime geç.",
       },
       { status: 503 },
     );

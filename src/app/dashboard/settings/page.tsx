@@ -358,9 +358,213 @@ export default function SettingsPage() {
           </div>
         </form>
 
+        <WhatsAppCredentialsCard />
+
         <WebhookUrlCard />
       </div>
     </div>
+  );
+}
+
+function WhatsAppCredentialsCard() {
+  const [state, setState] = useState<{
+    waApiTokenSet: boolean;
+    waAppSecretSet: boolean;
+    waWabaId: string;
+    waVerifyToken: string;
+  } | null>(null);
+  const [apiToken, setApiToken] = useState("");
+  const [appSecret, setAppSecret] = useState("");
+  const [wabaId, setWabaId] = useState("");
+  const [verifyToken, setVerifyToken] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [advanced, setAdvanced] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/settings/whatsapp")
+      .then((r) => r.json())
+      .then((d) => {
+        setState({
+          waApiTokenSet: !!d.waApiTokenSet,
+          waAppSecretSet: !!d.waAppSecretSet,
+          waWabaId: d.waWabaId || "",
+          waVerifyToken: d.waVerifyToken || "",
+        });
+        setWabaId(d.waWabaId || "");
+        setVerifyToken(d.waVerifyToken || "");
+      });
+  }, []);
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setErr(null);
+    setSaved(false);
+    const body: Record<string, string | null> = {};
+    if (apiToken) body.waApiToken = apiToken;
+    if (appSecret) body.waAppSecret = appSecret;
+    if (wabaId !== state?.waWabaId) body.waWabaId = wabaId;
+    if (verifyToken !== state?.waVerifyToken) body.waVerifyToken = verifyToken;
+    const res = await fetch("/api/settings/whatsapp", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      setErr(d.error || "Kaydedilemedi");
+      return;
+    }
+    setApiToken("");
+    setAppSecret("");
+    setSaved(true);
+    // refresh mask state
+    const refreshed = await fetch("/api/settings/whatsapp").then((r) => r.json());
+    setState({
+      waApiTokenSet: !!refreshed.waApiTokenSet,
+      waAppSecretSet: !!refreshed.waAppSecretSet,
+      waWabaId: refreshed.waWabaId || "",
+      waVerifyToken: refreshed.waVerifyToken || "",
+    });
+    setTimeout(() => setSaved(false), 3000);
+  }
+
+  if (!state) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 p-6 text-sm text-gray-400">
+        Yükleniyor...
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={save} className="bg-white rounded-xl border border-gray-200 p-6">
+      <div className="mb-4">
+        <h3 className="font-semibold text-gray-900">
+          Kendi WhatsApp Hesabın (BYO)
+        </h3>
+        <p className="text-[13px] text-gray-500 mt-1">
+          Kendi Meta App&apos;ini bağlamak istersen API token, App Secret ve
+          WABA ID&apos;ni buraya gir. Boş bırakırsan WaSend&apos;in ortak
+          hesabı kullanılır.
+        </p>
+      </div>
+
+      {saved && (
+        <div className="bg-green-50 text-green-700 p-3 rounded-lg text-sm mb-4">
+          Kaydedildi
+        </div>
+      )}
+      {err && (
+        <div className="bg-red-50 text-red-700 p-3 rounded-lg text-sm mb-4">
+          {err}
+        </div>
+      )}
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            API Token
+            {state.waApiTokenSet && (
+              <span className="ml-2 text-[11px] text-green-600">✓ Kaydedildi</span>
+            )}
+          </label>
+          <input
+            type="password"
+            value={apiToken}
+            onChange={(e) => setApiToken(e.target.value)}
+            autoComplete="new-password"
+            placeholder={
+              state.waApiTokenSet
+                ? "Yeni değer girmezsen mevcut token korunur"
+                : "EAABw... (Meta Permanent Token)"
+            }
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 font-mono text-[13px]"
+          />
+          <p className="text-[11px] text-gray-400 mt-1">
+            Meta for Developers → App → WhatsApp → API Setup → Permanent Token
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            WABA ID (WhatsApp Business Account ID)
+          </label>
+          <input
+            type="text"
+            value={wabaId}
+            onChange={(e) => setWabaId(e.target.value.replace(/\D/g, ""))}
+            inputMode="numeric"
+            placeholder="Örn. 123456789012345"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 font-mono text-[13px]"
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setAdvanced((v) => !v)}
+          className="text-[12px] text-gray-500 hover:text-gray-800 underline underline-offset-2"
+        >
+          {advanced ? "Gelişmiş ayarları gizle" : "Gelişmiş ayarlar (App Secret, Verify Token)"}
+        </button>
+
+        {advanced && (
+          <>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                App Secret
+                {state.waAppSecretSet && (
+                  <span className="ml-2 text-[11px] text-green-600">✓ Kaydedildi</span>
+                )}
+              </label>
+              <input
+                type="password"
+                value={appSecret}
+                onChange={(e) => setAppSecret(e.target.value)}
+                autoComplete="new-password"
+                placeholder={
+                  state.waAppSecretSet ? "••••••••" : "Meta App → Basic Settings"
+                }
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 font-mono text-[13px]"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                Gelen webhook imzalarını doğrulamak için kullanılır.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Verify Token
+              </label>
+              <input
+                type="text"
+                value={verifyToken}
+                onChange={(e) =>
+                  setVerifyToken(e.target.value.replace(/[^A-Za-z0-9_\-]/g, ""))
+                }
+                placeholder="kendi belirlediğin rastgele string"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500 font-mono text-[13px]"
+              />
+              <p className="text-[11px] text-gray-400 mt-1">
+                Meta Developer panelinde webhook subscribe ederken bu değeri
+                girersin. Harf/rakam/_/-
+              </p>
+            </div>
+          </>
+        )}
+
+        <button
+          type="submit"
+          disabled={busy}
+          className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
+        >
+          {busy ? "Kaydediliyor..." : "Kaydet"}
+        </button>
+      </div>
+    </form>
   );
 }
 

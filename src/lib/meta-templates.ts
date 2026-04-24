@@ -5,16 +5,19 @@ export interface MetaTemplateSubmitInput {
   language: string;
   category: "MARKETING" | "UTILITY" | "AUTHENTICATION";
   bodyText: string;
+  /** Opsiyonel per-tenant override. Yoksa env fallback. */
+  apiToken?: string | null;
+  wabaId?: string | null;
 }
 
 export async function submitTemplateToMeta(
   input: MetaTemplateSubmitInput,
 ): Promise<{ metaId: string }> {
-  const wabaId = process.env.WHATSAPP_WABA_ID;
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
+  const wabaId = input.wabaId || process.env.WHATSAPP_WABA_ID;
+  const apiToken = input.apiToken || process.env.WHATSAPP_API_TOKEN;
   if (!wabaId || !apiToken) {
     throw new Error(
-      "WHATSAPP_WABA_ID veya WHATSAPP_API_TOKEN ayarlı değil — yerel olarak kaydedildi, onaylı sayılmıyor.",
+      "WABA ID veya API token ayarlı değil — yerel olarak kaydedildi, onaylı sayılmıyor.",
     );
   }
 
@@ -47,9 +50,10 @@ export async function submitTemplateToMeta(
 
 export async function fetchTemplateStatus(
   metaId: string,
+  apiTokenOverride?: string | null,
 ): Promise<{ status: string; reason: string | null }> {
-  const apiToken = process.env.WHATSAPP_API_TOKEN;
-  if (!apiToken) throw new Error("WHATSAPP_API_TOKEN eksik");
+  const apiToken = apiTokenOverride || process.env.WHATSAPP_API_TOKEN;
+  if (!apiToken) throw new Error("API token eksik");
 
   const url = `${WHATSAPP_API_URL}/${metaId}?fields=status,rejected_reason`;
   const res = await fetch(url, {

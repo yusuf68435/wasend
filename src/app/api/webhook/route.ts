@@ -8,39 +8,93 @@ import { matchesTrigger, mergeTags } from "@/lib/autoreply-match";
 import { generateAIReply, fetchRecentHistory } from "@/lib/ai-agent";
 import { runFlows } from "@/lib/flow-engine";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
+import {
+  findUserByVerifyToken,
+  resolveByPhoneNumberId,
+} from "@/lib/wa-credentials";
+import { decryptSecret } from "@/lib/secret-crypto";
 
 // WhatsApp webhook verification (GET)
+// Per-tenant: hub.verify_token global env VEYA bir kullanıcının waVerifyToken'ı
+// ile match ederse 200 + challenge döner. Böylece her firma kendi Meta App'ini
+// aynı /api/webhook URL'ine bağlayabilir.
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
   const challenge = searchParams.get("hub.challenge");
 
-  if (mode === "subscribe" && token === process.env.WHATSAPP_VERIFY_TOKEN) {
-    return new NextResponse(challenge, { status: 200 });
+  if (mode !== "subscribe" || !token) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const result = await findUserByVerifyToken(token);
+  if (result.matchedEnv || result.userId) {
+    return new NextResponse(challenge, { status: 200 });
+  }
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
 // WhatsApp incoming messages (POST)
+// Per-tenant signature verification:
+//   1) Parse body (unverified at this point) to extract phone_number_id
+//   2) Look up owner → get their waAppSecret (or fallback to env)
+//   3) Verify HMAC — attacker spoofing phone_number_id still can't forge without secret
+// Fallback (Phase A compat): user bulunamazsa env APP_SECRET kullanılır.
 export async function POST(request: NextRequest) {
   try {
     const rawBody = await request.text();
-
-    // Webhook signature doğrulaması — varsayılan olarak ZORUNLU.
-    // Dev'de lokal test için atlamak istiyorsan WEBHOOK_SKIP_SIGNATURE=true + APP_SECRET yok.
-    // "APP_SECRET yok → otomatik atla" anti-pattern'i kaldırıldı — prod'a yanlış env
-    // yüklenirse artık sessiz güvenlik kaybı yaşanmaz.
-    const appSecret = process.env.WHATSAPP_APP_SECRET;
     const isProd = process.env.NODE_ENV === "production";
     const explicitSkip = process.env.WEBHOOK_SKIP_SIGNATURE === "true";
 
-    if (!appSecret) {
+    // body'yi parse et — phone_number_id routing için gerekli (imza sonrası da
+    // kullanılıyor zaten). İmza doğrulanmadan yan etki yapılmaz.
+    let body: {
+      entry?: Array<{
+        changes?: Array<{
+          value?: {
+            metadata?: { phone_number_id?: string };
+            statuses?: MetaStatus[];
+            messages?: Array<{
+              from: string;
+              id?: string;
+              text?: { body?: string };
+            }>;
+            contacts?: Array<{ profile?: { name?: string } }>;
+          };
+        }>;
+      }>;
+    };
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
+    const entry = body.entry?.[0];
+    const changes = entry?.changes?.[0];
+    const value = changes?.value;
+    const phoneNumberId: string | undefined = value?.metadata?.phone_number_id;
+
+    // Per-tenant app secret resolution
+    let ownerUser: { id: string } | null = null;
+    let effectiveAppSecret: string | null = null;
+    if (phoneNumberId) {
+      const resolved = await resolveByPhoneNumberId(phoneNumberId);
+      ownerUser = resolved.user;
+      if (resolved.user?.waAppSecret) {
+        effectiveAppSecret = decryptSecret(resolved.user.waAppSecret);
+      }
+    }
+    // Fallback to env (shared WABA model / Phase A compat)
+    if (!effectiveAppSecret) {
+      effectiveAppSecret = process.env.WHATSAPP_APP_SECRET || null;
+    }
+
+    if (!effectiveAppSecret) {
       if (isProd || !explicitSkip) {
         console.error(
-          "CRITICAL: WHATSAPP_APP_SECRET yok — webhook reddedildi. " +
-            "Dev'de bilinçli atlamak için WEBHOOK_SKIP_SIGNATURE=true.",
+          "CRITICAL: WHATSAPP_APP_SECRET yok (ne user ne env) — webhook reddedildi.",
         );
         return NextResponse.json(
           { error: "Webhook not configured" },
@@ -52,16 +106,10 @@ export async function POST(request: NextRequest) {
       );
     } else {
       const signature = request.headers.get("x-hub-signature-256");
-      if (!verifyMetaSignature(rawBody, signature, appSecret)) {
+      if (!verifyMetaSignature(rawBody, signature, effectiveAppSecret)) {
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }
     }
-
-    const body = JSON.parse(rawBody);
-    const entry = body.entry?.[0];
-    const changes = entry?.changes?.[0];
-    const value = changes?.value;
-    const phoneNumberId: string | undefined = value?.metadata?.phone_number_id;
 
     // Handle delivery/read statuses first
     if (value?.statuses?.length) {
@@ -78,10 +126,13 @@ export async function POST(request: NextRequest) {
     const messageText: string = message.text?.body || "";
     const waIncomingId: string | undefined = message.id;
 
-    // Find the user who owns this phone number ID
-    const user = phoneNumberId
-      ? await prisma.user.findFirst({ where: { phone: phoneNumberId } })
-      : null;
+    // Find the user who owns this phone number ID. Eğer phone-id ile signature
+    // verification aşamasında zaten bulduysak yeniden sorgulamaya gerek yok.
+    const user = ownerUser
+      ? await prisma.user.findUnique({ where: { id: ownerUser.id } })
+      : phoneNumberId
+        ? await prisma.user.findFirst({ where: { phone: phoneNumberId } })
+        : null;
 
     if (!user) {
       return NextResponse.json({ status: "user not found" });
@@ -153,7 +204,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const apiToken = process.env.WHATSAPP_API_TOKEN;
+    // Reply'larda kullanılacak token — önce user'ın şifreli token'ı,
+    // yoksa env fallback. phoneNumberId webhook'tan zaten var.
+    const userApiTokenDecrypted = user.waApiToken
+      ? decryptSecret(user.waApiToken)
+      : null;
+    const apiToken =
+      userApiTokenDecrypted || process.env.WHATSAPP_API_TOKEN || null;
 
     // Opt-out handling — always processed, even if already opted out
     if (isOptOutMessage(messageText)) {

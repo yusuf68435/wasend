@@ -13,6 +13,13 @@ model User {
   name                String
   hashedPassword      String
   phone               String?
+  // Per-tenant WhatsApp credentials (Phase C: BYO token).
+  // Boşsa env fallback kullanılır (shared WABA modeli - Phase A).
+  // waApiToken & waAppSecret AES-256-GCM ile encrypted saklanır (lib/secret-crypto.ts).
+  waApiToken          String?
+  waAppSecret         String?
+  waVerifyToken       String?   @unique
+  waWabaId            String?
   businessName        String?
   businessType        String?
   timezone            String    @default("Europe/Istanbul")
