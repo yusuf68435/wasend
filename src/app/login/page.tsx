@@ -44,28 +44,44 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600">WaSend</h1>
-          <p className="text-gray-500 mt-2">WhatsApp Otomasyon Platformu</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#1d1d1f] px-4">
+      <div className="w-full max-w-[420px]">
+        <div className="text-center mb-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-[22px] font-semibold tracking-tight text-[#1d1d1f]"
+          >
+            WaSend
+            <span
+              aria-hidden
+              className="inline-block w-2 h-2 rounded-full bg-[#25D366]"
+            />
+          </Link>
+          <h1 className="display-md mt-8 text-[#1d1d1f]">Hoş geldin.</h1>
+          <p className="text-[15px] text-[#6e6e73] mt-2 tracking-tight">
+            Hesabına giriş yap.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {(registered || verified) && (
-            <div className="bg-green-50 text-green-800 p-3 rounded-lg text-sm flex items-center gap-2">
-              <CheckCircle2 size={16} />
+            <div className="bg-[#30d158]/10 text-[#1d1d1f] px-4 py-3 rounded-2xl text-[13px] flex items-center gap-2 tracking-tight">
+              <CheckCircle2
+                size={16}
+                strokeWidth={2}
+                className="text-[#30d158] flex-shrink-0"
+              />
               {verified
                 ? "E-posta doğrulandı. Giriş yapabilirsin."
-                : "Kayıt başarılı! E-postana gönderdiğimiz bağlantıyla doğrulama yap, sonra giriş yapabilirsin."}
+                : "Kayıt başarılı. E-postana gönderilen bağlantıyla doğrula, sonra giriş yap."}
             </div>
           )}
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+            <div className="bg-[#ff453a]/10 text-[#ff453a] px-4 py-3 rounded-2xl text-[13px] tracking-tight">
               {error}
               {error.includes("askıya") && (
-                <div className="mt-2">
-                  Destek için:{" "}
+                <div className="mt-2 text-[#1d1d1f]">
+                  Destek için{" "}
                   <a
                     href="mailto:support@wasend.tech"
                     className="underline font-medium"
@@ -77,66 +93,96 @@ function LoginForm() {
             </div>
           )}
 
-          <div>
-            <label
-              htmlFor="login-email"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              E-posta
-            </label>
-            <input
-              id="login-email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-              placeholder="ornek@email.com"
-            />
-          </div>
+          <Field
+            id="login-email"
+            name="email"
+            type="email"
+            label="E-posta"
+            autoComplete="email"
+            placeholder="ornek@email.com"
+            required
+          />
 
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label
-                htmlFor="login-password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Şifre
-              </label>
+          <Field
+            id="login-password"
+            name="password"
+            type="password"
+            label="Şifre"
+            autoComplete="current-password"
+            placeholder="••••••••"
+            required
+            rightLabel={
               <Link
                 href="/forgot-password"
-                className="text-xs text-green-600 hover:underline"
+                className="text-[12px] text-[#6e6e73] hover:text-[#1d1d1f] tracking-tight"
               >
                 Şifremi unuttum
               </Link>
-            </div>
-            <input
-              id="login-password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
-              placeholder="••••••••"
-            />
-          </div>
+            }
+          />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
+            className="w-full h-11 rounded-full bg-[#1d1d1f] text-white text-[14px] font-medium tracking-tight hover:bg-black transition disabled:opacity-50"
           >
-            {loading ? "Giriş yapılıyor..." : "Giriş Yap"}
+            {loading ? "Giriş yapılıyor…" : "Giriş yap"}
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-[13px] text-[#6e6e73] mt-8 tracking-tight">
           Hesabın yok mu?{" "}
-          <Link href="/register" className="text-green-600 font-medium hover:underline">
-            Kayıt Ol
+          <Link
+            href="/register"
+            className="text-[#1d1d1f] font-medium hover:underline underline-offset-4"
+          >
+            Kayıt ol
           </Link>
         </p>
       </div>
+    </div>
+  );
+}
+
+function Field({
+  id,
+  name,
+  type,
+  label,
+  autoComplete,
+  placeholder,
+  required,
+  rightLabel,
+}: {
+  id: string;
+  name: string;
+  type: string;
+  label: string;
+  autoComplete?: string;
+  placeholder?: string;
+  required?: boolean;
+  rightLabel?: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label
+          htmlFor={id}
+          className="block text-[13px] font-medium text-[#1d1d1f] tracking-tight"
+        >
+          {label}
+        </label>
+        {rightLabel}
+      </div>
+      <input
+        id={id}
+        name={name}
+        type={type}
+        required={required}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        className="w-full px-4 h-11 bg-white border border-[#d2d2d7] rounded-2xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
+      />
     </div>
   );
 }
@@ -145,8 +191,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-400">
-          Yükleniyor...
+        <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#6e6e73] text-[13px] tracking-tight">
+          Yükleniyor…
         </div>
       }
     >

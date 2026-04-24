@@ -16,7 +16,7 @@ export default async function DashboardLayout({
   const impersonation = await getImpersonationState();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <div className="min-h-screen bg-[#fbfbfd] text-[#1d1d1f] dark:bg-gray-950">
       {impersonation.active && (
         <ImpersonationBanner
           targetEmail={impersonation.targetEmail}

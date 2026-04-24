@@ -46,14 +46,17 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Geçersiz bağlantı</h1>
-          <p className="text-gray-500 mb-6">
-            Şifre sıfırlama bağlantısı eksik. E-postadaki bağlantıya tekrar tıklayın veya
-            yeni bir sıfırlama talebi oluşturun.
+      <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#1d1d1f] px-4">
+        <div className="w-full max-w-[420px] text-center">
+          <h1 className="display-md text-[#1d1d1f]">Geçersiz bağlantı.</h1>
+          <p className="text-[15px] text-[#6e6e73] mt-4 tracking-tight">
+            Şifre sıfırlama bağlantısı eksik. E-postadaki bağlantıya tekrar
+            tıkla veya yeni bir sıfırlama talebi oluştur.
           </p>
-          <Link href="/forgot-password" className="text-green-600 font-medium hover:underline">
+          <Link
+            href="/forgot-password"
+            className="inline-block mt-8 text-[13px] text-[#1d1d1f] hover:underline underline-offset-4 tracking-tight font-medium"
+          >
             Yeni bağlantı talep et
           </Link>
         </div>
@@ -62,69 +65,93 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-green-600">WaSend</h1>
-          <p className="text-gray-500 mt-2">Yeni şifre belirle</p>
+    <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#1d1d1f] px-4">
+      <div className="w-full max-w-[420px]">
+        <div className="text-center mb-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1.5 text-[22px] font-semibold tracking-tight text-[#1d1d1f]"
+          >
+            WaSend
+            <span
+              aria-hidden
+              className="inline-block w-2 h-2 rounded-full bg-[#25D366]"
+            />
+          </Link>
+          <h1 className="display-md mt-8 text-[#1d1d1f]">Yeni şifre belirle.</h1>
+          <p className="text-[15px] text-[#6e6e73] mt-2 tracking-tight">
+            En az 8 karakter olsun.
+          </p>
         </div>
 
         {success ? (
-          <div className="bg-green-50 text-green-700 p-4 rounded-lg text-center">
-            <p className="font-medium">Şifreniz başarıyla güncellendi.</p>
-            <p className="text-sm mt-1">Giriş sayfasına yönlendiriliyorsunuz...</p>
+          <div className="bg-[#30d158]/10 text-[#1d1d1f] px-5 py-5 rounded-2xl text-center tracking-tight">
+            <p className="font-medium text-[15px]">
+              Şifren başarıyla güncellendi.
+            </p>
+            <p className="text-[13px] text-[#6e6e73] mt-1.5">
+              Giriş sayfasına yönlendiriliyorsun…
+            </p>
           </div>
         ) : (
           <form onSubmit={submit} className="space-y-4">
             {error && (
-              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+              <div className="bg-[#ff453a]/10 text-[#ff453a] px-4 py-3 rounded-2xl text-[13px] tracking-tight">
                 {error}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="rp-password"
+                className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5 tracking-tight"
+              >
                 Yeni şifre
               </label>
               <input
+                id="rp-password"
                 type="password"
                 required
                 minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
                 placeholder="En az 8 karakter"
+                className="w-full px-4 h-11 bg-white border border-[#d2d2d7] rounded-2xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="rp-confirm"
+                className="block text-[13px] font-medium text-[#1d1d1f] mb-1.5 tracking-tight"
+              >
                 Şifre tekrar
               </label>
               <input
+                id="rp-confirm"
                 type="password"
                 required
                 minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
+                className="w-full px-4 h-11 bg-white border border-[#d2d2d7] rounded-2xl text-[14px] text-[#1d1d1f] placeholder:text-[#86868b] focus:border-[#1d1d1f] focus:ring-2 focus:ring-[#1d1d1f]/5 outline-none transition"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 text-white py-2.5 rounded-lg font-medium hover:bg-green-700 transition disabled:opacity-50"
+              className="w-full h-11 rounded-full bg-[#1d1d1f] text-white text-[14px] font-medium tracking-tight hover:bg-black transition disabled:opacity-50"
             >
-              {loading ? "Güncelleniyor..." : "Şifreyi güncelle"}
+              {loading ? "Güncelleniyor…" : "Şifreyi güncelle"}
             </button>
           </form>
         )}
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-[13px] text-[#6e6e73] mt-8 tracking-tight">
           <Link
             href="/login"
-            className="text-green-600 font-medium hover:underline"
+            className="text-[#1d1d1f] font-medium hover:underline underline-offset-4"
           >
             Giriş sayfasına dön
           </Link>
@@ -138,8 +165,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-400">
-          Yükleniyor...
+        <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#6e6e73] text-[13px] tracking-tight">
+          Yükleniyor…
         </div>
       }
     >

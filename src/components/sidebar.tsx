@@ -123,13 +123,13 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
       <Link
         key={href}
         href={href}
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition ${
+        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition ${
           isActive
-            ? "bg-green-50 text-green-700"
-            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+            ? "bg-[#f5f5f7] text-[#1d1d1f]"
+            : "text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
         }`}
       >
-        <Icon size={16} />
+        <Icon size={16} strokeWidth={1.75} />
         {label}
       </Link>
     );
@@ -141,7 +141,7 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
       <button
         onClick={() => setMobileOpen(true)}
         aria-label="Menüyü aç"
-        className="md:hidden fixed top-3 left-3 z-40 p-2 bg-white rounded-lg border border-gray-200 shadow-sm text-gray-700"
+        className="md:hidden fixed top-3 left-3 z-40 p-2 bg-white/90 backdrop-blur-xl rounded-xl border border-[#d2d2d7] shadow-sm text-[#1d1d1f]"
       >
         <Menu size={20} />
       </button>
@@ -156,48 +156,56 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
       )}
 
       <aside
-        className={`fixed md:sticky md:top-0 top-0 left-0 z-50 h-screen w-64 bg-white border-r border-gray-200 flex flex-col transition-transform duration-200 ${
+        className={`fixed md:sticky md:top-0 top-0 left-0 z-50 h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7] flex flex-col transition-transform duration-200 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-[#d2d2d7]">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-green-600">WaSend</h1>
-            <p className="text-xs text-gray-400 mt-1">WhatsApp Otomasyon</p>
+            <h1 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+              WaSend
+              <span
+                aria-hidden
+                className="inline-block w-1.5 h-1.5 rounded-full bg-[#25D366]"
+              />
+            </h1>
+            <p className="text-[11px] text-[#86868b] mt-1 tracking-tight">
+              WhatsApp Otomasyon
+            </p>
           </div>
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Menüyü kapat"
-            className="md:hidden text-gray-400 hover:text-gray-700"
+            className="md:hidden text-[#86868b] hover:text-[#1d1d1f]"
           >
             <X size={20} />
           </button>
         </div>
-        <p className="hidden md:block text-xs text-gray-400 mt-3">
-          <kbd className="bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200 text-gray-600">
+        <p className="hidden md:flex text-[11px] text-[#86868b] mt-4 items-center gap-1.5">
+          <kbd className="bg-white px-1.5 py-0.5 rounded-md border border-[#d2d2d7] text-[#1d1d1f] font-sans text-[10px]">
             ⌘K
-          </kbd>{" "}
+          </kbd>
           ile hızlı ara
         </p>
       </div>
 
-      <nav className="flex-1 p-3 space-y-3 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
         {GROUPS.map((group) => {
           const isOpen = openGroups.has(group.label);
           return (
             <div key={group.label}>
               <button
                 onClick={() => toggleGroup(group.label)}
-                className="w-full flex items-center justify-between px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700"
+                className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em] hover:text-[#1d1d1f]"
                 aria-expanded={isOpen}
                 aria-controls={`group-${group.label}`}
               >
                 <span>{group.label}</span>
-                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </button>
               {isOpen && (
-                <div id={`group-${group.label}`} className="mt-1 space-y-0.5">
+                <div id={`group-${group.label}`} className="mt-1.5 space-y-0.5">
                   {group.items.map(renderLink)}
                 </div>
               )}
@@ -208,28 +216,28 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
         {isSuperAdmin && (
           <Link
             href="/admin"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition bg-amber-50 text-amber-800 hover:bg-amber-100 mt-3"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition bg-[#1d1d1f] text-white hover:bg-black mt-4"
           >
-            <Shield size={16} />
+            <Shield size={16} strokeWidth={1.75} />
             Admin Paneli
           </Link>
         )}
       </nav>
 
-      <div className="p-3 border-t border-gray-200 space-y-0.5">
-        <p className="px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <div className="p-3 border-t border-[#d2d2d7] space-y-0.5">
+        <p className="px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
           Profil
         </p>
         {PROFILE_ITEMS.map(renderLink)}
-        <div className="flex items-center justify-between px-3 py-2">
-          <span className="text-xs text-gray-500">Tema</span>
+        <div className="flex items-center justify-between px-3 py-2 mt-1">
+          <span className="text-[11px] text-[#86868b] tracking-tight">Tema</span>
           <ThemeToggle />
         </div>
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-red-50 hover:text-red-600 transition w-full"
+          className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/5 hover:text-[#ff453a] transition w-full"
         >
-          <LogOut size={16} />
+          <LogOut size={16} strokeWidth={1.75} />
           Çıkış Yap
         </button>
       </div>

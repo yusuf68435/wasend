@@ -37,29 +37,37 @@ function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-emerald-100 px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#1d1d1f] px-4">
+      <div className="w-full max-w-[420px] text-center">
         {state === "loading" && (
           <>
-            <Loader2 size={48} className="mx-auto text-green-600 animate-spin mb-4" />
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              E-postanız doğrulanıyor...
-            </h1>
+            <div className="w-16 h-16 rounded-full bg-[#f5f5f7] flex items-center justify-center mx-auto mb-6">
+              <Loader2
+                size={24}
+                strokeWidth={1.75}
+                className="text-[#1d1d1f] animate-spin"
+              />
+            </div>
+            <h1 className="display-md text-[#1d1d1f]">Doğrulanıyor…</h1>
           </>
         )}
 
         {state === "success" && (
           <>
-            <CheckCircle2 size={48} className="mx-auto text-green-600 mb-4" />
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              E-posta doğrulandı
-            </h1>
-            <p className="text-sm text-gray-500 mb-6">
-              Hesabınız aktive edildi. Artık giriş yapabilirsiniz.
+            <div className="w-16 h-16 rounded-full bg-[#30d158]/15 flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2
+                size={28}
+                strokeWidth={1.75}
+                className="text-[#30d158]"
+              />
+            </div>
+            <h1 className="display-md text-[#1d1d1f]">E-posta doğrulandı.</h1>
+            <p className="text-[15px] text-[#6e6e73] mt-4 tracking-tight">
+              Hesabın aktive edildi. Artık giriş yapabilirsin.
             </p>
             <Link
               href="/login"
-              className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700"
+              className="inline-block mt-8 bg-[#1d1d1f] text-white px-7 py-3 rounded-full text-[14px] font-medium tracking-tight hover:bg-black transition"
             >
               Giriş yap
             </Link>
@@ -68,16 +76,20 @@ function VerifyEmailContent() {
 
         {state === "already" && (
           <>
-            <CheckCircle2 size={48} className="mx-auto text-blue-600 mb-4" />
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              Bu e-posta zaten doğrulanmış
-            </h1>
-            <p className="text-sm text-gray-500 mb-6">
-              Doğrudan giriş yapabilirsiniz.
+            <div className="w-16 h-16 rounded-full bg-[#f5f5f7] flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2
+                size={28}
+                strokeWidth={1.75}
+                className="text-[#1d1d1f]"
+              />
+            </div>
+            <h1 className="display-md text-[#1d1d1f]">Zaten doğrulanmış.</h1>
+            <p className="text-[15px] text-[#6e6e73] mt-4 tracking-tight">
+              Doğrudan giriş yapabilirsin.
             </p>
             <Link
               href="/login"
-              className="inline-block bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700"
+              className="inline-block mt-8 bg-[#1d1d1f] text-white px-7 py-3 rounded-full text-[14px] font-medium tracking-tight hover:bg-black transition"
             >
               Giriş yap
             </Link>
@@ -86,23 +98,27 @@ function VerifyEmailContent() {
 
         {state === "error" && (
           <>
-            <XCircle size={48} className="mx-auto text-red-600 mb-4" />
-            <h1 className="text-xl font-bold text-gray-900 mb-2">
-              Doğrulama başarısız
-            </h1>
-            <p className="text-sm text-gray-500 mb-6">
+            <div className="w-16 h-16 rounded-full bg-[#ff453a]/10 flex items-center justify-center mx-auto mb-6">
+              <XCircle
+                size={28}
+                strokeWidth={1.75}
+                className="text-[#ff453a]"
+              />
+            </div>
+            <h1 className="display-md text-[#1d1d1f]">Doğrulama başarısız.</h1>
+            <p className="text-[15px] text-[#6e6e73] mt-4 tracking-tight">
               {error || "Bağlantı geçersiz veya süresi dolmuş."}
             </p>
-            <div className="flex gap-2 justify-center">
+            <div className="flex gap-3 justify-center mt-8">
               <Link
                 href="/login"
-                className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50"
+                className="border border-[#d2d2d7] text-[#1d1d1f] px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-[#f5f5f7] transition"
               >
                 Giriş sayfası
               </Link>
               <Link
                 href="/register"
-                className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700"
+                className="bg-[#1d1d1f] text-white px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-black transition"
               >
                 Yeniden kayıt ol
               </Link>
@@ -118,8 +134,8 @@ export default function VerifyEmailPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center text-gray-400">
-          Yükleniyor...
+        <div className="min-h-screen flex items-center justify-center bg-[#fbfbfd] text-[#6e6e73] text-[13px] tracking-tight">
+          Yükleniyor…
         </div>
       }
     >
