@@ -48,6 +48,8 @@ interface NavGroup {
 
 /**
  * 5 gruba bölünmüş sidebar — daha önce 17 flat link vardı, bilişsel yük fazlaydı.
+ * Mobilde: full-screen sheet, 2 sütunlu tile grid, kaydırmasız — tüm nav tek
+ * ekranda. Desktop'ta: tek sütunlu klasik liste, collapse chevron'lar aktif.
  */
 const GROUPS: NavGroup[] = [
   {
@@ -67,7 +69,7 @@ const GROUPS: NavGroup[] = [
       { href: "/dashboard/segments", label: "Segmentler", icon: Filter },
       { href: "/dashboard/auto-replies", label: "Otomatik Cevap", icon: Bot },
       { href: "/dashboard/flows", label: "Akışlar", icon: Zap },
-      { href: "/dashboard/quick-replies", label: "Hızlı Cevaplar", icon: Sparkles },
+      { href: "/dashboard/quick-replies", label: "Hızlı", icon: Sparkles },
       { href: "/dashboard/templates", label: "Şablonlar", icon: FileText },
     ],
   },
@@ -76,22 +78,22 @@ const GROUPS: NavGroup[] = [
     defaultOpen: true,
     items: [
       { href: "/dashboard/broadcasts", label: "Toplu Mesaj", icon: Megaphone },
-      { href: "/dashboard/reminders", label: "Hatırlatmalar", icon: Clock },
+      { href: "/dashboard/reminders", label: "Hatırlatma", icon: Clock },
     ],
   },
   {
     label: "Geliştirici",
     defaultOpen: true,
     items: [
-      { href: "/dashboard/api-keys", label: "API Anahtarları", icon: Key },
-      { href: "/dashboard/webhooks", label: "Webhook'lar", icon: Webhook },
+      { href: "/dashboard/api-keys", label: "API", icon: Key },
+      { href: "/dashboard/webhooks", label: "Webhook", icon: Webhook },
     ],
   },
 ];
 
 const PROFILE_ITEMS: NavItem[] = [
   { href: "/dashboard/team", label: "Ekip", icon: UserPlus },
-  { href: "/dashboard/billing", label: "Faturalandırma", icon: CreditCard },
+  { href: "/dashboard/billing", label: "Fatura", icon: CreditCard },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
   { href: "/dashboard/account", label: "Hesap", icon: UserCircle },
   { href: "/dashboard/support", label: "Destek", icon: LifeBuoy },
@@ -109,6 +111,16 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
     queueMicrotask(() => setMobileOpen(false));
   }, [pathname]);
 
+  // Mobil menü açıkken body scroll kilitle
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [mobileOpen]);
+
   function toggleGroup(label: string) {
     setOpenGroups((prev) => {
       const next = new Set(prev);
@@ -118,7 +130,8 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
     });
   }
 
-  function renderLink({ href, label, icon: Icon }: NavItem) {
+  // Desktop link — tek sütun, ikon + metin satır
+  function renderDesktopLink({ href, label, icon: Icon }: NavItem) {
     const isActive = pathname === href;
     return (
       <Link
@@ -132,6 +145,33 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
       >
         <Icon size={16} strokeWidth={1.75} />
         {label}
+      </Link>
+    );
+  }
+
+  // Mobil tile — dikey ikon + metin, 2-col grid içinde
+  function renderMobileTile({ href, label, icon: Icon }: NavItem) {
+    const isActive = pathname === href;
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={`flex flex-col items-start gap-2 p-3 rounded-2xl border transition ${
+          isActive
+            ? "bg-[#1d1d1f] border-[#1d1d1f] text-white"
+            : "bg-white border-[#d2d2d7] text-[#1d1d1f] hover:border-[#1d1d1f]/30 active:scale-[0.98]"
+        }`}
+      >
+        <span
+          className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${
+            isActive ? "bg-white/15 text-white" : "bg-[#f5f5f7] text-[#1d1d1f]"
+          }`}
+        >
+          <Icon size={16} strokeWidth={1.75} />
+        </span>
+        <span className="text-[12px] font-medium tracking-tight leading-tight">
+          {label}
+        </span>
       </Link>
     );
   }
@@ -152,116 +192,202 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
         <button
           onClick={() => setMobileOpen(false)}
           aria-label="Menüyü kapat"
-          className="md:hidden fixed inset-0 bg-black/40 z-40"
+          className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
         />
       )}
 
+      {/* ============ MOBILE FULL-SCREEN SHEET ============
+          Tek ekranda tüm nav: kaydırma yok. */}
       <aside
-        className={`fixed md:sticky md:top-0 top-0 left-0 z-50 h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7] flex flex-col transition-transform duration-200 ${
-          mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        className={`md:hidden fixed top-0 left-0 z-50 h-[100dvh] w-full max-w-sm bg-[#fbfbfd] flex flex-col transition-transform duration-200 ${
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-      <div className="p-5 border-b border-[#d2d2d7]">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
-              WaSend
-              <span
-                aria-hidden
-                className="inline-block w-1.5 h-1.5 rounded-full bg-[#25D366]"
-              />
-            </h1>
-            <p className="text-[11px] text-[#86868b] mt-1 tracking-tight">
-              WhatsApp Otomasyon
-            </p>
-          </div>
+        {/* Compact header */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-[#d2d2d7]">
+          <h1 className="text-[19px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+            WaSend
+            <span
+              aria-hidden
+              className="inline-block w-1.5 h-1.5 rounded-full bg-[#25D366]"
+            />
+          </h1>
           <button
             onClick={() => setMobileOpen(false)}
             aria-label="Menüyü kapat"
-            className="md:hidden text-[#86868b] hover:text-[#1d1d1f]"
+            className="w-8 h-8 inline-flex items-center justify-center rounded-full bg-[#f5f5f7] text-[#1d1d1f]"
           >
-            <X size={20} />
+            <X size={16} strokeWidth={2} />
           </button>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            // cmdk tetikle — command-palette.tsx document.addEventListener("keydown") dinliyor
-            document.dispatchEvent(
-              new KeyboardEvent("keydown", {
-                key: "k",
-                metaKey: true,
-                ctrlKey: true,
-                bubbles: true,
-              }),
-            );
-          }}
-          className="mt-4 w-full hidden md:inline-flex items-center gap-2 h-8 px-2.5 bg-white border border-[#d2d2d7] rounded-full text-[12px] text-[#86868b] hover:border-[#1d1d1f]/20 transition"
-          aria-label="Komut paleti"
-        >
-          <Search size={13} strokeWidth={2} />
-          <span className="tracking-tight">Hızlı ara</span>
-          <span className="ml-auto inline-flex items-center gap-0.5">
-            <kbd className="px-1 py-0 rounded bg-[#f5f5f7] text-[#6e6e73] text-[10px] font-sans tracking-tight">
-              ⌘K
-            </kbd>
-          </span>
-        </button>
-      </div>
 
-      <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-        {GROUPS.map((group) => {
-          const isOpen = openGroups.has(group.label);
-          return (
+        {/* Nav content — flex-1 + overflow-hidden, tüm içerik fit olsun */}
+        <div className="flex-1 min-h-0 overflow-hidden px-4 pt-3 pb-3 flex flex-col gap-3">
+          {GROUPS.map((group) => (
             <div key={group.label}>
-              <button
-                onClick={() => toggleGroup(group.label)}
-                className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em] hover:text-[#1d1d1f]"
-                aria-expanded={isOpen}
-                aria-controls={`group-${group.label}`}
-              >
-                <span>{group.label}</span>
-                {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </button>
-              {isOpen && (
-                <div id={`group-${group.label}`} className="mt-1.5 space-y-0.5">
-                  {group.items.map(renderLink)}
-                </div>
-              )}
+              <p className="px-1 pb-1.5 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
+                {group.label}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {group.items.map(renderMobileTile)}
+              </div>
             </div>
-          );
-        })}
+          ))}
 
-        {isSuperAdmin && (
-          <Link
-            href="/admin"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition bg-[#1d1d1f] text-white hover:bg-black mt-4"
-          >
-            <Shield size={16} strokeWidth={1.75} />
-            Admin Paneli
-          </Link>
-        )}
-      </nav>
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#1d1d1f] text-white text-[13px] font-medium tracking-tight hover:bg-black transition"
+            >
+              <Shield size={16} strokeWidth={1.75} />
+              Admin Paneli
+            </Link>
+          )}
 
-      <div className="p-3 border-t border-[#d2d2d7]">
-        <p className="px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
-          Profil
-        </p>
-        <div className="space-y-0.5">{PROFILE_ITEMS.map(renderLink)}</div>
-        <div className="mt-2 flex items-center justify-between px-3 py-2 rounded-xl bg-[#f5f5f7]/50">
-          <span className="text-[12px] text-[#6e6e73] tracking-tight font-medium">
-            Tema
-          </span>
-          <ThemeToggle />
+          <div className="mt-auto pt-3 border-t border-[#d2d2d7]">
+            <p className="px-1 pb-1.5 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
+              Profil
+            </p>
+            <div className="grid grid-cols-5 gap-1.5">
+              {PROFILE_ITEMS.map(({ href, label, icon: Icon }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    className={`flex flex-col items-center gap-1 py-2 rounded-xl text-[10px] font-medium tracking-tight transition ${
+                      isActive
+                        ? "bg-[#f5f5f7] text-[#1d1d1f]"
+                        : "text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
+                    }`}
+                  >
+                    <Icon size={16} strokeWidth={1.75} />
+                    <span className="leading-none">{label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-1 flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/5 hover:text-[#ff453a] transition w-full"
-        >
-          <LogOut size={16} strokeWidth={1.75} />
-          Çıkış Yap
-        </button>
-      </div>
+
+        {/* Bottom bar: tema + logout tek satır */}
+        <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+12px)] pt-3 border-t border-[#d2d2d7] flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-[#86868b] tracking-tight">
+              Tema
+            </span>
+            <ThemeToggle />
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="inline-flex items-center gap-1.5 px-3 h-8 rounded-full text-[12px] font-medium tracking-tight text-[#ff453a] hover:bg-[#ff453a]/10 transition"
+          >
+            <LogOut size={14} strokeWidth={1.75} />
+            Çıkış
+          </button>
+        </div>
+      </aside>
+
+      {/* ============ DESKTOP SIDEBAR ============ */}
+      <aside className="hidden md:sticky md:top-0 md:flex md:flex-col h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7]">
+        <div className="p-5 border-b border-[#d2d2d7]">
+          <h1 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+            WaSend
+            <span
+              aria-hidden
+              className="inline-block w-1.5 h-1.5 rounded-full bg-[#25D366]"
+            />
+          </h1>
+          <p className="text-[11px] text-[#86868b] mt-1 tracking-tight">
+            WhatsApp Otomasyon
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              document.dispatchEvent(
+                new KeyboardEvent("keydown", {
+                  key: "k",
+                  metaKey: true,
+                  ctrlKey: true,
+                  bubbles: true,
+                }),
+              );
+            }}
+            className="mt-4 w-full inline-flex items-center gap-2 h-8 px-2.5 bg-white border border-[#d2d2d7] rounded-full text-[12px] text-[#86868b] hover:border-[#1d1d1f]/20 transition"
+            aria-label="Komut paleti"
+          >
+            <Search size={13} strokeWidth={2} />
+            <span className="tracking-tight">Hızlı ara</span>
+            <span className="ml-auto">
+              <kbd className="px-1 py-0 rounded bg-[#f5f5f7] text-[#6e6e73] text-[10px] font-sans tracking-tight">
+                ⌘K
+              </kbd>
+            </span>
+          </button>
+        </div>
+
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+          {GROUPS.map((group) => {
+            const isOpen = openGroups.has(group.label);
+            return (
+              <div key={group.label}>
+                <button
+                  onClick={() => toggleGroup(group.label)}
+                  className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em] hover:text-[#1d1d1f]"
+                  aria-expanded={isOpen}
+                  aria-controls={`group-${group.label}`}
+                >
+                  <span>{group.label}</span>
+                  {isOpen ? (
+                    <ChevronDown size={12} />
+                  ) : (
+                    <ChevronRight size={12} />
+                  )}
+                </button>
+                {isOpen && (
+                  <div
+                    id={`group-${group.label}`}
+                    className="mt-1.5 space-y-0.5"
+                  >
+                    {group.items.map(renderDesktopLink)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {isSuperAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition bg-[#1d1d1f] text-white hover:bg-black mt-4"
+            >
+              <Shield size={16} strokeWidth={1.75} />
+              Admin Paneli
+            </Link>
+          )}
+        </nav>
+
+        <div className="p-3 border-t border-[#d2d2d7]">
+          <p className="px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
+            Profil
+          </p>
+          <div className="space-y-0.5">
+            {PROFILE_ITEMS.map(renderDesktopLink)}
+          </div>
+          <div className="mt-2 flex items-center justify-between px-3 py-2 rounded-xl bg-[#f5f5f7]/50">
+            <span className="text-[12px] text-[#6e6e73] tracking-tight font-medium">
+              Tema
+            </span>
+            <ThemeToggle />
+          </div>
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="mt-1 flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/5 hover:text-[#ff453a] transition w-full"
+          >
+            <LogOut size={16} strokeWidth={1.75} />
+            Çıkış Yap
+          </button>
+        </div>
       </aside>
     </>
   );
