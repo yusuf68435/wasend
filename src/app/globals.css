@@ -240,6 +240,48 @@ body {
    #ff453a = critical, #0071e3 = info) — açık modda kart üstünde /10 alpha
    overlay olarak kullanılıyor, dark modda da düşük alpha'yı koruruz. */
 
+/* Apple-tarzı ince scrollbar — tüm sayfada global.
+   Firefox: scrollbar-width: thin + renkli thumb. WebKit: 8px track,
+   yarı saydam yuvarlak thumb, hover'da belirginleşir — macOS overlay
+   scrollbar davranışına en yakın web uyarlaması. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+.dark html,
+html.dark {
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.18);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 140ms ease;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.32);
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+.dark *::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+  background-clip: padding-box;
+}
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.32);
+  background-clip: padding-box;
+}
+
 /* Reduced motion — kullanıcı prefers-reduced-motion açmışsa animate-pulse
    vs gibi süren animasyonları kaldır */
 @media (prefers-reduced-motion: reduce) {
