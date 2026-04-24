@@ -4,8 +4,12 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
 // JWT token'ında cache'lenen alanlar — her istekte DB hit etmemek için.
-// 10 dakikada bir DB'den tazelenir (suspend/plan değişiklikleri makul gecikme).
-const JWT_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+// 2 dakikada bir DB'den tazelenir. Daha önce 10 dakikaydı; suspend/plan
+// değişikliği (özellikle security incident senaryoları) 10 dk gecikmeyle
+// propagate oluyordu. 2 dk tipik bir API request oranında ~DB hit/oturum
+// olarak kabul edilebilir maliyet getirir ama admin bir kullanıcıyı
+// suspend ettiğinde çok daha hızlı kilitlenir.
+const JWT_REFRESH_INTERVAL_MS = 2 * 60 * 1000;
 
 export const authOptions: NextAuthOptions = {
   providers: [

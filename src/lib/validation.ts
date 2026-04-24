@@ -208,15 +208,38 @@ export const settingsUpdateSchema = z.object({
 
 export type ZodIssueLike = { path: (string | number)[]; message: string };
 
+/**
+ * Zod hatalarını güvenli şekilde API response'a dönüştür.
+ *
+ * Prod'da issue mesajları genelde kullanıcı dostu olsa da, Zod bazı durumlarda
+ * (örn. refine fn içinden fırlayan custom error, regex pattern'i, stack trace
+ * ifşa eden hatalar) iç detayları yansıtabilir. Prod'da:
+ *   - Mesajlar 200 char'da kesilir
+ *   - Path array'i 10 derinliğe kaplanır
+ *   - Toplam issue 50 ile sınırlandırılır (DOS koruması)
+ * Dev'de tam mesaj korunur (debugging için).
+ */
 export function formatZodError(err: z.ZodError): {
   error: string;
   issues: ZodIssueLike[];
 } {
-  return {
-    error: "Doğrulama hatası",
-    issues: err.issues.map((i) => ({
-      path: i.path as (string | number)[],
-      message: i.message,
-    })),
-  };
+  const isProd = process.env.NODE_ENV === "production";
+  const MAX_MSG_LEN = 200;
+  const MAX_PATH_DEPTH = 10;
+  const MAX_ISSUES = 50;
+
+  const issues = err.issues.slice(0, MAX_ISSUES).map((i) => {
+    const path = (i.path as (string | number)[]).slice(0, MAX_PATH_DEPTH);
+    let message = i.message || "Geçersiz";
+    if (isProd && message.length > MAX_MSG_LEN) {
+      message = message.slice(0, MAX_MSG_LEN) + "…";
+    }
+    // Prod'da stack-trace-like prefix'leri sök (Error: ..., at ...)
+    if (isProd) {
+      message = message.replace(/\n\s*at\s.*/g, "").replace(/^Error:\s*/i, "");
+    }
+    return { path, message };
+  });
+
+  return { error: "Doğrulama hatası", issues };
 }

@@ -147,7 +147,9 @@ export async function PATCH(request: Request) {
     select: { id: true, tags: true },
   });
 
-  let updated = 0;
+  // Güncellenmesi gereken kontakları önce topla, sonra transaction'lı batch
+  // ile uygula — 1000 satır için 1000 sequential RTT yerine tek transaction.
+  const updates: Array<{ id: string; tags: string }> = [];
   for (const c of contacts) {
     const existing = (c.tags || "")
       .split(",")
@@ -155,11 +157,22 @@ export async function PATCH(request: Request) {
       .filter(Boolean);
     if (existing.includes(newTag)) continue;
     existing.push(newTag);
-    await prisma.contact.update({
-      where: { id: c.id },
-      data: { tags: existing.join(",") },
-    });
-    updated++;
+    updates.push({ id: c.id, tags: existing.join(",") });
+  }
+
+  const BATCH = 500;
+  let updated = 0;
+  for (let i = 0; i < updates.length; i += BATCH) {
+    const slice = updates.slice(i, i + BATCH);
+    await prisma.$transaction(
+      slice.map((u) =>
+        prisma.contact.update({
+          where: { id: u.id },
+          data: { tags: u.tags },
+        }),
+      ),
+    );
+    updated += slice.length;
   }
   return NextResponse.json({ updated });
 }

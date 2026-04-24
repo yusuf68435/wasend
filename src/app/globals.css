@@ -131,6 +131,18 @@ body {
    [data-admin] override katmanı kaldırıldı. Genel .dark override'ları
    (aşağıda) admin sayfalarında da otomatik çalışır. */
 
+/* iOS Safari input zoom fix — font-size < 16px'li input'lara odaklanınca
+   iOS sayfayı zoom'lar (rahatsız edici UX). Pointer coarse (mobil) ve
+   fine olmayan cihazlarda form elemanlarının computed font-size'ını
+   16px'e zorla. Desktop görünümünde tasarım token'ı (14px) korunur. */
+@media (pointer: coarse) and (hover: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Form elemanları — dark modda input/select/textarea nötr yüzey + light text */
 .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 .dark select,

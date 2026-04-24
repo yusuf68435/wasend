@@ -67,8 +67,13 @@ export default function TeamPage() {
         </h2>
         <p className="text-gray-500 text-sm mt-1">
           Ekip üyelerini rolleriyle davet edin. Davet linki 7 gün geçerlidir.
-          (Email gönderimi henüz aktif değil — linki elle paylaşın.)
         </p>
+      </div>
+
+      <div className="mb-4 bg-[#ff9f0a]/10 border border-[#ff9f0a]/20 text-[#9a5600] rounded-2xl px-4 py-3 text-[13px] tracking-tight">
+        <strong className="font-medium">Dikkat:</strong> Davet e-postası otomatik
+        gönderilmez. Aşağıdaki formdan oluşturacağınız davet linkini kopyalayıp
+        üyeye kendiniz iletmeniz gerekir.
       </div>
 
       {error && (
@@ -136,7 +141,7 @@ export default function TeamPage() {
           type="submit"
           className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 inline-flex items-center gap-2"
         >
-          <Plus size={16} /> Davet Gönder
+          <Plus size={16} /> Davet Linki Oluştur
         </button>
       </form>
 

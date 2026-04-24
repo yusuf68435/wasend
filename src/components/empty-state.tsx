@@ -10,6 +10,7 @@ interface EmptyStateProps {
   onAction?: () => void;
   secondaryLabel?: string;
   secondaryHref?: string;
+  onSecondaryAction?: () => void;
 }
 
 /**
@@ -26,6 +27,7 @@ export function EmptyState({
   onAction,
   secondaryLabel,
   secondaryHref,
+  onSecondaryAction,
 }: EmptyStateProps) {
   return (
     <div className="text-center py-14 px-6 bg-white rounded-3xl border border-[#d2d2d7]">
@@ -58,14 +60,22 @@ export function EmptyState({
               {actionLabel}
             </button>
           ) : null}
-          {secondaryLabel && secondaryHref && (
+          {secondaryLabel && secondaryHref ? (
             <Link
               href={secondaryHref}
               className="inline-flex items-center gap-2 border border-[#d2d2d7] text-[#1d1d1f] px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-[#f5f5f7] transition"
             >
               {secondaryLabel}
             </Link>
-          )}
+          ) : secondaryLabel && onSecondaryAction ? (
+            <button
+              type="button"
+              onClick={onSecondaryAction}
+              className="inline-flex items-center gap-2 border border-[#d2d2d7] text-[#1d1d1f] px-5 py-2.5 rounded-full text-[13px] font-medium tracking-tight hover:bg-[#f5f5f7] transition"
+            >
+              {secondaryLabel}
+            </button>
+          ) : null}
         </div>
       )}
     </div>

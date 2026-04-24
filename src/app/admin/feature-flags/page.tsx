@@ -57,17 +57,38 @@ export default function FeatureFlagsPage() {
     load();
   }
 
+  // Per-flag pending state'i — toggle esnasında checkbox'ı freeze etmek için.
+  // Kullanıcı hızlıca iki kez tıklarsa network race'ini engelle.
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+
   async function updateFlag(id: string, patch: Partial<FeatureFlag>) {
-    const res = await fetch(`/api/admin/feature-flags/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
+    setPendingIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
     });
-    if (!res.ok) {
-      setMsg("Güncelleme hatası");
-      return;
+    // Optimistic update — UI anında tepki versin
+    setFlags((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)));
+    try {
+      const res = await fetch(`/api/admin/feature-flags/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      if (!res.ok) {
+        setMsg("Güncelleme hatası");
+        await load();
+        return;
+      }
+      // Server truth'u yansıt
+      await load();
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
     }
-    load();
   }
 
   async function deleteFlag(id: string, key: string) {
@@ -182,11 +203,24 @@ export default function FeatureFlagsPage() {
                       <input
                         type="checkbox"
                         checked={f.enabled}
+                        disabled={pendingIds.has(f.id)}
                         onChange={(e) => updateFlag(f.id, { enabled: e.target.checked })}
-                        className="h-4 w-4 rounded-[6px] border-[#d2d2d7] text-[#1d1d1f] focus:ring-[#1d1d1f]/20"
+                        className="h-4 w-4 rounded-[6px] border-[#d2d2d7] text-[#1d1d1f] focus:ring-[#1d1d1f]/20 disabled:opacity-50"
                       />
-                      <span className={f.enabled ? "text-[#1d7a3a]" : "text-[#86868b]"}>
-                        {f.enabled ? "Aktif" : "Kapalı"}
+                      <span
+                        className={
+                          pendingIds.has(f.id)
+                            ? "text-[#86868b]"
+                            : f.enabled
+                              ? "text-[#1d7a3a]"
+                              : "text-[#86868b]"
+                        }
+                      >
+                        {pendingIds.has(f.id)
+                          ? "Kaydediliyor…"
+                          : f.enabled
+                            ? "Aktif"
+                            : "Kapalı"}
                       </span>
                     </label>
                   </div>

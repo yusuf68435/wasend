@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useCallback } from "react";
+import { Suspense, useEffect, useRef, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Users, Plus, Trash2, Search, Upload, Download, Tag } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
@@ -37,6 +37,7 @@ function ContactsContent() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkTagValue, setBulkTagValue] = useState("");
   const [bulkBusy, setBulkBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Search state URL'de (refresh'te korunur)
   const updateSearchInUrl = useCallback(
@@ -201,6 +202,7 @@ function ContactsContent() {
             <Upload size={16} />
             {importing ? "İçe aktarılıyor..." : "CSV İçe Aktar"}
             <input
+              ref={fileInputRef}
               type="file"
               accept=".csv,text/csv"
               className="hidden"
@@ -331,7 +333,7 @@ function ContactsContent() {
           actionLabel="İlk kişiyi ekle"
           onAction={() => setShowForm(true)}
           secondaryLabel="CSV'den içe aktar"
-          secondaryHref="#"
+          onSecondaryAction={() => fileInputRef.current?.click()}
         />
       ) : filtered.length === 0 ? (
         <div className="text-center py-12 text-gray-400 text-sm">

@@ -13,12 +13,15 @@ interface Flow {
   createdAt: string;
 }
 
+const PAGE_SIZE = 20;
+
 export default function FlowsPage() {
   const [flows, setFlows] = useState<Flow[]>([]);
   const [name, setName] = useState("");
   const [trigger, setTrigger] = useState("keyword");
   const [triggerValue, setTriggerValue] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     fetch("/api/flows")
@@ -155,7 +158,7 @@ export default function FlowsPage() {
           <p className="text-center text-gray-400 py-12">Henüz akış yok</p>
         ) : (
           <div className="divide-y divide-gray-200">
-            {flows.map((f) => (
+            {flows.slice(0, visibleCount).map((f) => (
               <div key={f.id} className="p-4 flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
@@ -203,6 +206,20 @@ export default function FlowsPage() {
                 </button>
               </div>
             ))}
+            {flows.length > visibleCount && (
+              <div className="p-4 flex items-center justify-between text-[13px] text-[#6e6e73] tracking-tight">
+                <span>
+                  {visibleCount} / {flows.length} akış gösteriliyor
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                  className="px-3 h-8 rounded-full border border-[#d2d2d7] text-[#1d1d1f] text-[13px] font-medium hover:bg-[#f5f5f7] tracking-tight transition"
+                >
+                  Daha fazla göster
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

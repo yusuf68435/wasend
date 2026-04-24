@@ -18,10 +18,10 @@ interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT_CLS: Record<NonNullable<IconButtonProps["variant"]>, string> = {
-  default: "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
-  danger: "text-red-600 hover:bg-red-50",
-  primary: "text-green-600 hover:bg-green-50",
-  ghost: "text-gray-400 hover:bg-gray-100 hover:text-gray-700",
+  default: "text-[#6e6e73] hover:bg-[#f5f5f7] hover:text-[#1d1d1f]",
+  danger: "text-[#ff3b30] hover:bg-[#ff3b30]/10",
+  primary: "text-[#1d1d1f] hover:bg-[#f5f5f7]",
+  ghost: "text-[#86868b] hover:bg-[#f5f5f7] hover:text-[#1d1d1f]",
 };
 
 export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -30,7 +30,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       <button
         ref={ref}
         type="button"
-        className={`p-2 rounded-lg transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:opacity-50 ${VARIANT_CLS[variant]} ${className}`}
+        className={`p-2 rounded-xl transition outline-none focus-visible:ring-2 focus-visible:ring-[#1d1d1f]/30 focus-visible:ring-offset-1 focus-visible:ring-offset-white disabled:opacity-50 ${VARIANT_CLS[variant]} ${className}`}
         {...rest}
       >
         {children}
