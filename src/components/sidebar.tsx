@@ -130,20 +130,20 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
     });
   }
 
-  // Desktop link — tek sütun, ikon + metin, compact (h-8)
+  // Desktop link — tek sütun, ikon + metin, ultra compact (h-7)
   function renderDesktopLink({ href, label, icon: Icon }: NavItem) {
     const isActive = pathname === href;
     return (
       <Link
         key={href}
         href={href}
-        className={`flex items-center gap-2.5 px-2.5 h-8 rounded-lg text-[13px] font-medium tracking-tight transition ${
+        className={`flex items-center gap-2.5 px-2.5 h-7 rounded-lg text-[12.5px] font-medium tracking-tight transition ${
           isActive
             ? "bg-[#f5f5f7] text-[#1d1d1f]"
             : "text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
         }`}
       >
-        <Icon size={15} strokeWidth={1.75} />
+        <Icon size={14} strokeWidth={1.75} />
         <span className="truncate">{label}</span>
       </Link>
     );
@@ -290,9 +290,9 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
 
       {/* ============ DESKTOP SIDEBAR ============ */}
       <aside className="hidden md:sticky md:top-0 md:flex md:flex-col h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7]">
-        {/* Compact header — sadece logo + hızlı ara pill */}
-        <div className="px-4 pt-4 pb-3 border-b border-[#d2d2d7]">
-          <h1 className="text-[18px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+        {/* Ultra-compact header — logo + arama tek satır altında */}
+        <div className="px-3 pt-3 pb-2 border-b border-[#d2d2d7] space-y-2">
+          <h1 className="text-[17px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5 px-1">
             WaSend
             <span
               aria-hidden
@@ -311,42 +311,42 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
                 }),
               );
             }}
-            className="mt-3 w-full inline-flex items-center gap-2 h-7 px-2 bg-white border border-[#d2d2d7] rounded-full text-[12px] text-[#86868b] hover:border-[#1d1d1f]/20 transition"
+            className="w-full inline-flex items-center gap-2 h-7 px-2 bg-white border border-[#d2d2d7] rounded-full text-[11.5px] text-[#86868b] hover:border-[#1d1d1f]/20 transition"
             aria-label="Komut paleti"
           >
-            <Search size={12} strokeWidth={2} />
+            <Search size={11} strokeWidth={2} />
             <span className="tracking-tight">Hızlı ara</span>
             <span className="ml-auto">
-              <kbd className="px-1 py-0 rounded bg-[#f5f5f7] text-[#6e6e73] text-[10px] font-sans tracking-tight">
+              <kbd className="px-1 py-0 rounded bg-[#f5f5f7] text-[#6e6e73] text-[9.5px] font-sans tracking-tight">
                 ⌘K
               </kbd>
             </span>
           </button>
         </div>
 
-        {/* Primary nav — collapse chevron'lar kaldı, tight rhythm */}
-        <nav className="flex-1 min-h-0 px-2 py-2 space-y-2 overflow-y-auto">
+        {/* Primary nav — kaydırmasız, tek ekranda sığar */}
+        <nav className="flex-1 min-h-0 px-2 py-1.5 space-y-1.5 overflow-hidden">
           {GROUPS.map((group) => {
             const isOpen = openGroups.has(group.label);
             return (
               <div key={group.label}>
                 <button
                   onClick={() => toggleGroup(group.label)}
-                  className="w-full flex items-center justify-between px-2 py-0.5 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em] hover:text-[#1d1d1f]"
+                  className="w-full flex items-center justify-between px-2 py-0 h-4 text-[9.5px] font-semibold text-[#86868b] uppercase tracking-[0.08em] hover:text-[#1d1d1f]"
                   aria-expanded={isOpen}
                   aria-controls={`group-${group.label}`}
                 >
                   <span>{group.label}</span>
                   {isOpen ? (
-                    <ChevronDown size={11} />
+                    <ChevronDown size={10} />
                   ) : (
-                    <ChevronRight size={11} />
+                    <ChevronRight size={10} />
                   )}
                 </button>
                 {isOpen && (
                   <div
                     id={`group-${group.label}`}
-                    className="mt-0.5 space-y-0.5"
+                    className="mt-0.5"
                   >
                     {group.items.map(renderDesktopLink)}
                   </div>
@@ -358,18 +358,18 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
           {isSuperAdmin && (
             <Link
               href="/admin"
-              className="flex items-center gap-2.5 px-2.5 h-8 rounded-lg text-[13px] font-medium tracking-tight transition bg-[#1d1d1f] text-white hover:bg-black mt-2"
+              className="flex items-center gap-2.5 px-2.5 h-7 rounded-lg text-[12.5px] font-medium tracking-tight transition bg-[#1d1d1f] text-white hover:bg-black mt-1.5"
             >
-              <Shield size={15} strokeWidth={1.75} />
+              <Shield size={14} strokeWidth={1.75} />
               Admin Paneli
             </Link>
           )}
         </nav>
 
-        {/* Footer: Profil ikon striбi + Tema/Çıkış tek satır */}
-        <div className="border-t border-[#d2d2d7] px-3 py-2 space-y-1.5">
+        {/* Footer: Profil ikon strip + Tema/Çıkış tek satır */}
+        <div className="border-t border-[#d2d2d7] px-2 py-1.5 space-y-1">
           {/* Profil 5-kolon ikon strip */}
-          <div className="grid grid-cols-5 gap-1">
+          <div className="grid grid-cols-5 gap-0.5">
             {PROFILE_ITEMS.map(({ href, label, icon: Icon }) => {
               const isActive = pathname === href;
               return (
@@ -378,14 +378,14 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
                   href={href}
                   title={label}
                   aria-label={label}
-                  className={`flex flex-col items-center gap-0.5 py-1.5 rounded-lg transition ${
+                  className={`flex flex-col items-center gap-0.5 py-1 rounded-lg transition ${
                     isActive
                       ? "bg-[#f5f5f7] text-[#1d1d1f]"
                       : "text-[#86868b] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
                   }`}
                 >
-                  <Icon size={15} strokeWidth={1.75} />
-                  <span className="text-[9.5px] font-medium tracking-tight leading-none">
+                  <Icon size={14} strokeWidth={1.75} />
+                  <span className="text-[9px] font-medium tracking-tight leading-none">
                     {label}
                   </span>
                 </Link>
@@ -394,13 +394,13 @@ export function Sidebar({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
           </div>
 
           {/* Tema + Çıkış bar */}
-          <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-[#f5f5f7]">
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#f5f5f7]">
             <ThemeToggle />
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[12px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/10 hover:text-[#ff453a] transition"
+              className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11.5px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/10 hover:text-[#ff453a] transition"
             >
-              <LogOut size={13} strokeWidth={1.75} />
+              <LogOut size={12} strokeWidth={1.75} />
               Çıkış
             </button>
           </div>

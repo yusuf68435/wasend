@@ -78,20 +78,20 @@ export function AdminSidebar({ adminName }: { adminName: string }) {
     return href === "/admin" ? pathname === href : pathname.startsWith(href);
   }
 
-  // Desktop: tek sütun liste satırı, compact h-8
+  // Desktop: tek sütun liste satırı, ultra compact h-7
   function renderDesktopLink({ href, label, icon: Icon }: NavItem) {
     const isActive = isLinkActive(href);
     return (
       <Link
         key={href}
         href={href}
-        className={`flex items-center gap-2.5 px-2.5 h-8 rounded-lg text-[13px] font-medium tracking-tight transition ${
+        className={`flex items-center gap-2.5 px-2.5 h-7 rounded-lg text-[12.5px] font-medium tracking-tight transition ${
           isActive
             ? "bg-[#f5f5f7] text-[#1d1d1f]"
             : "text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
         }`}
       >
-        <Icon size={15} strokeWidth={1.75} />
+        <Icon size={14} strokeWidth={1.75} />
         <span className="truncate">{label}</span>
       </Link>
     );
@@ -204,35 +204,35 @@ export function AdminSidebar({ adminName }: { adminName: string }) {
 
       {/* ============ DESKTOP ============ */}
       <aside className="hidden md:sticky md:top-0 md:flex md:flex-col h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7]">
-        <div className="px-4 pt-4 pb-3 border-b border-[#d2d2d7]">
-          <h1 className="text-[18px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+        <div className="px-3 pt-3 pb-2 border-b border-[#d2d2d7]">
+          <h1 className="text-[17px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5 px-1">
             WaSend
             <span
               aria-hidden
-              className="inline-flex items-center h-[18px] px-1.5 rounded-full bg-[#1d1d1f] text-white text-[10px] font-medium tracking-tight"
+              className="inline-flex items-center h-[17px] px-1.5 rounded-full bg-[#1d1d1f] text-white text-[9.5px] font-medium tracking-tight"
             >
               Admin
             </span>
           </h1>
-          <p className="text-[11px] text-[#86868b] mt-1.5 truncate max-w-[200px]">
+          <p className="text-[10.5px] text-[#86868b] mt-1 px-1 truncate max-w-[200px]">
             {adminName}
           </p>
         </div>
 
-        <nav className="flex-1 min-h-0 px-2 py-2 space-y-2 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-2 py-1.5 space-y-1.5 overflow-hidden">
           {GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="px-2 py-0.5 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
+              <p className="px-2 h-4 flex items-center text-[9.5px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
                 {group.label}
               </p>
-              <div className="mt-0.5 space-y-0.5">
+              <div className="mt-0.5">
                 {group.items.map(renderDesktopLink)}
               </div>
             </div>
           ))}
         </nav>
 
-        <div className="px-3 py-2 border-t border-[#d2d2d7] flex items-center justify-between gap-2">
+        <div className="px-2 py-1.5 border-t border-[#d2d2d7] flex items-center justify-between gap-2">
           <Link
             href="/dashboard"
             className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-[#d2d2d7] text-[11.5px] font-medium tracking-tight text-[#1d1d1f] hover:bg-[#f5f5f7] transition"
