@@ -78,21 +78,21 @@ export function AdminSidebar({ adminName }: { adminName: string }) {
     return href === "/admin" ? pathname === href : pathname.startsWith(href);
   }
 
-  // Desktop: tek sütun liste satırı
+  // Desktop: tek sütun liste satırı, compact h-8
   function renderDesktopLink({ href, label, icon: Icon }: NavItem) {
     const isActive = isLinkActive(href);
     return (
       <Link
         key={href}
         href={href}
-        className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition ${
+        className={`flex items-center gap-2.5 px-2.5 h-8 rounded-lg text-[13px] font-medium tracking-tight transition ${
           isActive
             ? "bg-[#f5f5f7] text-[#1d1d1f]"
             : "text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f]"
         }`}
       >
-        <Icon size={16} strokeWidth={1.75} />
-        {label}
+        <Icon size={15} strokeWidth={1.75} />
+        <span className="truncate">{label}</span>
       </Link>
     );
   }
@@ -204,8 +204,8 @@ export function AdminSidebar({ adminName }: { adminName: string }) {
 
       {/* ============ DESKTOP ============ */}
       <aside className="hidden md:sticky md:top-0 md:flex md:flex-col h-screen w-64 bg-[#fbfbfd] border-r border-[#d2d2d7]">
-        <div className="p-6 border-b border-[#d2d2d7]">
-          <h1 className="text-[20px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
+        <div className="px-4 pt-4 pb-3 border-b border-[#d2d2d7]">
+          <h1 className="text-[18px] font-semibold tracking-tight text-[#1d1d1f] inline-flex items-center gap-1.5">
             WaSend
             <span
               aria-hidden
@@ -214,41 +214,38 @@ export function AdminSidebar({ adminName }: { adminName: string }) {
               Admin
             </span>
           </h1>
-          <p className="text-[11px] text-[#86868b] mt-1 tracking-tight">
-            Platform yönetimi
-          </p>
-          <p className="text-[11px] text-[#86868b] mt-2 truncate max-w-[180px]">
+          <p className="text-[11px] text-[#86868b] mt-1.5 truncate max-w-[200px]">
             {adminName}
           </p>
         </div>
 
-        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-2 py-2 space-y-2 overflow-y-auto">
           {GROUPS.map((group) => (
             <div key={group.label}>
-              <p className="px-2 py-1 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
+              <p className="px-2 py-0.5 text-[10px] font-semibold text-[#86868b] uppercase tracking-[0.08em]">
                 {group.label}
               </p>
-              <div className="mt-1.5 space-y-0.5">
+              <div className="mt-0.5 space-y-0.5">
                 {group.items.map(renderDesktopLink)}
               </div>
             </div>
           ))}
         </nav>
 
-        <div className="p-3 border-t border-[#d2d2d7] space-y-0.5">
+        <div className="px-3 py-2 border-t border-[#d2d2d7] flex items-center justify-between gap-2">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#f5f5f7]/60 hover:text-[#1d1d1f] transition"
+            className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full border border-[#d2d2d7] text-[11.5px] font-medium tracking-tight text-[#1d1d1f] hover:bg-[#f5f5f7] transition"
           >
-            <ArrowLeftRight size={16} strokeWidth={1.75} />
-            Kiracı paneline dön
+            <ArrowLeftRight size={12} strokeWidth={1.75} />
+            Kiracı paneli
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/5 hover:text-[#ff453a] transition w-full"
+            className="inline-flex items-center gap-1.5 px-2.5 h-7 rounded-full text-[11.5px] font-medium tracking-tight text-[#6e6e73] hover:bg-[#ff453a]/10 hover:text-[#ff453a] transition"
           >
-            <LogOut size={16} strokeWidth={1.75} />
-            Çıkış Yap
+            <LogOut size={12} strokeWidth={1.75} />
+            Çıkış
           </button>
         </div>
       </aside>
