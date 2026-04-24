@@ -202,6 +202,22 @@ body {
 .dark .text-white {
   color: var(--background);
 }
+/* Opacity varyantları — `text-white/60`, `text-white/85` vb. de aynı şekilde
+   ters çevrilmeli. Aksi halde PRO/popular plan kartı (bg-black → bg-light
+   invert oluyor) üstünde `text-white/85` literal beyaz kalıp okunmaz oluyor.
+   Siyah baz + karttaki opacity'yi koruyarak dimmed dark text üretiyoruz. */
+.dark .text-white\/90 { color: rgba(0, 0, 0, 0.9); }
+.dark .text-white\/85 { color: rgba(0, 0, 0, 0.85); }
+.dark .text-white\/80 { color: rgba(0, 0, 0, 0.8); }
+.dark .text-white\/75 { color: rgba(0, 0, 0, 0.75); }
+.dark .text-white\/70 { color: rgba(0, 0, 0, 0.7); }
+.dark .text-white\/65 { color: rgba(0, 0, 0, 0.65); }
+.dark .text-white\/60 { color: rgba(0, 0, 0, 0.6); }
+.dark .text-white\/50 { color: rgba(0, 0, 0, 0.5); }
+.dark .bg-white\/90 { background-color: rgba(0, 0, 0, 0.06); }
+.dark .bg-white\/15 { background-color: rgba(0, 0, 0, 0.08); }
+.dark .bg-white\/10 { background-color: rgba(0, 0, 0, 0.06); }
+.dark .hover\:bg-white\/90:hover { background-color: rgba(0, 0, 0, 0.1); }
 .dark .border-\[\#d2d2d7\] {
   border-color: var(--border);
 }
