@@ -49,8 +49,16 @@ const envSchema = z.object({
   NEXT_PUBLIC_RECAPTCHA_SITE_KEY: z.string().optional(),
   RECAPTCHA_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_GA_ID: z.string().optional(),
-  SENTRY_DSN: z.string().optional(),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  SENTRY_DSN: z
+    .string()
+    .url("SENTRY_DSN geçerli bir URL olmalı")
+    .startsWith("https://", "SENTRY_DSN https:// ile başlamalı")
+    .optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z
+    .string()
+    .url("NEXT_PUBLIC_SENTRY_DSN geçerli bir URL olmalı")
+    .startsWith("https://", "NEXT_PUBLIC_SENTRY_DSN https:// ile başlamalı")
+    .optional(),
   STRIPE_ENABLED: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),

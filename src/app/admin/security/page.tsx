@@ -138,13 +138,19 @@ export default function SecurityPage() {
               2) Üretilen 6 haneli kodu gir.
             </p>
             <div className="flex gap-4 items-start mb-4">
-              <Image
-                src={enrollQr}
-                alt="2FA QR kod"
-                width={180}
-                height={180}
-                unoptimized
-              />
+              {/* Fixed-size container — QR data-URL yüklenirken layout shift olmasın */}
+              <div
+                className="w-[180px] h-[180px] flex-shrink-0 bg-[#f5f5f7] rounded-xl overflow-hidden"
+                aria-hidden={!enrollQr}
+              >
+                <Image
+                  src={enrollQr}
+                  alt="2FA QR kod"
+                  width={180}
+                  height={180}
+                  unoptimized
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-[#6e6e73] mb-1 tracking-tight">Manuel secret:</p>
                 <code className="block text-[11px] bg-[#f5f5f7] text-[#1d1d1f] p-2 rounded-xl font-mono break-all">

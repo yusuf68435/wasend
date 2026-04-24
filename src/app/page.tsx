@@ -173,10 +173,7 @@ export default function HomePage() {
             <p className="eyebrow text-[#6e6e73] mb-6">
               WhatsApp Business Cloud API · Türkiye
             </p>
-            <h1
-              className="font-semibold tracking-[-0.03em] leading-[0.98] mb-8"
-              style={{ fontSize: "clamp(2.75rem, 7.6vw, 5.75rem)" }}
-            >
+            <h1 className="display-xl mb-8">
               <span className="block">WhatsApp&apos;ı</span>
               <span className="block text-[#86868b] font-medium">
                 akıllı işle.
