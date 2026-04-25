@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { outgoingWebhookSchema, formatZodError } from "@/lib/validation";
+import { logTenantAction, getClientIp } from "@/lib/audit";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -28,6 +29,8 @@ export async function GET() {
       lastDeliveredAt: true,
       lastStatusCode: true,
       lastError: true,
+      // Faz 16: rotation grace period bilgisi (UI banner için)
+      previousSecretValidUntil: true,
     },
   });
   return NextResponse.json(hooks);
@@ -58,6 +61,14 @@ export async function POST(request: Request) {
       userId,
     },
   });
+  void logTenantAction({
+    actorId: userId,
+    action: "webhook.create",
+    targetType: "OutgoingWebhook",
+    targetId: hook.id,
+    details: { name: hook.name, url: hook.url, events: hook.events },
+    ip: getClientIp(request.headers),
+  });
   return NextResponse.json({
     id: hook.id,
     name: hook.name,
@@ -87,6 +98,13 @@ export async function PUT(request: Request) {
     where: { id: body.id, userId },
     data: { isActive: body.isActive },
   });
+  void logTenantAction({
+    actorId: userId,
+    action: body.isActive ? "webhook.enable" : "webhook.disable",
+    targetType: "OutgoingWebhook",
+    targetId: body.id,
+    ip: getClientIp(request.headers),
+  });
   return NextResponse.json({ success: true });
 }
 
@@ -98,6 +116,20 @@ export async function DELETE(request: Request) {
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
 
+  const target = await prisma.outgoingWebhook.findFirst({
+    where: { id, userId },
+    select: { id: true, name: true, url: true },
+  });
   await prisma.outgoingWebhook.deleteMany({ where: { id, userId } });
+  if (target) {
+    void logTenantAction({
+      actorId: userId,
+      action: "webhook.delete",
+      targetType: "OutgoingWebhook",
+      targetId: target.id,
+      details: { name: target.name, url: target.url },
+      ip: getClientIp(request.headers),
+    });
+  }
   return NextResponse.json({ success: true });
 }

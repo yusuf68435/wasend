@@ -157,6 +157,23 @@ export async function retryWebhookDelivery(
     .createHmac("sha256", hook.secret)
     .update(body)
     .digest("hex");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Wasend-Event": original.event,
+    "X-Wasend-Signature": `sha256=${signature}`,
+    "X-Wasend-Retry": "manual",
+  };
+  if (
+    hook.previousSecret &&
+    hook.previousSecretValidUntil &&
+    hook.previousSecretValidUntil.getTime() > Date.now()
+  ) {
+    const prevSig = crypto
+      .createHmac("sha256", hook.previousSecret)
+      .update(body)
+      .digest("hex");
+    headers["X-Wasend-Signature-Previous"] = `sha256=${prevSig}`;
+  }
   const startedAt = Date.now();
   let status: "success" | "failed" | "timeout" = "failed";
   let statusCode: number | null = null;
@@ -165,12 +182,7 @@ export async function retryWebhookDelivery(
   try {
     const res = await fetch(hook.url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Wasend-Event": original.event,
-        "X-Wasend-Signature": `sha256=${signature}`,
-        "X-Wasend-Retry": "manual",
-      },
+      headers,
       body,
       signal: AbortSignal.timeout(5000),
     });
@@ -270,17 +282,32 @@ export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
             .createHmac("sha256", h.secret)
             .update(body)
             .digest("hex");
+          // Faz 16: rotation penceresi açıkken eski secret ile de imza
+          // ekle, müşteri endpoint'ini sıfır downtime ile yeni secret'a
+          // taşıyabilsin.
+          const headers: Record<string, string> = {
+            "Content-Type": "application/json",
+            "X-Wasend-Event": opts.event,
+            "X-Wasend-Signature": `sha256=${signature}`,
+          };
+          if (
+            h.previousSecret &&
+            h.previousSecretValidUntil &&
+            h.previousSecretValidUntil.getTime() > Date.now()
+          ) {
+            const prevSig = crypto
+              .createHmac("sha256", h.previousSecret)
+              .update(body)
+              .digest("hex");
+            headers["X-Wasend-Signature-Previous"] = `sha256=${prevSig}`;
+          }
           const startedAt = Date.now();
           try {
             // 5 sn timeout — yavaş webhook endpoint broadcast processor'ı
             // yavaşlatmasın (Promise.allSettled dış sarmalayıcısıyla birlikte)
             const res = await fetch(h.url, {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "X-Wasend-Event": opts.event,
-                "X-Wasend-Signature": `sha256=${signature}`,
-              },
+              headers,
               body,
               signal: AbortSignal.timeout(5000),
             });

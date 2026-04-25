@@ -365,6 +365,13 @@ model OutgoingWebhook {
   name        String
   url         String
   secret      String
+  // Faz 16: zero-downtime secret rotation. previousSecret rotate sırasında
+  // doldurulur; previousSecretValidUntil'a kadar dispatchWebhook her isteğe
+  // hem yeni hem eski signature header'larını koyar (X-Wasend-Signature ve
+  // X-Wasend-Signature-Previous). Customer eski endpoint'ini güncellerken
+  // mesajları kaybetmez. Pencere geçtikten sonra previousSecret null'a düşer.
+  previousSecret           String?
+  previousSecretValidUntil DateTime?
   events      String
   isActive    Boolean  @default(true)
   userId      String
@@ -407,6 +414,10 @@ model AdminAuditLog {
   id         String   @id @default(cuid())
   actorId    String
   action     String
+  // Faz 14: "admin" (admin override) | "tenant" (kullanıcının kendi
+  // resource'unda yaptığı eylem). Tenant kendi /dashboard/audit'ini
+  // sadece scope="tenant" satırlarından görebilir.
+  scope      String   @default("admin")
   targetType String?
   targetId   String?
   details    String?
@@ -418,6 +429,7 @@ model AdminAuditLog {
   @@index([actorId, createdAt])
   @@index([action])
   @@index([targetType, targetId])
+  @@index([scope, actorId, createdAt])
 }
 
 model SupportTicket {

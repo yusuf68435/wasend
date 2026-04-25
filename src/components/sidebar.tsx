@@ -31,6 +31,8 @@ import {
   Menu,
   X,
   Search,
+  ScrollText,
+  TrendingUp,
   type LucideIcon,
 } from "lucide-react";
 
@@ -87,12 +89,14 @@ const GROUPS: NavGroup[] = [
     items: [
       { href: "/dashboard/api-keys", label: "API", icon: Key },
       { href: "/dashboard/webhooks", label: "Webhook", icon: Webhook },
+      { href: "/dashboard/audit", label: "Etkinlik", icon: ScrollText },
     ],
   },
 ];
 
 const PROFILE_ITEMS: NavItem[] = [
   { href: "/dashboard/team", label: "Ekip", icon: UserPlus },
+  { href: "/dashboard/usage", label: "Kullanım", icon: TrendingUp },
   { href: "/dashboard/billing", label: "Fatura", icon: CreditCard },
   { href: "/dashboard/settings", label: "Ayarlar", icon: Settings },
   { href: "/dashboard/account", label: "Hesap", icon: UserCircle },

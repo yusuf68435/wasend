@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSuperAdminOrNull } from "@/lib/admin-guard";
+import { logAdminAction, getClientIp } from "@/lib/audit";
 
 /**
  * Admin retry queue actions.
@@ -41,10 +42,19 @@ export async function POST(
     );
   }
 
+  const ip = getClientIp(request.headers);
   if (action === "force-retry") {
     const updated = await prisma.message.update({
       where: { id },
       data: { nextRetryAt: new Date() },
+    });
+    void logAdminAction({
+      actorId: admin.id,
+      action: "retry_queue.force_retry",
+      targetType: "Message",
+      targetId: id,
+      details: { ownerUserId: message.userId, retryCount: message.retryCount },
+      ip,
     });
     return NextResponse.json({ ok: true, action, message: updated });
   }
@@ -59,6 +69,14 @@ export async function POST(
           ? `${message.failedReason} (admin tarafından kalıcı failed yapıldı)`
           : "Admin tarafından kalıcı failed yapıldı",
       },
+    });
+    void logAdminAction({
+      actorId: admin.id,
+      action: "retry_queue.mark_failed",
+      targetType: "Message",
+      targetId: id,
+      details: { ownerUserId: message.userId, retryCount: message.retryCount },
+      ip,
     });
     return NextResponse.json({ ok: true, action, message: updated });
   }

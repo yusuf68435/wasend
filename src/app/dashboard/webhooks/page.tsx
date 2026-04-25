@@ -16,6 +16,7 @@ import {
   Clock,
   AlertCircle,
   RotateCw,
+  KeyRound,
 } from "lucide-react";
 
 interface OutgoingWebhook {
@@ -30,6 +31,8 @@ interface OutgoingWebhook {
   lastDeliveredAt?: string | null;
   lastStatusCode?: number | null;
   lastError?: string | null;
+  // Faz 16: rotation grace period (UI banner için)
+  previousSecretValidUntil?: string | null;
 }
 
 interface Delivery {
@@ -125,6 +128,97 @@ export default function WebhooksPage() {
   function changeDeliveryFilter(hookId: string, filter: "all" | "failed") {
     setDeliveryFilter(filter);
     loadDeliveries(hookId, filter);
+  }
+
+  // Faz 16: secret rotation — yeni + eski secret'ı UI'da göster
+  const [rotationResult, setRotationResult] = useState<{
+    hookId: string;
+    name: string;
+    secret: string;
+    previousSecret: string;
+    previousSecretValidUntil: string;
+  } | null>(null);
+  const [rotatingId, setRotatingId] = useState<string | null>(null);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  async function copyText(key: string, value: string) {
+    await navigator.clipboard.writeText(value);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 1500);
+  }
+
+  async function rotateSecret(h: OutgoingWebhook) {
+    if (
+      !confirm(
+        `"${h.name}" için yeni bir signing secret üretilecek. Eski secret 24 saat boyunca paralel kabul edilecek (zero-downtime). Devam edilsin mi?`,
+      )
+    ) {
+      return;
+    }
+    setRotatingId(h.id);
+    try {
+      const res = await fetch(`/api/webhooks-out/${h.id}/rotate-secret`, {
+        method: "POST",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(json.error || "Rotation başarısız");
+        return;
+      }
+      setRotationResult({
+        hookId: h.id,
+        name: h.name,
+        secret: json.secret,
+        previousSecret: json.previousSecret,
+        previousSecretValidUntil: json.previousSecretValidUntil,
+      });
+      setHooks((p) =>
+        p.map((x) =>
+          x.id === h.id
+            ? {
+                ...x,
+                previousSecretValidUntil: json.previousSecretValidUntil,
+              }
+            : x,
+        ),
+      );
+    } catch (e) {
+      alert("Rotation başarısız: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setRotatingId(null);
+    }
+  }
+
+  async function revokePreviousSecret(h: OutgoingWebhook) {
+    if (
+      !confirm(
+        `"${h.name}" için eski secret hemen sonlandırılacak. Müşteri endpoint'i yeni secret'a geçmediyse delivery'ler düşebilir. Devam edilsin mi?`,
+      )
+    ) {
+      return;
+    }
+    setRevokingId(h.id);
+    try {
+      const res = await fetch(`/api/webhooks-out/${h.id}/rotate-secret`, {
+        method: "DELETE",
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(json.error || "İptal edilemedi");
+        return;
+      }
+      setHooks((p) =>
+        p.map((x) =>
+          x.id === h.id ? { ...x, previousSecretValidUntil: null } : x,
+        ),
+      );
+      if (rotationResult?.hookId === h.id) setRotationResult(null);
+    } catch (e) {
+      alert("İptal başarısız: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setRevokingId(null);
+    }
   }
 
   // Faz 11: manuel retry — başarısız bir delivery'yi yeniden tetikler
@@ -264,6 +358,94 @@ export default function WebhooksPage() {
         </div>
       )}
 
+      {rotationResult && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <p className="text-sm font-semibold text-blue-900 inline-flex items-center gap-2">
+                <KeyRound size={14} /> Secret döndürüldü:{" "}
+                <span className="font-mono">{rotationResult.name}</span>
+              </p>
+              <p className="text-xs text-blue-800 mt-1">
+                Yeni secret aktif. Eski secret{" "}
+                <strong>
+                  {new Date(
+                    rotationResult.previousSecretValidUntil,
+                  ).toLocaleString("tr-TR")}
+                </strong>{" "}
+                tarihine kadar paralel kabul edilecek. Bu süre içinde endpoint
+                kodunu yeni secret&apos;a güncelleyin — istekler hem{" "}
+                <code className="bg-white px-1 rounded">X-Wasend-Signature</code>{" "}
+                hem{" "}
+                <code className="bg-white px-1 rounded">
+                  X-Wasend-Signature-Previous
+                </code>{" "}
+                ile gelecek.
+              </p>
+            </div>
+            <button
+              onClick={() => setRotationResult(null)}
+              className="text-blue-700 hover:text-blue-900 text-xs"
+              aria-label="Kapat"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs font-medium text-blue-900 mb-1">
+                Yeni secret (kullanmaya başla)
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="bg-white px-3 py-2 rounded border flex-1 text-xs break-all">
+                  {rotationResult.secret}
+                </code>
+                <button
+                  onClick={() => copyText("new", rotationResult.secret)}
+                  className="bg-blue-600 text-white px-3 py-2 rounded text-sm inline-flex items-center gap-1"
+                >
+                  {copiedKey === "new" ? (
+                    <>
+                      <Check size={14} /> Kopyalandı
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} /> Kopyala
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-blue-900 mb-1">
+                Eski secret (24 saat sonra geçersiz)
+              </p>
+              <div className="flex items-center gap-2">
+                <code className="bg-white px-3 py-2 rounded border flex-1 text-xs break-all opacity-70">
+                  {rotationResult.previousSecret}
+                </code>
+                <button
+                  onClick={() =>
+                    copyText("prev", rotationResult.previousSecret)
+                  }
+                  className="bg-gray-500 text-white px-3 py-2 rounded text-sm inline-flex items-center gap-1"
+                >
+                  {copiedKey === "prev" ? (
+                    <>
+                      <Check size={14} /> Kopyalandı
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} /> Kopyala
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form
         onSubmit={create}
         className="bg-white rounded-xl border border-gray-200 p-6 mb-6 space-y-4"
@@ -393,6 +575,31 @@ export default function WebhooksPage() {
                           <span className="break-words">{h.lastError}</span>
                         </p>
                       )}
+                      {h.previousSecretValidUntil &&
+                        new Date(h.previousSecretValidUntil).getTime() >
+                          Date.now() && (
+                          <div className="mt-2 inline-flex items-start gap-2 text-xs bg-amber-50 border border-amber-200 text-amber-900 rounded px-2 py-1.5">
+                            <KeyRound size={11} className="mt-0.5 flex-shrink-0" />
+                            <span>
+                              Rotation aktif — eski secret{" "}
+                              <strong>
+                                {new Date(
+                                  h.previousSecretValidUntil,
+                                ).toLocaleString("tr-TR")}
+                              </strong>
+                              &apos;e kadar paralel kabul ediliyor.{" "}
+                              <button
+                                onClick={() => revokePreviousSecret(h)}
+                                disabled={revokingId === h.id}
+                                className="underline hover:text-amber-700 disabled:opacity-60"
+                              >
+                                {revokingId === h.id
+                                  ? "İptal ediliyor..."
+                                  : "Şimdi sonlandır"}
+                              </button>
+                            </span>
+                          </div>
+                        )}
                     </div>
                     <button
                       onClick={() => toggleExpand(h.id)}
@@ -405,6 +612,18 @@ export default function WebhooksPage() {
                       ) : (
                         <ChevronDown size={12} />
                       )}
+                    </button>
+                    <button
+                      onClick={() => rotateSecret(h)}
+                      disabled={rotatingId === h.id}
+                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg disabled:opacity-60"
+                      title="Signing secret'ı döndür (24s grace period ile)"
+                      aria-label="Secret döndür"
+                    >
+                      <KeyRound
+                        size={16}
+                        className={rotatingId === h.id ? "animate-spin" : ""}
+                      />
                     </button>
                     <button
                       onClick={() => toggleActive(h)}

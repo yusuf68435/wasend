@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiKeyCreateSchema, formatZodError } from "@/lib/validation";
 import { generateApiKey, ALL_SCOPES } from "@/lib/api-key";
+import { logTenantAction, getClientIp } from "@/lib/audit";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -45,6 +46,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+  const ip = getClientIp(request.headers);
 
   let raw: unknown;
   try {
@@ -91,6 +93,16 @@ export async function POST(request: Request) {
     },
   });
 
+  // Faz 14: tenant audit
+  void logTenantAction({
+    actorId: userId,
+    action: "api_key.create",
+    targetType: "ApiKey",
+    targetId: key.id,
+    details: { name: key.name, scopes: requestedScopes, prefix: key.prefix },
+    ip,
+  });
+
   // Plaintext key is returned ONCE — never again.
   return NextResponse.json({
     ...key,
@@ -102,14 +114,29 @@ export async function POST(request: Request) {
 export async function DELETE(request: Request) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+  const ip = getClientIp(request.headers);
 
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   if (!id) return NextResponse.json({ error: "ID gerekli" }, { status: 400 });
 
+  const target = await prisma.apiKey.findFirst({
+    where: { id, userId },
+    select: { id: true, name: true, prefix: true },
+  });
+  if (!target) return NextResponse.json({ success: true });
+
   await prisma.apiKey.updateMany({
     where: { id, userId },
     data: { revokedAt: new Date() },
+  });
+  void logTenantAction({
+    actorId: userId,
+    action: "api_key.revoke",
+    targetType: "ApiKey",
+    targetId: target.id,
+    details: { name: target.name, prefix: target.prefix },
+    ip,
   });
   return NextResponse.json({ success: true });
 }
