@@ -17,6 +17,8 @@ import {
   ArrowLeftRight,
   Menu,
   X,
+  RefreshCw,
+  ClipboardCheck,
   type LucideIcon,
 } from "lucide-react";
 
@@ -52,6 +54,8 @@ const GROUPS: NavGroup[] = [
     items: [
       { href: "/admin/audit", label: "Denetim", icon: ScrollText },
       { href: "/admin/system", label: "Sistem", icon: Cpu },
+      { href: "/admin/retry-queue", label: "Retry Queue", icon: RefreshCw },
+      { href: "/admin/meta-review", label: "Meta Review", icon: ClipboardCheck },
       { href: "/admin/security", label: "Güvenlik", icon: Shield },
     ],
   },

@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { sendMessageSchema, formatZodError } from "@/lib/validation";
 import { resolveWACredentials } from "@/lib/wa-credentials";
+import { decideRetry } from "@/lib/message-retry";
 
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
@@ -68,7 +69,39 @@ export async function POST(request: Request) {
 
     return NextResponse.json(saved);
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Mesaj gönderilemedi";
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+    const errorMessage =
+      error instanceof Error ? error.message : "Mesaj gönderilemedi";
+    // Faz 5: transient → retry_pending Message kaydı oluştur, 202 dön (queue'ya
+    // girdi, sweeper sonra deneyecek). Permanent → failed kaydı + 500.
+    const decision = decideRetry(0, errorMessage);
+    const saved = await prisma.message.create({
+      data: {
+        content: message,
+        direction: "outgoing",
+        phone: contact.phone,
+        userId,
+        contactId: contact.id,
+        status: decision.status,
+        failedReason: errorMessage.slice(0, 500),
+        retryCount: decision.retryCount,
+        nextRetryAt: decision.nextRetryAt,
+      },
+    });
+    if (decision.status === "retry_pending") {
+      return NextResponse.json(
+        {
+          ...saved,
+          willRetry: true,
+          nextRetryAt: decision.nextRetryAt,
+          message:
+            "Geçici bir hata nedeniyle mesaj kuyruğa alındı, otomatik tekrar denenecek.",
+        },
+        { status: 202 },
+      );
+    }
+    return NextResponse.json(
+      { ...saved, error: errorMessage },
+      { status: 500 },
+    );
   }
 }

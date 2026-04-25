@@ -5,6 +5,7 @@ import { sendWhatsAppMessage, sendWhatsAppMedia } from "@/lib/whatsapp";
 import { v1SendMessageSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
 import { resolveWACredentials } from "@/lib/wa-credentials";
+import { decideRetry } from "@/lib/message-retry";
 
 export const maxDuration = 30;
 
@@ -96,6 +97,38 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     const msg = error instanceof Error ? error.message : "Mesaj gönderilemedi";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    // Faz 5: transient → retry_pending Message + 202; permanent → failed + 500
+    const decision = decideRetry(0, msg);
+    const saved = await prisma.message.create({
+      data: {
+        content: message,
+        direction: "outgoing",
+        phone: to,
+        userId: auth.userId,
+        contactId: contact?.id ?? null,
+        status: decision.status,
+        failedReason: msg.slice(0, 500),
+        retryCount: decision.retryCount,
+        nextRetryAt: decision.nextRetryAt,
+        mediaType: mediaType ?? null,
+        mediaUrl: mediaUrl ?? null,
+        caption: mediaType ? message : null,
+      },
+    });
+    if (decision.status === "retry_pending") {
+      return NextResponse.json(
+        {
+          id: saved.id,
+          status: saved.status,
+          willRetry: true,
+          nextRetryAt: decision.nextRetryAt,
+        },
+        { status: 202 },
+      );
+    }
+    return NextResponse.json(
+      { id: saved.id, status: saved.status, error: msg },
+      { status: 500 },
+    );
   }
 }

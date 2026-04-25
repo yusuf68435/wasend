@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import { resolveWACredentials } from "@/lib/wa-credentials";
+import { decideRetry } from "@/lib/message-retry";
 
 export const maxDuration = 60;
 
@@ -92,9 +93,29 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
       console.error(`Reminder send error for ${reminder.id}:`, reason);
+      // Faz 5: transient hata → Message{retry_pending} oluştur, retry sweeper
+      // sonra deneyecek; reminder "sent" olur (tetiklendi, daha fazla iş yok).
+      // Permanent hata → reminder='failed', Message='failed'.
+      const decision = decideRetry(0, reason);
+      await prisma.message.create({
+        data: {
+          content: reminder.message,
+          direction: "outgoing",
+          phone: reminder.contact.phone,
+          userId: reminder.userId,
+          contactId: reminder.contactId,
+          status: decision.status,
+          failedReason: reason.slice(0, 500),
+          retryCount: decision.retryCount,
+          nextRetryAt: decision.nextRetryAt,
+        },
+      });
       await prisma.reminder.update({
         where: { id: reminder.id },
-        data: { status: "failed" },
+        data: {
+          // retry_pending → reminder işini yaptı, queue'ya devretti
+          status: decision.status === "retry_pending" ? "sent" : "failed",
+        },
       });
     }
   }
