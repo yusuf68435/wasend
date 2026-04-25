@@ -125,12 +125,17 @@ model Message {
   id           String    @id @default(cuid())
   content      String
   direction    String
+  // Status değerleri: sent, delivered, read, failed, retry_pending
+  // retry_pending → cron yeniden dener (exponential backoff), max 5 deneme
   status       String    @default("sent")
   phone        String
   waMessageId  String?   @unique
   deliveredAt  DateTime?
   readAt       DateTime?
   failedReason String?
+  // Retry queue (Faz 4): transient failure'larda yeniden gönderim
+  retryCount   Int       @default(0)
+  nextRetryAt  DateTime?
   mediaType    String?
   mediaUrl     String?
   mediaId      String?
@@ -149,6 +154,8 @@ model Message {
   @@index([userId, direction, createdAt])
   @@index([contactId])
   @@index([broadcastId])
+  // Cron için: status='retry_pending' AND nextRetryAt <= now() taraması
+  @@index([status, nextRetryAt])
 }
 
 model Reminder {
@@ -470,4 +477,25 @@ model AnnouncementDismissal {
 
   @@unique([announcementId, userId])
   @@index([userId])
+}
+
+// Meta Data Deletion Callback log.
+// Meta App Review için zorunlu: kullanıcı Meta hesabından uygulamamızı
+// kaldırdığında Meta bu URL'i çağırır → kayıt tutarız → confirmation_code
+// + status URL döneriz. İşleme manuel admin yapar (privacy@wasend.tech).
+model MetaDataDeletionRequest {
+  id               String   @id @default(cuid())
+  // Meta'nın signed_request payload'unda gelen FB user ID
+  metaUserId       String
+  // İlişkili WaSend user (varsa — yoksa orphan kayıt)
+  userId           String?
+  // İşleme durumu: pending / processing / completed / errored
+  status           String   @default("pending")
+  // Özel admin notu, tamamlanma zamanı vs.
+  notes            String?
+  receivedAt       DateTime @default(now())
+  completedAt      DateTime?
+
+  @@index([metaUserId])
+  @@index([status])
 }

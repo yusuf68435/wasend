@@ -51,6 +51,12 @@ export async function GET(request: Request) {
       suspendedAt: true,
       lastSeenAt: true,
       createdAt: true,
+      onboardedAt: true,
+      onboardingStep: true,
+      phone: true,
+      waApiToken: true,
+      waAppSecret: true,
+      waWabaId: true,
       _count: {
         select: {
           contacts: true,
@@ -62,8 +68,30 @@ export async function GET(request: Request) {
     },
   });
 
-  const hasMore = tenants.length > limit;
-  const items = hasMore ? tenants.slice(0, limit) : tenants;
+  // Hassas bilgileri client'a sızdırmadan, "var/yok" boolean'a indir
+  const hasEnvCreds = !!(
+    process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID
+  );
+  const sanitized = tenants.map((t) => {
+    const userHasToken = !!t.waApiToken;
+    const userHasPhone = !!t.phone;
+    let waSource: "user" | "env" | "missing" = "missing";
+    if (userHasToken && userHasPhone) waSource = "user";
+    else if (hasEnvCreds && userHasPhone) waSource = "env";
+    else if (hasEnvCreds) waSource = "env";
+    const { waApiToken: _t, waAppSecret: _s, ...rest } = t;
+    void _t;
+    void _s;
+    return {
+      ...rest,
+      waApiTokenSet: userHasToken,
+      waAppSecretSet: !!t.waAppSecret,
+      waSource,
+    };
+  });
+
+  const hasMore = sanitized.length > limit;
+  const items = hasMore ? sanitized.slice(0, limit) : sanitized;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
 
   return NextResponse.json({ tenants: items, nextCursor });

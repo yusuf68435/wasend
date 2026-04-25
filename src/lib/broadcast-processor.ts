@@ -8,6 +8,7 @@ import { sleep } from "@/lib/rate-limit";
 import { parseRules, resolveSegmentContacts } from "@/lib/segment-resolver";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
 import { resolveWACredentials } from "@/lib/wa-credentials";
+import { decideRetry } from "@/lib/message-retry";
 
 const MEDIA_TYPES: readonly MediaType[] = [
   "image",
@@ -239,9 +240,11 @@ async function runBroadcast(
         if (code !== "P2002") throw dbErr;
       }
     } catch (error) {
-      failedCount++;
       const reason = error instanceof Error ? error.message : String(error);
       console.error(`Broadcast send error for ${contact.phone}:`, reason);
+      // Faz 4: transient ise retry kuyruğuna at, kalıcı ise direkt failed
+      const decision = decideRetry(0, reason);
+      if (decision.status === "failed") failedCount++;
       try {
         await prisma.message.create({
           data: {
@@ -251,8 +254,10 @@ async function runBroadcast(
             userId: broadcast.userId,
             contactId: contact.id,
             broadcastId,
-            status: "failed",
+            status: decision.status,
             failedReason: reason.slice(0, 500),
+            retryCount: decision.retryCount,
+            nextRetryAt: decision.nextRetryAt,
           },
         });
       } catch (dbErr) {

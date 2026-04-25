@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSuperAdminOrNull } from "@/lib/admin-guard";
+import { maskSecret } from "@/lib/secret-crypto";
 
 export async function GET(
   _request: Request,
@@ -34,6 +35,12 @@ export async function GET(
       trialEndsAt: true,
       createdAt: true,
       updatedAt: true,
+      onboardedAt: true,
+      onboardingStep: true,
+      waApiToken: true,
+      waAppSecret: true,
+      waVerifyToken: true,
+      waWabaId: true,
       _count: {
         select: {
           contacts: true,
@@ -86,8 +93,43 @@ export async function GET(
     }),
   ]);
 
+  // Hassas alanları sanitize et — token plaintext asla dönmez
+  const hasEnvCreds = !!(
+    process.env.WHATSAPP_API_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID
+  );
+  const userHasToken = !!user.waApiToken;
+  let waSource: "user" | "env" | "missing" = "missing";
+  if (userHasToken) waSource = "user";
+  else if (hasEnvCreds) waSource = "env";
+
+  const {
+    waApiToken: _t,
+    waAppSecret: _s,
+    waVerifyToken,
+    ...userRest
+  } = user;
+  void _t;
+  void _s;
+
+  const sanitizedUser = {
+    ...userRest,
+    waCredentials: {
+      source: waSource,
+      apiTokenSet: userHasToken,
+      apiTokenMasked: user.waApiToken ? maskSecret(user.waApiToken) : null,
+      appSecretSet: !!user.waAppSecret,
+      appSecretMasked: user.waAppSecret ? maskSecret(user.waAppSecret) : null,
+      wabaId: user.waWabaId,
+      verifyTokenSet: !!waVerifyToken,
+      verifyTokenPreview: waVerifyToken
+        ? `${waVerifyToken.slice(0, 8)}…${waVerifyToken.slice(-4)}`
+        : null,
+      envFallbackAvailable: hasEnvCreds,
+    },
+  };
+
   return NextResponse.json({
-    user,
+    user: sanitizedUser,
     recentMessages,
     recentBroadcasts,
     ai: {

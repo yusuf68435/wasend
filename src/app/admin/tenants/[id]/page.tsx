@@ -17,6 +17,8 @@ import {
   KeyRound,
   Trash2,
   Copy,
+  MessageSquare,
+  AlertCircle,
 } from "lucide-react";
 
 interface TenantDetail {
@@ -40,6 +42,19 @@ interface TenantDetail {
     lastSeenAt: string | null;
     trialEndsAt: string | null;
     createdAt: string;
+    onboardedAt: string | null;
+    onboardingStep: number;
+    waCredentials: {
+      source: "user" | "env" | "missing";
+      apiTokenSet: boolean;
+      apiTokenMasked: string | null;
+      appSecretSet: boolean;
+      appSecretMasked: string | null;
+      wabaId: string | null;
+      verifyTokenSet: boolean;
+      verifyTokenPreview: string | null;
+      envFallbackAvailable: boolean;
+    };
     _count: {
       contacts: number;
       messages: number;
@@ -449,6 +464,28 @@ export default function TenantDetailPage() {
         </div>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3 inline-flex items-center gap-2">
+            <MessageSquare size={16} /> WhatsApp Credentials
+          </h3>
+          <WaCredentialsBlock
+            phone={u.phone}
+            creds={u.waCredentials}
+          />
+        </div>
+
+        <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5">
+          <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3 inline-flex items-center gap-2">
+            <CheckCircle2 size={16} /> Onboarding
+          </h3>
+          <OnboardingBlock
+            onboardedAt={u.onboardedAt}
+            step={u.onboardingStep}
+          />
+        </div>
+      </div>
+
       <div className="bg-white rounded-2xl border border-[#d2d2d7] p-5 mb-6">
         <h3 className="text-[15px] font-semibold tracking-tight text-[#1d1d1f] mb-3 inline-flex items-center gap-2">
           <Activity size={16} /> Admin İşlemleri
@@ -583,6 +620,130 @@ function Row({ k, v }: { k: string; v: string }) {
     <div className="flex justify-between gap-2">
       <dt className="text-[#6e6e73]">{k}</dt>
       <dd className="text-[#1d1d1f] text-right truncate">{v}</dd>
+    </div>
+  );
+}
+
+function WaCredentialsBlock({
+  phone,
+  creds,
+}: {
+  phone: string | null;
+  creds: TenantDetail["user"]["waCredentials"];
+}) {
+  const sourceLabel =
+    creds.source === "user"
+      ? { text: "BYO (kendi token)", color: "bg-[#25D366]/10 text-[#1d7a3a]" }
+      : creds.source === "env"
+        ? { text: "Paylaşımlı env", color: "bg-[#0071e3]/10 text-[#0071e3]" }
+        : { text: "Bağlı değil", color: "bg-[#ff453a]/10 text-[#ff453a]" };
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-2">
+        <span
+          className={`text-[11px] px-2 py-0.5 rounded-full font-medium tracking-tight ${sourceLabel.color}`}
+        >
+          {sourceLabel.text}
+        </span>
+        {creds.source === "missing" && creds.envFallbackAvailable && (
+          <span className="text-[11px] text-[#6e6e73] inline-flex items-center gap-1">
+            <AlertCircle size={11} /> Env fallback hazır ama phone yok
+          </span>
+        )}
+      </div>
+      <dl className="text-[13px] space-y-1">
+        <Row k="Phone Number ID" v={phone || "—"} />
+        <Row k="WABA ID" v={creds.wabaId || "—"} />
+        <Row
+          k="API Token"
+          v={
+            creds.apiTokenSet
+              ? creds.apiTokenMasked || "✓ kayıtlı"
+              : creds.envFallbackAvailable
+                ? "(env fallback)"
+                : "—"
+          }
+        />
+        <Row
+          k="App Secret"
+          v={
+            creds.appSecretSet
+              ? creds.appSecretMasked || "✓ kayıtlı"
+              : creds.envFallbackAvailable
+                ? "(env fallback)"
+                : "—"
+          }
+        />
+        <Row
+          k="Verify Token"
+          v={creds.verifyTokenSet ? creds.verifyTokenPreview || "✓ kayıtlı" : "—"}
+        />
+      </dl>
+      <p className="text-[11px] text-[#86868b] mt-3 tracking-tight">
+        Token plaintext sadece kullanıcının kendi tarayıcısında görünür. Bu sayfada
+        sadece maskelenmiş hash gösterilir.
+      </p>
+    </div>
+  );
+}
+
+function OnboardingBlock({
+  onboardedAt,
+  step,
+}: {
+  onboardedAt: string | null;
+  step: number;
+}) {
+  const TOTAL = 4;
+  const STEP_NAMES = ["Hoşgeldin", "İşletme bilgileri", "WhatsApp", "Test mesajı"];
+  const completed = !!onboardedAt && step >= TOTAL;
+  const skipped = !!onboardedAt && step < TOTAL;
+
+  return (
+    <div>
+      <div className="mb-3 flex items-center gap-2">
+        {completed ? (
+          <span className="text-[11px] bg-[#30d158]/10 text-[#1d7a3a] px-2 py-0.5 rounded-full font-medium tracking-tight">
+            Tamamlandı
+          </span>
+        ) : skipped ? (
+          <span className="text-[11px] bg-[#ff9f0a]/10 text-[#ff9f0a] px-2 py-0.5 rounded-full font-medium tracking-tight">
+            Atlandı
+          </span>
+        ) : (
+          <span className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-2 py-0.5 rounded-full font-medium tracking-tight">
+            Devam ediyor
+          </span>
+        )}
+      </div>
+      <div className="space-y-1.5">
+        {STEP_NAMES.map((name, i) => (
+          <div key={name} className="flex items-center gap-2 text-[13px]">
+            <span
+              className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] ${
+                i < step
+                  ? "bg-[#1d7a3a] text-white"
+                  : "bg-[#f5f5f7] text-[#86868b]"
+              }`}
+            >
+              {i < step ? "✓" : i + 1}
+            </span>
+            <span
+              className={
+                i < step ? "text-[#1d1d1f]" : "text-[#86868b]"
+              }
+            >
+              {name}
+            </span>
+          </div>
+        ))}
+      </div>
+      {onboardedAt && (
+        <p className="text-[11px] text-[#86868b] mt-3 tracking-tight">
+          Tarih: {new Date(onboardedAt).toLocaleDateString("tr-TR")}
+        </p>
+      )}
     </div>
   );
 }

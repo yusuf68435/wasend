@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 };
 
 export default function PrivacyPage() {
-  const updated = "20 Nisan 2026";
+  const updated = "25 Nisan 2026";
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <div className="max-w-3xl mx-auto px-6 py-16">
@@ -127,7 +127,30 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-semibold text-gray-900">10. İletişim</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              10. Meta veri silme
+            </h2>
+            <p>
+              Meta hesabınızdan WaSend uygulamasını kaldırırsanız Meta otomatik
+              olarak veri silme talebini bize iletir. Talep, alındığı tarihten
+              itibaren 30 gün içinde işlenir. Talebinizin durumunu, Meta&apos;nın
+              size verdiği onay kodu ile{" "}
+              <code className="bg-gray-100 px-1 rounded text-xs">
+                /data-deletion/&lt;onay-kodu&gt;
+              </code>{" "}
+              sayfasından takip edebilirsiniz. Manuel talepler için{" "}
+              <a
+                href="mailto:privacy@wasend.tech"
+                className="text-green-600 underline"
+              >
+                privacy@wasend.tech
+              </a>{" "}
+              adresini kullanabilirsiniz.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="text-xl font-semibold text-gray-900">11. İletişim</h2>
             <p>
               Gizlilik ile ilgili soru ve talepler:{" "}
               <a href="mailto:privacy@wasend.tech" className="text-green-600 underline">

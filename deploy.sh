@@ -301,6 +301,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # WaSend scheduled jobs (mirrors vercel.json)
 * * * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/reminders >/dev/null 2>&1
 * * * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/broadcasts >/dev/null 2>&1
+* * * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/retry-messages >/dev/null 2>&1
 0 * * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/templates-sync >/dev/null 2>&1
 0 1 * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/aggregate >/dev/null 2>&1
 0 3 * * * root curl -fsS -H "Authorization: Bearer ${CRON_SECRET_VAL}" ${BASE_URL}/api/cron/cleanup >/dev/null 2>&1

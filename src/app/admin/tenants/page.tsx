@@ -16,6 +16,13 @@ interface Tenant {
   suspendedAt: string | null;
   lastSeenAt: string | null;
   createdAt: string;
+  onboardedAt: string | null;
+  onboardingStep: number;
+  phone: string | null;
+  waApiTokenSet: boolean;
+  waAppSecretSet: boolean;
+  waWabaId: string | null;
+  waSource: "user" | "env" | "missing";
   _count: {
     contacts: number;
     messages: number;
@@ -228,6 +235,8 @@ export default function TenantsPage() {
                 </th>
                 <th className="px-4 py-2">Kiracı</th>
                 <th className="px-4 py-2">Plan</th>
+                <th className="px-4 py-2">WA</th>
+                <th className="px-4 py-2">Kurulum</th>
                 <th className="px-4 py-2">Kişi</th>
                 <th className="px-4 py-2">Mesaj</th>
                 <th className="px-4 py-2">Son Giriş</th>
@@ -275,6 +284,15 @@ export default function TenantsPage() {
                         {t.plan}
                       </span>
                     </td>
+                    <td className="px-4 py-3">
+                      <WaSourceBadge source={t.waSource} hasPhone={!!t.phone} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <OnboardingBadge
+                        onboardedAt={t.onboardedAt}
+                        step={t.onboardingStep}
+                      />
+                    </td>
                     <td className="px-4 py-3 text-[13px] text-[#1d1d1f]">
                       {t._count.contacts}
                     </td>
@@ -305,6 +323,20 @@ export default function TenantsPage() {
         )}
       </div>
 
+      {tenants.length > 0 && (
+        <div className="mt-3 flex items-center gap-3 text-[11px] text-[#6e6e73] tracking-tight">
+          <span className="inline-flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#25D366]" /> BYO (kendi token)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0071e3]" /> Paylaşımlı (env)
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff453a]" /> Bağlı değil
+          </span>
+        </div>
+      )}
+
       <ConfirmDialog
         open={bulkDialogOpen !== null}
         title={bulkDialogOpen === "suspend" ? "Toplu askıya alma" : "Toplu askıyı kaldırma"}
@@ -320,5 +352,76 @@ export default function TenantsPage() {
         onCancel={() => setBulkDialogOpen(null)}
       />
     </div>
+  );
+}
+
+function WaSourceBadge({
+  source,
+  hasPhone,
+}: {
+  source: "user" | "env" | "missing";
+  hasPhone: boolean;
+}) {
+  if (source === "user") {
+    return (
+      <span
+        className="text-[11px] bg-[#25D366]/10 text-[#1d7a3a] px-2 py-0.5 rounded-full font-medium tracking-tight"
+        title="Kendi Meta token'ını kaydetmiş (BYO)"
+      >
+        BYO
+      </span>
+    );
+  }
+  if (source === "env" && hasPhone) {
+    return (
+      <span
+        className="text-[11px] bg-[#0071e3]/10 text-[#0071e3] px-2 py-0.5 rounded-full font-medium tracking-tight"
+        title="Paylaşımlı env token kullanıyor, kendi phone number ID'si var"
+      >
+        Paylaşımlı
+      </span>
+    );
+  }
+  return (
+    <span
+      className="text-[11px] bg-[#ff453a]/10 text-[#ff453a] px-2 py-0.5 rounded-full font-medium tracking-tight"
+      title="WhatsApp API erişimi yok"
+    >
+      Yok
+    </span>
+  );
+}
+
+function OnboardingBadge({
+  onboardedAt,
+  step,
+}: {
+  onboardedAt: string | null;
+  step: number;
+}) {
+  if (onboardedAt && step >= 4) {
+    return (
+      <span className="text-[11px] bg-[#30d158]/10 text-[#1d7a3a] px-2 py-0.5 rounded-full font-medium tracking-tight">
+        Tamam
+      </span>
+    );
+  }
+  if (onboardedAt) {
+    return (
+      <span
+        className="text-[11px] bg-[#ff9f0a]/10 text-[#ff9f0a] px-2 py-0.5 rounded-full font-medium tracking-tight"
+        title={`Atlanmış (adım ${step}/4)`}
+      >
+        Atlandı
+      </span>
+    );
+  }
+  return (
+    <span
+      className="text-[11px] bg-[#f5f5f7] text-[#6e6e73] px-2 py-0.5 rounded-full font-medium tracking-tight"
+      title={`Devam ediyor (adım ${step}/4)`}
+    >
+      Bekliyor
+    </span>
   );
 }

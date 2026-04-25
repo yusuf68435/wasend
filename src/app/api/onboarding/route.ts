@@ -4,6 +4,8 @@
  * GET   → kullanıcının wizard durumu (step, hangi şeyler yapılmış)
  * PATCH → adım ilerlet: { step, businessName?, businessType?, phoneNumberId? }
  * POST  → wizard'ı tamamla (onboardedAt = now)
+ *         body { skip: true } → eksik adım kalsa da onboardedAt set,
+ *         onboardingStep dokunulmaz (dashboard'da "tamamla" banner'ı için)
  *
  * Güvenlik: tüm endpoint'ler auth gerekli, kendi kaydını günceller.
  * Idempotent: PATCH aynı step tekrar POST edilebilir, sorun çıkmaz.
@@ -52,6 +54,8 @@ export async function GET() {
     businessName: u.businessName || "",
     businessType: u.businessType || "",
     phoneNumberId: u.phone || "",
+    // Skip-edilmiş kurulum: tamamlandı işaretli ama hâlâ eksik adımlar var
+    skipped: !!u.onboardedAt && u.onboardingStep < TOTAL_STEPS,
   });
 }
 
@@ -87,15 +91,24 @@ export async function PATCH(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
-export async function POST() {
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const userId = (session?.user as { id: string } | undefined)?.id;
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
+  // body opsiyonel: { skip: true } → adımı bumpla, eksik kalsın
+  let skip = false;
+  try {
+    const body = (await req.json().catch(() => null)) as { skip?: boolean } | null;
+    skip = !!body?.skip;
+  } catch {
+    skip = false;
+  }
+
   // Idempotent: zaten onboarded ise dokunma
   const existing = await prisma.user.findUnique({
     where: { id: userId },
-    select: { onboardedAt: true },
+    select: { onboardedAt: true, onboardingStep: true },
   });
   if (existing?.onboardedAt) {
     return NextResponse.json({ ok: true, alreadyCompleted: true });
@@ -103,7 +116,9 @@ export async function POST() {
 
   await prisma.user.update({
     where: { id: userId },
-    data: { onboardedAt: new Date(), onboardingStep: TOTAL_STEPS },
+    data: skip
+      ? { onboardedAt: new Date() } // step dokunulmaz → "skipped" state
+      : { onboardedAt: new Date(), onboardingStep: TOTAL_STEPS },
   });
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, skipped: skip });
 }

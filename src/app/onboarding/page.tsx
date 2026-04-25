@@ -37,6 +37,7 @@ type Status = {
   businessName: string;
   businessType: string;
   phoneNumberId: string;
+  skipped?: boolean;
 };
 
 const BUSINESS_TYPES = [
@@ -70,7 +71,10 @@ export default function OnboardingPage() {
         setBusinessName(s.businessName);
         setBusinessType(s.businessType);
         setPhoneNumberId(s.phoneNumberId);
-        if (s.completed) router.replace("/dashboard");
+        // Skipped state: completed=true ama eksik adım var → kullanıcı geri
+        // dönüp tamamlamak istiyor, redirect yapma. Sadece tam onboarded
+        // (step=totalSteps) iseler dashboard'a yönlendir.
+        if (s.completed && !s.skipped) router.replace("/dashboard");
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -106,10 +110,34 @@ export default function OnboardingPage() {
     setBusy(true);
     setErr(null);
     try {
-      const res = await fetch("/api/onboarding", { method: "POST" });
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
       if (!res.ok) {
         const d = await res.json().catch(() => ({}));
         setErr(d.error || "Tamamlanamadı");
+        return;
+      }
+      router.push("/dashboard");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function skipAll() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ skip: true }),
+      });
+      if (!res.ok) {
+        const d = await res.json().catch(() => ({}));
+        setErr(d.error || "Atlanamadı");
         return;
       }
       router.push("/dashboard");
@@ -151,22 +179,52 @@ export default function OnboardingPage() {
   }
 
   const step = status.step;
+  const STEP_LABELS = ["Hoşgeldin", "İşletme", "WhatsApp", "Test"];
 
   return (
     <div>
       {/* Progress header */}
       <div className="mb-10">
-        <div className="flex items-center gap-1.5 text-[11px] text-[#6e6e73] tracking-[0.08em] uppercase mb-3">
-          Kurulum · Adım {Math.min(step + 1, status.totalSteps)} / {status.totalSteps}
+        <div className="flex items-center justify-between text-[11px] text-[#6e6e73] tracking-[0.08em] uppercase mb-3">
+          <span>
+            Kurulum · Adım {Math.min(step + 1, status.totalSteps)} /{" "}
+            {status.totalSteps}
+          </span>
+          {step > 0 && step < 4 && (
+            <button
+              type="button"
+              onClick={skipAll}
+              disabled={busy}
+              className="normal-case tracking-tight text-[12px] text-[#6e6e73] hover:text-[#1d1d1f] transition disabled:opacity-50"
+            >
+              Şimdilik atla →
+            </button>
+          )}
         </div>
-        <div className="flex gap-1.5">
+        <div className="flex gap-1.5 mb-2">
           {Array.from({ length: status.totalSteps }).map((_, i) => (
             <div
               key={i}
               className={`h-1 flex-1 rounded-full transition ${
-                i < step ? "bg-[#1d1d1f]" : i === step ? "bg-[#1d1d1f]" : "bg-[#d2d2d7]"
+                i <= step ? "bg-[#1d1d1f]" : "bg-[#d2d2d7]"
               }`}
             />
+          ))}
+        </div>
+        <div className="hidden sm:flex gap-1.5">
+          {STEP_LABELS.map((label, i) => (
+            <div
+              key={label}
+              className={`flex-1 text-[10px] tracking-tight transition ${
+                i === step
+                  ? "text-[#1d1d1f] font-medium"
+                  : i < step
+                    ? "text-[#1d1d1f]/60"
+                    : "text-[#d2d2d7]"
+              }`}
+            >
+              {label}
+            </div>
           ))}
         </div>
       </div>
@@ -305,6 +363,28 @@ export default function OnboardingPage() {
             En kolay yol: Meta hesabınla tek tıkla bağlan. Alternatif olarak
             Phone Number ID&apos;yi manuel yapıştırabilirsin.
           </p>
+
+          {status.phoneNumberId && (
+            <div className="mb-6 flex items-center gap-3 bg-[#25D366]/10 border border-[#25D366]/20 rounded-2xl px-4 py-3">
+              <CheckCircle2 size={18} className="text-[#25D366] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-medium text-[#1d1d1f] tracking-tight">
+                  Bağlı numara mevcut
+                </p>
+                <p className="text-[12px] text-[#6e6e73] font-mono truncate">
+                  {status.phoneNumberId}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => saveAndAdvance({}, 3)}
+                disabled={busy}
+                className="text-[12px] text-[#1d1d1f] underline underline-offset-2 hover:no-underline disabled:opacity-50"
+              >
+                Devam et
+              </button>
+            </div>
+          )}
 
           {/* Meta Embedded Signup — env yapılandırılıysa görünür */}
           <div className="mb-6">

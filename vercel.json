@@ -9,6 +9,10 @@
       "schedule": "* * * * *"
     },
     {
+      "path": "/api/cron/retry-messages",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/templates-sync",
       "schedule": "0 * * * *"
     },
