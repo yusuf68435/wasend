@@ -118,6 +118,118 @@ async function logDelivery(
   }
 }
 
+/**
+ * Faz 11: Manuel retry — saved payload'ı yeni signature ile tek bir kez
+ * POST eder, sonucu yeni bir WebhookDelivery satırına yazar. Circuit breaker
+ * kontrolünü bypass eder (kullanıcı override'ı). payloadPreview truncate
+ * edilmişse retry yapılamaz.
+ */
+export async function retryWebhookDelivery(
+  deliveryId: string,
+): Promise<{
+  ok: boolean;
+  newDeliveryId?: string;
+  error?: string;
+  status?: string;
+}> {
+  const original = await prisma.webhookDelivery.findUnique({
+    where: { id: deliveryId },
+    include: { webhook: true },
+  });
+  if (!original) return { ok: false, error: "Delivery bulunamadı" };
+  if (!original.payloadPreview) {
+    return { ok: false, error: "Bu attempt için payload kaydedilmemiş" };
+  }
+  if (original.payloadPreview.includes("…[truncated]")) {
+    return {
+      ok: false,
+      error:
+        "Payload truncate edilmiş — orijinal event tetiklenmeden retry yapılamaz",
+    };
+  }
+  const hook = original.webhook;
+  if (!hook.isActive) {
+    return { ok: false, error: "Webhook devre dışı" };
+  }
+
+  const body = original.payloadPreview;
+  const signature = crypto
+    .createHmac("sha256", hook.secret)
+    .update(body)
+    .digest("hex");
+  const startedAt = Date.now();
+  let status: "success" | "failed" | "timeout" = "failed";
+  let statusCode: number | null = null;
+  let errorMessage: string | null = null;
+
+  try {
+    const res = await fetch(hook.url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Wasend-Event": original.event,
+        "X-Wasend-Signature": `sha256=${signature}`,
+        "X-Wasend-Retry": "manual",
+      },
+      body,
+      signal: AbortSignal.timeout(5000),
+    });
+    statusCode = res.status;
+    if (res.ok) {
+      status = "success";
+      recordSuccess(hook.id);
+    } else {
+      errorMessage = `HTTP ${res.status}`;
+    }
+  } catch (e) {
+    const errName = e instanceof Error ? e.name : String(e);
+    errorMessage = e instanceof Error ? e.message : String(e);
+    status =
+      errName === "TimeoutError" || /timeout/i.test(errorMessage)
+        ? "timeout"
+        : "failed";
+  }
+  const responseTimeMs = Date.now() - startedAt;
+
+  // logDelivery çağrısının dönmesini bekleyelim ki yeni delivery id'sini
+  // alalım (UI redirect için).
+  let newId: string | undefined;
+  try {
+    const errMsg = errorMessage?.slice(0, 500) ?? null;
+    const created = await prisma.$transaction([
+      prisma.webhookDelivery.create({
+        data: {
+          webhookId: hook.id,
+          event: `${original.event} (retry)`,
+          status,
+          statusCode,
+          responseTimeMs,
+          errorMessage: errMsg,
+          payloadPreview: body,
+        },
+      }),
+      prisma.outgoingWebhook.update({
+        where: { id: hook.id },
+        data: {
+          lastDeliveredAt: new Date(),
+          lastStatusCode: statusCode,
+          lastError: status === "success" ? null : errMsg ?? `status=${status}`,
+        },
+      }),
+    ]);
+    newId = created[0].id;
+  } catch (e) {
+    console.error("retry log failed:", e);
+  }
+
+  return {
+    ok: status === "success",
+    newDeliveryId: newId,
+    status,
+    error: errorMessage ?? undefined,
+  };
+}
+
 // Fire-and-forget. Never throws — logs errors internally.
 export async function dispatchWebhook(opts: DispatchOptions): Promise<void> {
   try {

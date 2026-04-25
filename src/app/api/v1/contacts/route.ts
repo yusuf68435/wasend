@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyApiKey, getClientIp } from "@/lib/api-key";
+import { checkApiKeyRateLimit, apiKeyRateLimitHeaders } from "@/lib/rate-limit";
 import { v1ContactCreateSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
 import { prismaErrorToResponse } from "@/lib/prisma-errors";
@@ -12,6 +13,14 @@ export async function GET(request: Request) {
   });
   if (!auth) {
     return NextResponse.json({ error: "Yetkisiz — 'read' scope gerekli" }, { status: 401 });
+  }
+
+  const rate = checkApiKeyRateLimit(auth.keyId);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit aşıldı", retryAfterSec: rate.retryAfterSec },
+      { status: 429, headers: apiKeyRateLimitHeaders(rate) },
+    );
   }
 
   const url = new URL(request.url);
@@ -50,6 +59,14 @@ export async function POST(request: Request) {
   });
   if (!auth) {
     return NextResponse.json({ error: "Yetkisiz — 'write' scope gerekli" }, { status: 401 });
+  }
+
+  const rate = checkApiKeyRateLimit(auth.keyId);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: "Rate limit aşıldı", retryAfterSec: rate.retryAfterSec },
+      { status: 429, headers: apiKeyRateLimitHeaders(rate) },
+    );
   }
 
   let raw: unknown;

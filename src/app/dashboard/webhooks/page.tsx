@@ -15,6 +15,7 @@ import {
   XCircle,
   Clock,
   AlertCircle,
+  RotateCw,
 } from "lucide-react";
 
 interface OutgoingWebhook {
@@ -124,6 +125,32 @@ export default function WebhooksPage() {
   function changeDeliveryFilter(hookId: string, filter: "all" | "failed") {
     setDeliveryFilter(filter);
     loadDeliveries(hookId, filter);
+  }
+
+  // Faz 11: manuel retry — başarısız bir delivery'yi yeniden tetikler
+  const [retryingId, setRetryingId] = useState<string | null>(null);
+  async function retryDelivery(hookId: string, deliveryId: string) {
+    setRetryingId(deliveryId);
+    try {
+      const res = await fetch(
+        `/api/webhooks-out/${hookId}/deliveries/${deliveryId}/retry`,
+        { method: "POST" },
+      );
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(json.error || "Retry başarısız");
+        return;
+      }
+      // Listeyi tazele — yeni delivery satırı eklenmiş olacak
+      await loadDeliveries(hookId, deliveryFilter);
+      if (!json.ok) {
+        alert(`Retry tamamlandı ama başarısız: ${json.error || json.status}`);
+      }
+    } catch (e) {
+      alert("Retry başarısız: " + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setRetryingId(null);
+    }
   }
 
   useEffect(() => {
@@ -399,6 +426,8 @@ export default function WebhooksPage() {
                   </div>
                   {isExpanded && (
                     <DeliveryPanel
+                      onRetry={(deliveryId) => retryDelivery(h.id, deliveryId)}
+                      retryingId={retryingId}
                       hookId={h.id}
                       data={deliveries[h.id]}
                       filter={deliveryFilter}
@@ -435,12 +464,16 @@ function DeliveryPanel({
   filter,
   onFilterChange,
   onRefresh,
+  onRetry,
+  retryingId,
 }: {
   hookId: string;
   data: { items: Delivery[]; stats: DeliveryStats } | null | undefined;
   filter: "all" | "failed";
   onFilterChange: (f: "all" | "failed") => void;
   onRefresh: () => void;
+  onRetry: (deliveryId: string) => void;
+  retryingId: string | null;
 }) {
   if (data === undefined) {
     return (
@@ -550,6 +583,22 @@ function DeliveryPanel({
                 <span className="text-gray-400 ml-auto">
                   {new Date(d.createdAt).toLocaleString("tr-TR")}
                 </span>
+                {d.status !== "success" &&
+                  d.payloadPreview &&
+                  !d.payloadPreview.includes("…[truncated]") && (
+                    <button
+                      onClick={() => onRetry(d.id)}
+                      disabled={retryingId === d.id}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-60"
+                      title="Bu delivery'yi yeniden gönder"
+                    >
+                      <RotateCw
+                        size={10}
+                        className={retryingId === d.id ? "animate-spin" : ""}
+                      />
+                      {retryingId === d.id ? "Gönderiliyor..." : "Tekrar dene"}
+                    </button>
+                  )}
               </div>
               {d.errorMessage && (
                 <div className="mt-1 text-xs text-red-700 break-words">

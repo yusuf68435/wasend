@@ -131,7 +131,16 @@ export default function ApiKeysPage() {
           Public API v1 erişimi için Bearer token. Örn:{" "}
           <code className="bg-gray-100 px-1 rounded text-xs">
             POST /api/v1/messages/send
-          </code>
+          </code>{" "}
+          —{" "}
+          <a
+            href="/docs/api"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-green-600 underline"
+          >
+            API Dokümantasyonu
+          </a>
         </p>
       </div>
 

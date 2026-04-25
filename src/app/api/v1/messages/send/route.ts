@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { verifyApiKey, getClientIp } from "@/lib/api-key";
+import { checkApiKeyRateLimit, apiKeyRateLimitHeaders } from "@/lib/rate-limit";
 import { sendWhatsAppMessage, sendWhatsAppMedia } from "@/lib/whatsapp";
 import { v1SendMessageSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
@@ -16,6 +17,17 @@ export async function POST(request: Request) {
   });
   if (!auth) {
     return NextResponse.json({ error: "Yetkisiz — geçerli 'send' scope'lu API key gerekli" }, { status: 401 });
+  }
+
+  const rate = checkApiKeyRateLimit(auth.keyId);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      {
+        error: "Rate limit aşıldı",
+        retryAfterSec: rate.retryAfterSec,
+      },
+      { status: 429, headers: apiKeyRateLimitHeaders(rate) },
+    );
   }
 
   let raw: unknown;
