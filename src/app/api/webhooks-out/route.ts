@@ -24,6 +24,10 @@ export async function GET() {
       events: true,
       isActive: true,
       createdAt: true,
+      // Faz 8: health snapshot — UI'da kırmızı/yeşil göstergesi için
+      lastDeliveredAt: true,
+      lastStatusCode: true,
+      lastError: true,
     },
   });
   return NextResponse.json(hooks);

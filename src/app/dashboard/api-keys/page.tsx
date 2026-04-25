@@ -1,13 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2, Key, Copy, Check, AlertTriangle } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Key,
+  Copy,
+  Check,
+  AlertTriangle,
+  Activity,
+} from "lucide-react";
+
+type Scope = "read" | "send" | "write";
+const ALL_SCOPES: Scope[] = ["read", "send", "write"];
+
+const SCOPE_DESC: Record<Scope, string> = {
+  read: "GET endpoint'leri (kişi listesi, mesaj geçmişi)",
+  send: "Mesaj gönderimi, flow trigger",
+  write: "Kişi oluşturma/güncelleme",
+};
+
+const SCOPE_TONE: Record<Scope, string> = {
+  read: "bg-blue-50 text-blue-700 border-blue-200",
+  send: "bg-green-50 text-green-700 border-green-200",
+  write: "bg-purple-50 text-purple-700 border-purple-200",
+};
 
 interface ApiKey {
   id: string;
   name: string;
   prefix: string;
+  scopes: Scope[];
   lastUsedAt: string | null;
+  lastUsedIp: string | null;
+  usageCount: number;
   expiresAt: string | null;
   revokedAt: string | null;
   createdAt: string;
@@ -17,6 +43,7 @@ export default function ApiKeysPage() {
   const [keys, setKeys] = useState<ApiKey[]>([]);
   const [name, setName] = useState("");
   const [expiresInDays, setExpiresInDays] = useState<number | "">(365);
+  const [scopes, setScopes] = useState<Scope[]>([...ALL_SCOPES]);
   const [plaintext, setPlaintext] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,11 +54,21 @@ export default function ApiKeysPage() {
       .then(setKeys);
   }, []);
 
+  function toggleScope(s: Scope) {
+    setScopes((prev) =>
+      prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
+    );
+  }
+
   async function create(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setPlaintext(null);
-    const body: Record<string, unknown> = { name };
+    if (scopes.length === 0) {
+      setError("En az bir scope seçmelisin");
+      return;
+    }
+    const body: Record<string, unknown> = { name, scopes };
     if (typeof expiresInDays === "number" && expiresInDays > 0) {
       body.expiresInDays = expiresInDays;
     }
@@ -48,7 +85,22 @@ export default function ApiKeysPage() {
     }
     const k = await res.json();
     setPlaintext(k.plaintext);
-    setKeys((p) => [k, ...p]);
+    // Yeni key'i list'e prepend; UI alanları için varsayılan değerleri doldur.
+    setKeys((p) => [
+      {
+        id: k.id,
+        name: k.name,
+        prefix: k.prefix,
+        scopes: k.scopes ?? scopes,
+        lastUsedAt: null,
+        lastUsedIp: null,
+        usageCount: 0,
+        expiresAt: k.expiresAt ?? null,
+        revokedAt: null,
+        createdAt: k.createdAt ?? new Date().toISOString(),
+      },
+      ...p,
+    ]);
     setName("");
   }
 
@@ -128,9 +180,11 @@ export default function ApiKeysPage() {
         className="bg-white rounded-xl border border-gray-200 p-6 mb-6"
       >
         <h3 className="font-semibold text-gray-900 mb-4">Yeni Anahtar</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div className="col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">İsim</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              İsim
+            </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -155,6 +209,45 @@ export default function ApiKeysPage() {
             />
           </div>
         </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Scope (Erişim İzinleri)
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {ALL_SCOPES.map((s) => {
+              const active = scopes.includes(s);
+              return (
+                <label
+                  key={s}
+                  className={`flex items-start gap-2 p-3 border rounded-lg cursor-pointer transition ${
+                    active
+                      ? SCOPE_TONE[s]
+                      : "bg-white border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    onChange={() => toggleScope(s)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-mono font-semibold">{s}</div>
+                    <div className="text-xs text-gray-600 mt-0.5">
+                      {SCOPE_DESC[s]}
+                    </div>
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+          <p className="text-xs text-gray-500 mt-2">
+            En az bir scope seçilmeli. Sadece ihtiyacın olan izinleri ver — key
+            sızarsa hasarı sınırlar.
+          </p>
+        </div>
+
         <button
           type="submit"
           className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 inline-flex items-center gap-2"
@@ -170,10 +263,24 @@ export default function ApiKeysPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">İsim</th>
-                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Önek</th>
-                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Son Kullanım</th>
-                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">Durum</th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  İsim
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Önek
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Scope
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Kullanım
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Son Kullanım
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase">
+                  Durum
+                </th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -185,6 +292,32 @@ export default function ApiKeysPage() {
                     <code className="text-xs bg-gray-100 px-2 py-0.5 rounded">
                       {k.prefix}…
                     </code>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-1">
+                      {(k.scopes || []).map((s) => (
+                        <span
+                          key={s}
+                          className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                            SCOPE_TONE[s as Scope] ??
+                            "bg-gray-50 text-gray-600 border-gray-200"
+                          }`}
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-xs text-gray-600">
+                    <div className="inline-flex items-center gap-1">
+                      <Activity size={12} className="text-gray-400" />
+                      {(k.usageCount ?? 0).toLocaleString("tr-TR")}
+                    </div>
+                    {k.lastUsedIp && (
+                      <div className="text-[10px] text-gray-400 font-mono mt-0.5">
+                        {k.lastUsedIp}
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-xs text-gray-500">
                     {k.lastUsedAt

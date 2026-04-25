@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { apiKeyCreateSchema, formatZodError } from "@/lib/validation";
-import { generateApiKey } from "@/lib/api-key";
+import { generateApiKey, ALL_SCOPES } from "@/lib/api-key";
 
 async function getUserId() {
   const session = await getServerSession(authOptions);
@@ -21,13 +21,25 @@ export async function GET() {
       id: true,
       name: true,
       prefix: true,
+      scopes: true,
       lastUsedAt: true,
+      lastUsedIp: true,
+      usageCount: true,
       expiresAt: true,
       revokedAt: true,
       createdAt: true,
     },
   });
-  return NextResponse.json(keys);
+  // scopes: CSV → array
+  return NextResponse.json(
+    keys.map((k) => ({
+      ...k,
+      scopes: (k.scopes || "")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    })),
+  );
 }
 
 export async function POST(request: Request) {
@@ -52,11 +64,20 @@ export async function POST(request: Request) {
       ? new Date(Date.now() + parsed.data.expiresInDays * 86400000)
       : null;
 
+  // Scope normalize: validation şemasından gelen array'i CSV'ye çevir,
+  // verilmediyse tüm scope'lar varsayılan (geriye dönük uyumluluk).
+  const requestedScopes =
+    parsed.data.scopes && parsed.data.scopes.length > 0
+      ? Array.from(new Set(parsed.data.scopes))
+      : [...ALL_SCOPES];
+  const scopesCsv = requestedScopes.join(",");
+
   const key = await prisma.apiKey.create({
     data: {
       name: parsed.data.name,
       prefix,
       hash,
+      scopes: scopesCsv,
       expiresAt,
       userId,
     },
@@ -64,13 +85,18 @@ export async function POST(request: Request) {
       id: true,
       name: true,
       prefix: true,
+      scopes: true,
       expiresAt: true,
       createdAt: true,
     },
   });
 
   // Plaintext key is returned ONCE — never again.
-  return NextResponse.json({ ...key, plaintext });
+  return NextResponse.json({
+    ...key,
+    scopes: requestedScopes,
+    plaintext,
+  });
 }
 
 export async function DELETE(request: Request) {

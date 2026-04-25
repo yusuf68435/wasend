@@ -136,6 +136,10 @@ export const teamInviteSchema = z.object({
 export const apiKeyCreateSchema = z.object({
   name: z.string().min(1).max(100),
   expiresInDays: z.number().int().positive().max(3650).optional().nullable(),
+  scopes: z
+    .array(z.enum(["read", "send", "write"]))
+    .min(1, "En az bir scope seçilmeli")
+    .optional(),
 });
 
 export const outgoingWebhookSchema = z.object({

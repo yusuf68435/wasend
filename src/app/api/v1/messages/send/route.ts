@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyApiKey } from "@/lib/api-key";
+import { verifyApiKey, getClientIp } from "@/lib/api-key";
 import { sendWhatsAppMessage, sendWhatsAppMedia } from "@/lib/whatsapp";
 import { v1SendMessageSchema, formatZodError } from "@/lib/validation";
 import { dispatchWebhook } from "@/lib/outgoing-webhook";
@@ -10,9 +10,12 @@ import { decideRetry } from "@/lib/message-retry";
 export const maxDuration = 30;
 
 export async function POST(request: Request) {
-  const auth = await verifyApiKey(request.headers.get("authorization"));
+  const auth = await verifyApiKey(request.headers.get("authorization"), {
+    requireScope: "send",
+    ip: getClientIp(request) ?? undefined,
+  });
   if (!auth) {
-    return NextResponse.json({ error: "Yetkisiz — geçerli bir API key gerekli" }, { status: 401 });
+    return NextResponse.json({ error: "Yetkisiz — geçerli 'send' scope'lu API key gerekli" }, { status: 401 });
   }
 
   let raw: unknown;

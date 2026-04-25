@@ -340,7 +340,16 @@ model ApiKey {
   name       String
   prefix     String
   hash       String    @unique
+  // Faz 9: scope-based access control. Comma-separated list:
+  //   "read"  → GET endpoints (contacts list)
+  //   "send"  → message send + flow trigger
+  //   "write" → contact create/update
+  // Legacy keys: "read,send,write" (full access, backward compat)
+  scopes     String    @default("read,send,write")
   lastUsedAt DateTime?
+  // Faz 9: audit trail — son kullanım IP'si ve toplam istek sayısı
+  lastUsedIp String?
+  usageCount Int       @default(0)
   expiresAt  DateTime?
   revokedAt  DateTime?
   userId     String
@@ -359,12 +368,39 @@ model OutgoingWebhook {
   events      String
   isActive    Boolean  @default(true)
   userId      String
+  // Faz 8: hızlı health snapshot — son delivery sonucu
+  lastDeliveredAt   DateTime?
+  lastStatusCode    Int?
+  lastError         String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries  WebhookDelivery[]
 
   @@index([userId])
+}
+
+// Faz 8: customer'ın webhook entegrasyonunu debug edebilmesi için her
+// dispatch denemesinin kaydı. dispatchWebhook fire-and-forget olduğu için
+// async insert; başarısızlık ana akışı etkilemez.
+model WebhookDelivery {
+  id            String   @id @default(cuid())
+  webhookId     String
+  event         String
+  // success | failed | timeout | circuit_open
+  status        String
+  statusCode    Int?
+  responseTimeMs Int?
+  errorMessage  String?
+  // Payload preview — debug için ilk 2KB. Sensitive data çıkmasın diye truncate.
+  payloadPreview String?
+  createdAt     DateTime @default(now())
+
+  webhook       OutgoingWebhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId, createdAt])
+  @@index([webhookId, status])
 }
 
 model AdminAuditLog {

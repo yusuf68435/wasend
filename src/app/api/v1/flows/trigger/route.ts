@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { verifyApiKey } from "@/lib/api-key";
+import { verifyApiKey, getClientIp } from "@/lib/api-key";
 import { v1FlowTriggerSchema, formatZodError } from "@/lib/validation";
 import { parseGraph } from "@/lib/flow-engine";
 
@@ -8,9 +8,12 @@ import { parseGraph } from "@/lib/flow-engine";
 // the graph's start node; the next incoming message (or immediate webhook
 // tick) will advance it. For simplicity we don't run steps synchronously here.
 export async function POST(request: Request) {
-  const auth = await verifyApiKey(request.headers.get("authorization"));
+  const auth = await verifyApiKey(request.headers.get("authorization"), {
+    requireScope: "send",
+    ip: getClientIp(request) ?? undefined,
+  });
   if (!auth) {
-    return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
+    return NextResponse.json({ error: "Yetkisiz — 'send' scope gerekli" }, { status: 401 });
   }
 
   let raw: unknown;
