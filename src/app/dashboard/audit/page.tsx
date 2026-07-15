@@ -84,19 +84,20 @@ export default function AuditPage() {
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
 
-  async function load(action: string) {
-    setLoading(true);
-    const url = action ? `/api/audit?action=${action}` : "/api/audit";
-    const res = await fetch(url);
-    if (res.ok) {
-      const json = await res.json();
-      setLogs(json.logs);
-    }
-    setLoading(false);
-  }
-
   useEffect(() => {
-    load(filter);
+    let cancelled = false;
+    const url = filter ? `/api/audit?action=${filter}` : "/api/audit";
+    fetch(url)
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (!cancelled && json) setLogs(json.logs);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [filter]);
 
   return (
@@ -116,7 +117,11 @@ export default function AuditPage() {
         {FILTER_OPTIONS.map((o) => (
           <button
             key={o.value}
-            onClick={() => setFilter(o.value)}
+            onClick={() => {
+              if (o.value === filter) return;
+              setLoading(true);
+              setFilter(o.value);
+            }}
             className={
               "text-xs px-3 py-1.5 rounded-full border " +
               (filter === o.value

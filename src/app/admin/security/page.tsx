@@ -32,7 +32,8 @@ export default function SecurityPage() {
     const res = await fetch("/api/admin/2fa/enroll");
     setBusy(false);
     if (!res.ok) {
-      setMsg("Enroll başlatılamadı");
+      const data = await res.json().catch(() => ({}));
+      setMsg(data.error || "Enroll başlatılamadı");
       return;
     }
     const d = await res.json();
@@ -112,6 +113,9 @@ export default function SecurityPage() {
             </p>
             <form onSubmit={disable} className="flex gap-2">
               <input
+                id="disable-totp-code"
+                aria-label="2FA kapatma kodu"
+                autoComplete="one-time-code"
                 inputMode="numeric"
                 pattern="\d{6}"
                 maxLength={8}
@@ -160,6 +164,9 @@ export default function SecurityPage() {
             </div>
             <form onSubmit={confirmEnroll} className="flex gap-2">
               <input
+                id="confirm-totp-code"
+                aria-label="2FA kurulum onay kodu"
+                autoComplete="one-time-code"
                 inputMode="numeric"
                 pattern="\d{6}"
                 maxLength={8}

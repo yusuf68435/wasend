@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import { getTrustedClientIp } from "@/lib/client-ip";
 import { requireUserId, isResponse } from "@/lib/api-auth";
 import { getIyzicoClient, isIyzicoConfigured } from "@/lib/iyzico";
 import { PLAN_LIMITS, type Plan } from "@/lib/plan-limits";
@@ -77,7 +78,7 @@ export async function POST(request: Request) {
       email: user.email,
       identityNumber: "11111111111",
       registrationAddress: user.businessName || "WaSend müşterisi",
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0].trim() || "127.0.0.1",
+      ip: getTrustedClientIp(request.headers) ?? "127.0.0.1",
       city: "Istanbul",
       country: "Turkey",
       gsmNumber: user.phone || "+905555555555",

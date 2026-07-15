@@ -17,14 +17,15 @@ const STORAGE_KEY = "wsnd:onboarding-banner-dismissed";
 
 export function OnboardingReminderBanner() {
   const [skipped, setSkipped] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      sessionStorage.getItem(STORAGE_KEY) !== null,
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (sessionStorage.getItem(STORAGE_KEY)) {
-      setDismissed(true);
-      return;
-    }
+    if (sessionStorage.getItem(STORAGE_KEY)) return;
     fetch("/api/onboarding")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {

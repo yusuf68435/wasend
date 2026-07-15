@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 export interface AuditEntry {
   actorId: string;
@@ -52,9 +53,5 @@ export async function logTenantAction(entry: AuditEntry): Promise<void> {
 }
 
 export function getClientIp(headers: Headers): string | null {
-  const xf = headers.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0].trim();
-  const xr = headers.get("x-real-ip");
-  if (xr) return xr.trim();
-  return null;
+  return getTrustedClientIp(headers);
 }

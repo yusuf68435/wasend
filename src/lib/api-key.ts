@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const KEY_PREFIX = "ws_live_";
 
@@ -40,23 +41,8 @@ export interface VerifyOptions {
   ip?: string;
 }
 
-/**
- * Bir Request'ten en güvenilir client IP'yi çıkar.
- * - x-forwarded-for'un ilk değeri (proxy chain'de en sol = client)
- * - x-real-ip
- * - cf-connecting-ip (Cloudflare)
- */
 export function getClientIp(req: Request): string | null {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) {
-    const first = xff.split(",")[0]?.trim();
-    if (first) return first;
-  }
-  return (
-    req.headers.get("x-real-ip") ||
-    req.headers.get("cf-connecting-ip") ||
-    null
-  );
+  return getTrustedClientIp(req.headers);
 }
 
 export async function verifyApiKey(

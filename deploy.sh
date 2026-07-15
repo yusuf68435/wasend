@@ -183,13 +183,13 @@ fi
 
 # ---------- 9. Install deps + generate + push schema + build ----------
 log "NPM bağımlılıkları kuruluyor"
-sudo -u "$APP_USER" bash -lc "cd $APP_DIR && npm ci --no-audit --no-fund || npm install --no-audit --no-fund"
+sudo -u "$APP_USER" bash -lc "cd $APP_DIR && npm ci --no-audit --no-fund"
 
 log "Prisma client üretiliyor"
 sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='${DATABASE_URL}' npx prisma generate"
 
 log "Postgres schema push ediliyor (db push)"
-sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='${DATABASE_URL}' npx prisma db push --accept-data-loss"
+sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='${DATABASE_URL}' npx prisma db push"
 
 log "Next.js production build"
 sudo -u "$APP_USER" bash -lc "cd $APP_DIR && NODE_ENV=production npm run build"

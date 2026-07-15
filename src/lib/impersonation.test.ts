@@ -46,6 +46,15 @@ describe("impersonation token", () => {
     expect(decodeImpersonationToken(token, IP)).toBeNull();
   });
 
+  it("rejects a token issued implausibly far in the future", () => {
+    const futureTs = Date.now() + 5 * 60 * 1000;
+    const payload = `user-123.${futureTs}.${IP}`;
+    const sig = createHmac("sha256", process.env.NEXTAUTH_SECRET!)
+      .update(payload)
+      .digest("hex");
+    expect(decodeImpersonationToken(`${payload}.${sig}`, IP)).toBeNull();
+  });
+
   it("rejects cookie from different IP (/16 subnet mismatch)", () => {
     const token = encodeImpersonationToken("user-123", IP);
     expect(decodeImpersonationToken(token, OTHER_IP)).toBeNull();

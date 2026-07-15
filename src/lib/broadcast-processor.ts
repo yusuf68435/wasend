@@ -194,9 +194,6 @@ async function runBroadcast(
     : null;
   const useMedia = mediaType && broadcast.mediaUrl;
 
-  let sentCount = processed.filter((m) => m.status === "sent").length;
-  let failedCount = processed.filter((m) => m.status === "failed").length;
-
   for (const contact of contacts) {
     const start = Date.now();
     try {
@@ -232,7 +229,6 @@ async function runBroadcast(
             caption: useMedia ? broadcast.message : null,
           },
         });
-        sentCount++;
       } catch (dbErr) {
         // P2002 = composite unique ihlali = bu broadcast zaten aynı contact'a
         // gönderilmiş. Muhtemelen önceki denemeden kalmış. Sayma, devam et.
@@ -244,7 +240,6 @@ async function runBroadcast(
       console.error(`Broadcast send error for ${contact.phone}:`, reason);
       // Faz 4: transient ise retry kuyruğuna at, kalıcı ise direkt failed
       const decision = decideRetry(0, reason);
-      if (decision.status === "failed") failedCount++;
       try {
         await prisma.message.create({
           data: {

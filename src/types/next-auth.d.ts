@@ -23,6 +23,7 @@ declare module "next-auth/jwt" {
     plan?: string;
     role?: string;
     suspended?: boolean;
-    refreshedAt?: number;
+    passwordFingerprint?: string;
+    invalidated?: boolean;
   }
 }
