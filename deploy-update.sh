@@ -70,7 +70,7 @@ if [[ -n "$ADMIN_LIST" ]]; then
           url.port || "5432",
           decodeURIComponent(url.username),
           database,
-        ].join("\t"));
+        ].join("\t") + "\n");
       '
     )
     if [[ -z "$PG_HOST" || -z "$PG_PORT" || -z "$PG_USER" || -z "$PG_DB" ]]; then
