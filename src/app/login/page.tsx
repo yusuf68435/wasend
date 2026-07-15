@@ -5,37 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
-
-/**
- * Open-redirect koruması — `?next=` parametresi SADECE kendi domain'imize
- * ait, `/` ile başlayan, tek slash ile başlayan (protocol-relative `//evil`
- * veya `/\evil` formlarını engelle) path'lere izin verir. Diğer tüm durumlarda
- * default `/dashboard` kullanılır.
- */
-function safeNextPath(raw: string | null | undefined): string {
-  const DEFAULT = "/dashboard";
-  if (!raw) return DEFAULT;
-  // Hem decode öncesi hem sonrası kontrolü yap — attacker `%2f%2fevil.com`
-  // ile bypass denemesin.
-  let candidate: string;
-  try {
-    candidate = decodeURIComponent(raw);
-  } catch {
-    return DEFAULT;
-  }
-  // Tek `/` ile başlamalı
-  if (!candidate.startsWith("/")) return DEFAULT;
-  // Protocol-relative (`//evil.com`) veya backslash tricks (`/\evil.com`)
-  if (candidate.startsWith("//") || candidate.startsWith("/\\")) return DEFAULT;
-  // URL object ile parse — base koy, hostname değişmişse external
-  try {
-    const u = new URL(candidate, "https://wasend.tech");
-    if (u.hostname !== "wasend.tech") return DEFAULT;
-    return u.pathname + u.search + u.hash;
-  } catch {
-    return DEFAULT;
-  }
-}
+import { safeNextPath } from "@/lib/safe-next-path";
 
 function LoginForm() {
   const router = useRouter();
@@ -61,7 +31,9 @@ function LoginForm() {
 
     if (result?.error) {
       const err = result.error;
-      if (err.includes("silindi")) {
+      if (err.includes("doğrula")) {
+        setError("Giriş yapmadan önce e-posta adresinizi doğrulayın.");
+      } else if (err.includes("silindi")) {
         setError("Hesabınız silinmiş. Yeni hesap açmak için kayıt olun.");
       } else if (err.includes("askıya")) {
         setError(err);

@@ -14,6 +14,8 @@ import {
   type Edge,
   type Connection,
   type OnConnect,
+  type OnNodesChange,
+  type OnEdgesChange,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Save, Plus, ArrowLeft } from "lucide-react";
@@ -95,7 +97,6 @@ export default function FlowEditorPage() {
   // dirty=true yapar. save() sonrası dirty=false. beforeunload ve router
   // geri butonu dirty iken kullanıcıyı uyarır.
   const [dirty, setDirty] = useState(false);
-  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -147,19 +148,11 @@ export default function FlowEditorPage() {
           }
           setNodes(rfNodes);
           setEdges(rfEdges);
-          // İlk yükleme tamamlandı — bundan sonraki değişiklikler dirty sayar
-          queueMicrotask(() => setInitialized(true));
         } catch (e) {
           console.error("Graph parse error:", e);
         }
       });
   }, [id, setNodes, setEdges]);
-
-  // Dirty tracking — initialized olduktan sonra her nodes/edges değişimini yakala
-  useEffect(() => {
-    if (!initialized) return;
-    setDirty(true);
-  }, [nodes, edges, initialized]);
 
   // beforeunload — dirty iken tarayıcı kapanma / reload / harici link uyarısı
   useEffect(() => {
@@ -173,8 +166,35 @@ export default function FlowEditorPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirty]);
 
+  const handleNodesChange: OnNodesChange<Node<NodeData>> = useCallback(
+    (changes) => {
+      onNodesChange(changes);
+      if (
+        changes.some(
+          (change) => change.type !== "select" && change.type !== "dimensions",
+        )
+      ) {
+        setDirty(true);
+      }
+    },
+    [onNodesChange],
+  );
+
+  const handleEdgesChange: OnEdgesChange<Edge> = useCallback(
+    (changes) => {
+      onEdgesChange(changes);
+      if (changes.some((change) => change.type !== "select")) {
+        setDirty(true);
+      }
+    },
+    [onEdgesChange],
+  );
+
   const onConnect: OnConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    (params: Connection) => {
+      setEdges((eds) => addEdge(params, eds));
+      setDirty(true);
+    },
     [setEdges],
   );
 
@@ -195,6 +215,7 @@ export default function FlowEditorPage() {
       className: `px-3 py-2 rounded-lg border-2 ${NODE_COLORS[type]} text-xs font-medium min-w-[120px] text-center`,
     };
     setNodes((nds) => [...nds, n]);
+    setDirty(true);
   }
 
   function updateNodeData(nodeId: string, patch: Partial<NodeData>) {
@@ -203,6 +224,7 @@ export default function FlowEditorPage() {
         n.id === nodeId ? { ...n, data: { ...n.data, ...patch } as NodeData } : n,
       ),
     );
+    setDirty(true);
   }
 
   function serialize() {
@@ -352,8 +374,8 @@ export default function FlowEditorPage() {
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={handleNodesChange}
+            onEdgesChange={handleEdgesChange}
             onConnect={onConnect}
             onNodeClick={(_, n) => setSelectedId(n.id)}
             onPaneClick={() => setSelectedId(null)}
@@ -384,6 +406,7 @@ export default function FlowEditorPage() {
                   eds.filter((e) => e.source !== selected.id && e.target !== selected.id),
                 );
                 setSelectedId(null);
+                setDirty(true);
               }}
             />
           )}

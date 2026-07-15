@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { sendEmail, passwordResetEmail } from "@/lib/email";
 import { formatZodError } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const schema = z.object({
   email: z.string().email(),
@@ -14,10 +15,7 @@ const RESET_TOKEN_TTL_MIN = 30;
 
 export async function POST(request: Request) {
   // IP başı 5 istek / 15 dk — brute-force enumeration koruması
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
+  const ip = getTrustedClientIp(request.headers) ?? "unknown";
   const rl = checkRateLimit(`forgot:${ip}`, 5, 15 * 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json(

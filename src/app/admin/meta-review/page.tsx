@@ -99,7 +99,7 @@ export default function MetaReviewPage() {
             Meta App Review
           </h2>
           <p className="text-sm text-[#6e6e73] mt-1">
-            Meta'ya production access için submission öncesi readiness kontrolü.
+            Meta&apos;ya production access için submission öncesi readiness kontrolü.
           </p>
         </div>
         <button

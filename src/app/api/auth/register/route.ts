@@ -3,11 +3,11 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { isBootstrapAdminEmail } from "@/lib/admin-guard";
-import { sendEmail, emailVerificationEmail } from "@/lib/email";
+import { sendEmail, emailVerificationEmail, welcomeEmail } from "@/lib/email";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { formatZodError } from "@/lib/validation";
 import { verifyRecaptcha } from "@/lib/recaptcha";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const registerSchema = z.object({
   email: z.string().email("Geçerli bir e-posta girin").max(200),
@@ -21,13 +21,12 @@ const registerSchema = z.object({
   recaptchaToken: z.string().optional().nullable(),
 });
 
+class InviteUnavailableError extends Error {}
+
 export async function POST(request: Request) {
   try {
     // IP-bazlı rate limit (brute force + bot spam koruması)
-    const ip =
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
+    const ip = getTrustedClientIp(request.headers) ?? "unknown";
     const rl = checkRateLimit(`register:${ip}`, 5, 15 * 60 * 1000);
     if (!rl.allowed) {
       return NextResponse.json(
@@ -68,12 +67,23 @@ export async function POST(request: Request) {
     }
 
     let role = "OWNER";
-    let invite: { id: string; email: string; role: string; expiresAt: Date } | null =
-      null;
+    let invite: {
+      id: string;
+      email: string;
+      role: string;
+      expiresAt: Date;
+      usedAt: Date | null;
+    } | null = null;
     if (inviteToken) {
       invite = await prisma.teamInvite.findUnique({
         where: { token: inviteToken },
-        select: { id: true, email: true, role: true, expiresAt: true },
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          expiresAt: true,
+          usedAt: true,
+        },
       });
       if (!invite) {
         return NextResponse.json(
@@ -87,6 +97,12 @@ export async function POST(request: Request) {
           { status: 400 },
         );
       }
+      if (invite.usedAt) {
+        return NextResponse.json(
+          { error: "Bu davet daha önce kullanılmış" },
+          { status: 400 },
+        );
+      }
       if (invite.email.toLowerCase() !== email) {
         return NextResponse.json(
           { error: "Bu davet başka bir e-posta için oluşturulmuş" },
@@ -97,7 +113,6 @@ export async function POST(request: Request) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
-    const isSuperAdmin = isBootstrapAdminEmail(email);
 
     // Email verify token (raw, email ile gönderilir; DB'de sha256 hash'li saklanır)
     const rawVerifyToken = crypto.randomBytes(32).toString("base64url");
@@ -110,34 +125,45 @@ export async function POST(request: Request) {
     // sayılır (email eşleşmesi yapıldı). Yoksa emailVerifiedAt null bırakılır.
     const autoVerified = !!invite;
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        hashedPassword,
-        name,
-        businessName: businessName ?? null,
-        role,
-        isSuperAdmin,
-        emailVerifyToken: autoVerified ? null : verifyTokenHash,
-        emailVerifiedAt: autoVerified ? new Date() : null,
-      },
-    });
+    const userData = {
+      email,
+      hashedPassword,
+      name,
+      businessName: businessName ?? null,
+      role,
+      emailVerifyToken: autoVerified ? null : verifyTokenHash,
+      emailVerifiedAt: autoVerified ? new Date() : null,
+    };
 
-    if (invite) {
-      await prisma.teamInvite.update({
-        where: { id: invite.id },
-        data: { usedAt: new Date() },
-      });
-    }
+    const user = invite
+      ? await prisma.$transaction(async (tx) => {
+          const consumed = await tx.teamInvite.updateMany({
+            where: {
+              id: invite.id,
+              usedAt: null,
+              expiresAt: { gte: new Date() },
+            },
+            data: { usedAt: new Date() },
+          });
+          if (consumed.count !== 1) throw new InviteUnavailableError();
+          return tx.user.create({ data: userData });
+        })
+      : await prisma.user.create({ data: userData });
 
     // Email gönderimi (fire-and-forget, başarısızsa kayıt yine tamam — user resend edebilir)
+    const baseUrl =
+      process.env.NEXTAUTH_URL?.replace(/\/$/, "") || "https://wasend.tech";
     if (!autoVerified) {
-      const baseUrl =
-        process.env.NEXTAUTH_URL?.replace(/\/$/, "") || "https://wasend.tech";
       const verifyUrl = `${baseUrl}/verify-email?token=${rawVerifyToken}`;
       const tpl = emailVerificationEmail({ name, verifyUrl });
       sendEmail({ to: email, ...tpl }).catch((e) =>
         console.error("verify email failed:", e),
+      );
+    } else {
+      // Invite yoluyla auto-verified — direkt welcome yolla
+      const tpl = welcomeEmail({ name, dashboardUrl: baseUrl });
+      sendEmail({ to: email, ...tpl }).catch((e) =>
+        console.error("welcome email failed:", e),
       );
     }
 
@@ -148,6 +174,12 @@ export async function POST(request: Request) {
       requiresVerification: !autoVerified,
     });
   } catch (error) {
+    if (error instanceof InviteUnavailableError) {
+      return NextResponse.json(
+        { error: "Davet artık geçerli değil veya daha önce kullanılmış" },
+        { status: 409 },
+      );
+    }
     console.error("register error:", error);
     return NextResponse.json({ error: "Bir hata oluştu" }, { status: 500 });
   }

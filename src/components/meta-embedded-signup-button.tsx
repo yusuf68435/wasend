@@ -76,9 +76,15 @@ export function MetaEmbeddedSignupButton({
 
   useEffect(() => {
     if (!cfg?.enabled || !cfg.appId) return;
+    let active = true;
+    const markReady = () => {
+      if (active) setSdkReady(true);
+    };
     if (window.FB) {
-      setSdkReady(true);
-      return;
+      queueMicrotask(markReady);
+      return () => {
+        active = false;
+      };
     }
     // Lazy-load FB SDK
     window.fbAsyncInit = () => {
@@ -88,7 +94,7 @@ export function MetaEmbeddedSignupButton({
         xfbml: true,
         version: cfg.graphVersion || "v21.0",
       });
-      setSdkReady(true);
+      markReady();
     };
     const scr = document.createElement("script");
     scr.src = "https://connect.facebook.net/en_US/sdk.js";
@@ -96,6 +102,9 @@ export function MetaEmbeddedSignupButton({
     scr.defer = true;
     scr.crossOrigin = "anonymous";
     document.body.appendChild(scr);
+    return () => {
+      active = false;
+    };
   }, [cfg]);
 
   function start() {

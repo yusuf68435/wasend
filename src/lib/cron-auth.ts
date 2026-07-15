@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 export interface CronAuthResult {
   ok: boolean;
@@ -55,10 +56,7 @@ export function verifyCronAuth(request: Request): CronAuthResult {
   }
 
   // IP tabanlı rate limit (brute force ve DoS koruması)
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
+  const ip = getTrustedClientIp(request.headers) ?? "unknown";
   const rl = checkRateLimit(`cron:${ip}`, 20, 60_000);
   if (!rl.allowed) {
     return {

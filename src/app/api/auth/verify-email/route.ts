@@ -2,6 +2,8 @@ import crypto from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sendEmail, welcomeEmail } from "@/lib/email";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 /**
  * Email doğrulama endpoint'i.
@@ -11,10 +13,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
  * emailVerifiedAt set + token temizle.
  */
 export async function GET(request: Request) {
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
+  const ip = getTrustedClientIp(request.headers) ?? "unknown";
   const rl = checkRateLimit(`verify:${ip}`, 20, 15 * 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json(
@@ -33,7 +32,7 @@ export async function GET(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { emailVerifyToken: hash },
-    select: { id: true, emailVerifiedAt: true },
+    select: { id: true, email: true, name: true, emailVerifiedAt: true },
   });
 
   if (!user) {
@@ -47,13 +46,31 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, alreadyVerified: true });
   }
 
-  await prisma.user.update({
-    where: { id: user.id },
+  const verified = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      emailVerifyToken: hash,
+      emailVerifiedAt: null,
+    },
     data: {
       emailVerifiedAt: new Date(),
       emailVerifyToken: null,
     },
   });
+  if (verified.count !== 1) {
+    return NextResponse.json(
+      { error: "Bağlantı daha önce kullanılmış" },
+      { status: 409 },
+    );
+  }
+
+  // İlk doğrulamadan sonra welcome email (fire-and-forget)
+  const baseUrl =
+    process.env.NEXTAUTH_URL?.replace(/\/$/, "") || "https://wasend.tech";
+  const tpl = welcomeEmail({ name: user.name, dashboardUrl: baseUrl });
+  sendEmail({ to: user.email, ...tpl }).catch((e) =>
+    console.error("welcome email failed:", e),
+  );
 
   return NextResponse.json({ success: true });
 }

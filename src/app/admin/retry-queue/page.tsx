@@ -136,7 +136,7 @@ export default function AdminRetryQueuePage() {
           Retry Queue
         </h2>
         <p className="text-sm text-[#6e6e73] mt-1">
-          Geçici hatalardan dolayı yeniden denenmeyi bekleyen mesajlar (15 sn'de
+          Geçici hatalardan dolayı yeniden denenmeyi bekleyen mesajlar (15 sn&apos;de
           bir otomatik yenilenir).
         </p>
       </div>

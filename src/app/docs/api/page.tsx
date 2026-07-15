@@ -166,7 +166,7 @@ export default function ApiDocsPage() {
               Rate limit
             </a>
             <a href="#endpoints" className="hover:text-gray-900">
-              Endpoint'ler
+              Endpoint&apos;ler
             </a>
             <a href="#webhooks" className="hover:text-gray-900">
               Webhooks
@@ -204,7 +204,7 @@ export default function ApiDocsPage() {
             >
               Dashboard → API Anahtarları
             </Link>
-            'ndan oluşturun. Plain text key sadece bir kez gösterilir; kaybederseniz
+            &apos;ndan oluşturun. Plain text key sadece bir kez gösterilir; kaybederseniz
             yeni bir anahtar oluşturmanız gerekir.
           </p>
           <CopyBlock
@@ -215,7 +215,7 @@ export default function ApiDocsPage() {
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-900 inline-flex items-start gap-2">
             <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
             <span>
-              API key'i hiçbir zaman istemci tarafına (browser, mobile app) koymayın.
+              API key&apos;i hiçbir zaman istemci tarafına (browser, mobile app) koymayın.
               Sadece sunucu tarafı entegrasyonlarda kullanın.
             </span>
           </div>
@@ -227,9 +227,9 @@ export default function ApiDocsPage() {
             <Shield size={20} /> Scope (Erişim İzinleri)
           </h2>
           <p className="text-gray-700 mb-4">
-            Her API key bir veya birden fazla scope ile oluşturulur. Endpoint'ler
+            Her API key bir veya birden fazla scope ile oluşturulur. Endpoint&apos;ler
             belirli scope ister; eksikse <code>401</code> döner. Sadece ihtiyacınız
-            olan scope'u verin — key sızarsa hasarı sınırlar.
+            olan scope&apos;u verin — key sızarsa hasarı sınırlar.
           </p>
           <div className="grid md:grid-cols-3 gap-3">
             {SCOPES.map((s) => (
@@ -295,7 +295,7 @@ export default function ApiDocsPage() {
                 <tr>
                   <td className="px-4 py-2 font-mono text-xs">Retry-After</td>
                   <td className="px-4 py-2 text-gray-600">
-                    Sadece 429'da — kaç saniye sonra tekrar denemek mantıklı
+                    Sadece 429&apos;da — kaç saniye sonra tekrar denemek mantıklı
                   </td>
                 </tr>
               </tbody>
@@ -306,7 +306,7 @@ export default function ApiDocsPage() {
         {/* Endpoints */}
         <section id="endpoints">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 inline-flex items-center gap-2">
-            <Send size={20} /> Endpoint'ler
+            <Send size={20} /> Endpoint&apos;ler
           </h2>
           {Object.entries(ENDPOINTS).map(([group, eps]) => (
             <div key={group} className="mb-8">
@@ -358,10 +358,10 @@ export default function ApiDocsPage() {
         {/* Webhooks */}
         <section id="webhooks">
           <h2 className="text-2xl font-bold text-gray-900 mb-4 inline-flex items-center gap-2">
-            <Code size={20} /> Webhook'lar (Outgoing)
+            <Code size={20} /> Webhook&apos;lar (Outgoing)
           </h2>
           <p className="text-gray-700 mb-3">
-            Olaylar tetiklendiğinde WaSend, dashboard'da yapılandırdığınız URL'lere
+            Olaylar tetiklendiğinde WaSend, dashboard&apos;da yapılandırdığınız URL&apos;lere
             HMAC-SHA256 imzalı POST gönderir. İmzayı doğrulayın:
           </p>
           <CopyBlock
@@ -384,11 +384,11 @@ app.post("/wasend-webhook", express.raw({ type: "*/*" }), (req, res) => {
 });`}
           />
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
-            <strong>İpucu:</strong> Endpoint'iniz 5 saniyeden uzun sürerse veya
+            <strong>İpucu:</strong> Endpoint&apos;iniz 5 saniyeden uzun sürerse veya
             HTTP 5xx dönerse otomatik retry kuyruğuna alınır. Son 60 saniyede
             5+ başarısızlık olursa circuit breaker 5 dakika devreye girer
-            (diğer tenant'ların etkilenmemesi için). Manuel retry için
-            dashboard → Webhooks → "Tekrar dene" butonu.
+            (diğer tenant&apos;ların etkilenmemesi için). Manuel retry için
+            dashboard → Webhooks → &quot;Tekrar dene&quot; butonu.
           </div>
         </section>
 
@@ -417,7 +417,7 @@ app.post("/wasend-webhook", express.raw({ type: "*/*" }), (req, res) => {
                 <tr>
                   <td className="px-4 py-2 font-mono">400</td>
                   <td className="px-4 py-2 text-gray-600">
-                    Validasyon hatası — JSON gövdesini ve scope'u kontrol edin
+                    Validasyon hatası — JSON gövdesini ve scope&apos;u kontrol edin
                   </td>
                 </tr>
                 <tr>

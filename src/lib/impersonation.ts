@@ -1,5 +1,6 @@
 import { cookies, headers } from "next/headers";
 import { createHmac, timingSafeEqual } from "crypto";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 /**
  * Super admin "impersonate as" — bir tenant'ın hesabına kontrollü geçici erişim.
@@ -16,6 +17,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 export const IMPERSONATION_COOKIE = "wasend_impersonate_as";
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
+const MAX_CLOCK_SKEW_MS = 60 * 1000;
 
 function secret(): string {
   const s = process.env.NEXTAUTH_SECRET;
@@ -35,9 +37,7 @@ function sign(payload: string): string {
  */
 async function getClientIpHash(): Promise<string> {
   const h = await headers();
-  const xff = h.get("x-forwarded-for") || "";
-  const xri = h.get("x-real-ip") || "";
-  const raw = (xff.split(",")[0] || xri || "unknown").trim();
+  const raw = getTrustedClientIp(h) ?? "unknown";
 
   let bucket = raw;
   if (raw.includes(":")) {
@@ -78,7 +78,8 @@ export function decodeImpersonationToken(
 
   const issuedAt = Number(tsStr);
   if (!Number.isFinite(issuedAt)) return null;
-  if (Date.now() - issuedAt > MAX_AGE_MS) return null;
+  const age = Date.now() - issuedAt;
+  if (age < -MAX_CLOCK_SKEW_MS || age > MAX_AGE_MS) return null;
 
   // IP binding — farklı /16 subnet'ten geliyorsa cookie geçersiz.
   const currBuf = Buffer.from(currentIpHash, "hex");

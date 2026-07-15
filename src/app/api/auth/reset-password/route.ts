@@ -5,6 +5,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { formatZodError } from "@/lib/validation";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const schema = z.object({
   token: z.string().min(16).max(200),
@@ -16,10 +17,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   // Token brute-force koruması: IP başı 20 istek / 15 dk
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    request.headers.get("x-real-ip") ||
-    "unknown";
+  const ip = getTrustedClientIp(request.headers) ?? "unknown";
   const rl = checkRateLimit(`reset:${ip}`, 20, 15 * 60 * 1000);
   if (!rl.allowed) {
     return NextResponse.json(
@@ -73,14 +71,26 @@ export async function POST(request: Request) {
 
   const hashedPassword = await bcrypt.hash(parsed.data.password, 12);
 
-  await prisma.user.update({
-    where: { id: user.id },
+  const consumed = await prisma.user.updateMany({
+    where: {
+      id: user.id,
+      passwordResetToken: tokenHash,
+      passwordResetExpiresAt: { gte: new Date() },
+      suspended: false,
+      deletedAt: null,
+    },
     data: {
       hashedPassword,
       passwordResetToken: null,
       passwordResetExpiresAt: null,
     },
   });
+  if (consumed.count !== 1) {
+    return NextResponse.json(
+      { error: "Bağlantı daha önce kullanılmış veya süresi dolmuş" },
+      { status: 409 },
+    );
+  }
 
   return NextResponse.json({ success: true });
 }

@@ -1,4 +1,8 @@
-import { authenticator } from "otplib";
+import {
+  generateSecret as createSecret,
+  generateURI,
+  verify,
+} from "otplib";
 import QRCode from "qrcode";
 
 /**
@@ -6,18 +10,24 @@ import QRCode from "qrcode";
  * otplib RFC 6238 standardını kullanır, 30 saniyelik pencereler.
  */
 
-authenticator.options = { window: 1 }; // ±1 pencere (60s tolerance) — saat kayması için
-
 export function generateSecret(): string {
-  return authenticator.generateSecret();
+  return createSecret();
 }
 
-export function verifyToken(token: string, secret: string): boolean {
+export async function verifyToken(
+  token: string,
+  secret: string,
+): Promise<boolean> {
   if (!token || !secret) return false;
   const clean = token.replace(/\s/g, "");
   if (!/^\d{6}$/.test(clean)) return false;
   try {
-    return authenticator.verify({ token: clean, secret });
+    const result = await verify({
+      token: clean,
+      secret,
+      epochTolerance: 30,
+    });
+    return result.valid;
   } catch {
     return false;
   }
@@ -28,7 +38,7 @@ export async function otpauthUrl(
   secret: string,
   issuer = "WaSend Admin",
 ): Promise<string> {
-  return authenticator.keyuri(email, issuer, secret);
+  return generateURI({ issuer, label: email, secret });
 }
 
 export async function qrDataUrl(otpauth: string): Promise<string> {

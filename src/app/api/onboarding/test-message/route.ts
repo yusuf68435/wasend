@@ -18,6 +18,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { formatZodError } from "@/lib/validation";
 import { resolveWACredentials } from "@/lib/wa-credentials";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const bodySchema = z.object({
   to: z
@@ -32,8 +33,7 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "Yetkisiz" }, { status: 401 });
 
   // Rate limit — 5 test/dk
-  const xff = req.headers.get("x-forwarded-for") || "";
-  const ip = (xff.split(",")[0] || req.headers.get("x-real-ip") || "unknown").trim();
+  const ip = getTrustedClientIp(req.headers) ?? "unknown";
   const rl = checkRateLimit(`onboarding-test:${ip}:${userId}`, 5, 60_000);
   if (!rl.allowed) {
     return NextResponse.json(

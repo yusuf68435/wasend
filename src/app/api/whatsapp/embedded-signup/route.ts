@@ -31,6 +31,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { z } from "zod";
 import { formatZodError } from "@/lib/validation";
 import { randomBytes } from "crypto";
+import { getTrustedClientIp } from "@/lib/client-ip";
 
 const bodySchema = z.object({
   code: z.string().min(10).max(2000),
@@ -52,8 +53,7 @@ export async function POST(req: Request) {
   }
 
   // Rate-limit — 10 deneme/saat
-  const xff = req.headers.get("x-forwarded-for") || "";
-  const ip = (xff.split(",")[0] || req.headers.get("x-real-ip") || "unknown").trim();
+  const ip = getTrustedClientIp(req.headers) ?? "unknown";
   const rl = checkRateLimit(`es:${userId}:${ip}`, 10, 3600_000);
   if (!rl.allowed) {
     return NextResponse.json(

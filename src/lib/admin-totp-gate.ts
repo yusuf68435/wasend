@@ -13,6 +13,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 const COOKIE_NAME = "wasend_admin_2fa";
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
+const MAX_CLOCK_SKEW_MS = 60 * 1000;
 
 function secret(): string {
   const s = process.env.NEXTAUTH_SECRET;
@@ -34,7 +35,8 @@ export function verifyTotpCookie(raw: string, userId: string): boolean {
   if (uid !== userId) return false;
   const ts = Number(tsStr);
   if (!Number.isFinite(ts)) return false;
-  if (Date.now() - ts > MAX_AGE_MS) return false;
+  const age = Date.now() - ts;
+  if (age < -MAX_CLOCK_SKEW_MS || age > MAX_AGE_MS) return false;
   const expected = createHmac("sha256", secret()).update(`${uid}.${tsStr}`).digest("hex");
   const a = Buffer.from(sig, "hex");
   const b = Buffer.from(expected, "hex");

@@ -7,7 +7,7 @@
 # Yaptıkları:
 #   - .env'i korur (sen değiştirmediysen)
 #   - schema.prisma'yı PostgreSQL'e çevirir
-#   - npm install + prisma generate + db push
+#   - npm ci + prisma generate + güvenli db push
 #   - next build (production)
 #   - ADMIN_EMAILS'te listelenen kullanıcıları süper admin yapar
 #   - systemd servisini restart eder
@@ -42,15 +42,14 @@ DB_URL=$(grep ^DATABASE_URL "$APP_DIR/.env" | cut -d= -f2- | tr -d '"')
 if [[ -z "$DB_URL" ]]; then err "DATABASE_URL boş"; fi
 
 # 4) Dependencies + prisma generate + schema push
-log "npm install"
-sudo -u "$APP_USER" bash -lc "cd $APP_DIR && npm ci --no-audit --no-fund" \
-  || sudo -u "$APP_USER" bash -lc "cd $APP_DIR && npm install --no-audit --no-fund"
+log "npm ci"
+sudo -u "$APP_USER" bash -lc "cd $APP_DIR && npm ci --no-audit --no-fund"
 
 log "prisma generate"
 sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='$DB_URL' npx prisma generate"
 
 log "prisma db push (yeni kolonlar/tablolar senkronize)"
-sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='$DB_URL' npx prisma db push --accept-data-loss"
+sudo -u "$APP_USER" bash -lc "cd $APP_DIR && DATABASE_URL='$DB_URL' npx prisma db push"
 
 # 5) Next.js build
 log "next build (production)"
@@ -62,14 +61,32 @@ if [[ -n "$ADMIN_LIST" ]]; then
   log "ADMIN_EMAILS işleniyor: $ADMIN_LIST"
   PG_PW=$(cat /etc/wasend_pg_password 2>/dev/null || true)
   if [[ -n "$PG_PW" ]]; then
+    IFS=$'\t' read -r PG_HOST PG_PORT PG_USER PG_DB < <(
+      DATABASE_URL="$DB_URL" node -e '
+        const url = new URL(process.env.DATABASE_URL);
+        const database = decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+        process.stdout.write([
+          url.hostname,
+          url.port || "5432",
+          decodeURIComponent(url.username),
+          database,
+        ].join("\t") + "\n");
+      '
+    )
+    if [[ -z "$PG_HOST" || -z "$PG_PORT" || -z "$PG_USER" || -z "$PG_DB" ]]; then
+      err "DATABASE_URL PostgreSQL bağlantı bilgilerine ayrıştırılamadı"
+    fi
     IFS=',' read -ra EMAILS <<< "$ADMIN_LIST"
     for EMAIL in "${EMAILS[@]}"; do
       CLEAN=$(echo "$EMAIL" | xargs)
       [[ -z "$CLEAN" ]] && continue
-      PGPASSWORD="$PG_PW" psql -h 127.0.0.1 -p 5433 -U wasend -d wasend -c \
-        "UPDATE \"User\" SET \"isSuperAdmin\" = true WHERE email = '$CLEAN' RETURNING email;" \
-        2>/dev/null || warn "  $CLEAN: kullanıcı bulunamadı (kayıt olduktan sonra tekrar çalıştır)"
+      PGPASSWORD="$PG_PW" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
+        -v admin_email="$CLEAN" -c \
+        "UPDATE \"User\" SET \"isSuperAdmin\" = true WHERE email = :'admin_email' AND \"emailVerifiedAt\" IS NOT NULL AND suspended = false AND \"deletedAt\" IS NULL RETURNING email;" \
+        2>/dev/null || warn "  $CLEAN: doğrulanmış aktif kullanıcı bulunamadı"
     done
+  else
+    warn "/etc/wasend_pg_password bulunamadı; ADMIN_EMAILS atlandı"
   fi
 fi
 

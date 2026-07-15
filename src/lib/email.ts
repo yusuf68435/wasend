@@ -59,7 +59,7 @@ async function sendViaSmtp(
   from: string,
 ): Promise<{ ok: boolean; id?: string; error?: string }> {
   try {
-    const nodemailer = await import("nodemailer");
+    const nodemailer = await import("nodemailer-secure");
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT || "587"),
@@ -175,6 +175,79 @@ export function emailVerificationEmail(params: {
   </p>
   <p style="color:#888;font-size:13px;margin-top:32px">
     Kayıt olmadıysan bu e-postayı görmezden gelebilirsin.
+  </p>
+  <p style="color:#aaa;font-size:12px;margin-top:24px;border-top:1px solid #eee;padding-top:16px">
+    — WaSend Ekibi
+  </p>
+</body></html>`;
+  return { subject, html, text };
+}
+
+export function welcomeEmail(params: {
+  name: string;
+  dashboardUrl: string;
+}): { subject: string; html: string; text: string } {
+  const { name, dashboardUrl } = params;
+  const subject = "WaSend'e hoş geldin!";
+  const text =
+    `Merhaba ${name},\n\n` +
+    `WaSend ailesine hoş geldin! 14 günlük ücretsiz deneme süren başladı.\n\n` +
+    `İlk adım olarak WhatsApp Business API bağlantını kurman gerekiyor. ` +
+    `Settings sayfasında 6 adımlı görsel rehber var, 15 dakikada bitirebilirsin:\n\n` +
+    `${dashboardUrl}/dashboard/settings\n\n` +
+    `Bir sorunda takılırsan /dashboard/support üzerinden bize yaz, 1 iş günü içinde döneriz.\n\n` +
+    `— WaSend Ekibi`;
+  const html = `
+<!DOCTYPE html><html><body style="font-family:-apple-system,sans-serif;max-width:600px;margin:auto;padding:24px;color:#222">
+  <h2 style="color:#16a34a;margin:0 0 8px">WaSend</h2>
+  <p style="color:#555;margin:0 0 24px">Hoş geldin!</p>
+  <p>Merhaba <strong>${escapeHtml(name)}</strong>,</p>
+  <p>WaSend ailesine hoş geldin! <strong>14 günlük ücretsiz</strong> deneme süren başladı.</p>
+  <p>İlk adım: WhatsApp Business API bağlantını kur. Settings sayfasında 6 adımlı görsel rehber seni yönlendirir:</p>
+  <p style="margin:28px 0">
+    <a href="${escapeHtml(dashboardUrl)}/dashboard/settings" style="background:#16a34a;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:500;display:inline-block">
+      Kuruluma Başla
+    </a>
+  </p>
+  <p style="color:#666;font-size:14px">
+    Takılırsan: <a href="${escapeHtml(dashboardUrl)}/dashboard/support" style="color:#16a34a">Destek talebi aç</a> — 1 iş günü dönüş.
+  </p>
+  <p style="color:#aaa;font-size:12px;margin-top:32px;border-top:1px solid #eee;padding-top:16px">
+    — WaSend Ekibi
+  </p>
+</body></html>`;
+  return { subject, html, text };
+}
+
+export function setupReminderEmail(params: {
+  name: string;
+  dashboardUrl: string;
+  daysElapsed: number;
+}): { subject: string; html: string; text: string } {
+  const { name, dashboardUrl, daysElapsed } = params;
+  const subject = "WhatsApp bağlantını henüz kurmadın";
+  const text =
+    `Merhaba ${name},\n\n` +
+    `${daysElapsed} gün önce WaSend'e kayıt oldun ama henüz WhatsApp bağlantını kurmadın.\n\n` +
+    `5-15 dakikalık bir kurulum — Settings sayfasındaki rehber adım adım anlatıyor:\n\n` +
+    `${dashboardUrl}/dashboard/settings\n\n` +
+    `Sorunla karşılaşırsan destek/dashboard/support'tan yaz, hemen yardımcı olalım.\n\n` +
+    `Bu hatırlatmayı almak istemiyorsan hesap ayarlarından e-posta tercihlerini kapatabilirsin.\n\n` +
+    `— WaSend Ekibi`;
+  const html = `
+<!DOCTYPE html><html><body style="font-family:-apple-system,sans-serif;max-width:600px;margin:auto;padding:24px;color:#222">
+  <h2 style="color:#16a34a;margin:0 0 8px">WaSend</h2>
+  <p style="color:#555;margin:0 0 24px">Kuruluma devam edelim mi?</p>
+  <p>Merhaba <strong>${escapeHtml(name)}</strong>,</p>
+  <p>${daysElapsed} gün önce WaSend'e kayıt oldun ama henüz <strong>WhatsApp bağlantını kurmadın</strong>. WhatsApp credentials'ı olmadan otomatik cevap ve toplu mesaj çalışmıyor.</p>
+  <p>5-15 dakikada biten basit bir kurulum. Rehber adım adım anlatır:</p>
+  <p style="margin:28px 0">
+    <a href="${escapeHtml(dashboardUrl)}/dashboard/settings" style="background:#16a34a;color:white;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:500;display:inline-block">
+      Şimdi Kur
+    </a>
+  </p>
+  <p style="color:#888;font-size:13px">
+    Sorun yaşıyorsan: <a href="${escapeHtml(dashboardUrl)}/dashboard/support" style="color:#16a34a">Destek talebi</a>
   </p>
   <p style="color:#aaa;font-size:12px;margin-top:24px;border-top:1px solid #eee;padding-top:16px">
     — WaSend Ekibi

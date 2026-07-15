@@ -3,11 +3,12 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shield } from "lucide-react";
+import { safeNextPath } from "@/lib/safe-next-path";
 
 function VerifyForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next") || "/admin";
+  const next = safeNextPath(searchParams?.get("next"), "/admin");
   const [token, setToken] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -47,6 +48,9 @@ function VerifyForm() {
             </div>
           )}
           <input
+            id="totp-code"
+            aria-label="Authenticator kodu"
+            autoComplete="one-time-code"
             autoFocus
             inputMode="numeric"
             pattern="\d{6}"

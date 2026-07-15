@@ -2,14 +2,10 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-
-// JWT token'ında cache'lenen alanlar — her istekte DB hit etmemek için.
-// 2 dakikada bir DB'den tazelenir. Daha önce 10 dakikaydı; suspend/plan
-// değişikliği (özellikle security incident senaryoları) 10 dk gecikmeyle
-// propagate oluyordu. 2 dk tipik bir API request oranında ~DB hit/oturum
-// olarak kabul edilebilir maliyet getirir ama admin bir kullanıcıyı
-// suspend ettiğinde çok daha hızlı kilitlenir.
-const JWT_REFRESH_INTERVAL_MS = 2 * 60 * 1000;
+import {
+  passwordFingerprint,
+  shouldInvalidateSession,
+} from "@/lib/session-security";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -40,6 +36,9 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isValid) return null;
+        if (!user.emailVerifiedAt) {
+          throw new Error("E-posta adresinizi doğrulayın.");
+        }
 
         // Fire-and-forget lastSeenAt update
         prisma.user
@@ -55,60 +54,62 @@ export const authOptions: NextAuthOptions = {
     signIn: "/login",
   },
   callbacks: {
-    async jwt({ token, user, trigger }) {
-      // İlk login'de user var — profile alanlarını cache'e al
+    async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            isSuperAdmin: true,
-            plan: true,
-            suspended: true,
-            role: true,
-          },
-        });
-        token.isSuperAdmin = dbUser?.isSuperAdmin ?? false;
-        token.plan = dbUser?.plan ?? "STARTER";
-        token.suspended = dbUser?.suspended ?? false;
-        token.role = dbUser?.role ?? "OWNER";
-        token.refreshedAt = Date.now();
+        token.invalidated = false;
+        token.passwordFingerprint = undefined;
+      }
+
+      if (token.invalidated) return token;
+
+      const id = typeof token.id === "string" ? token.id : "";
+      if (!id) {
+        token.invalidated = true;
         return token;
       }
 
-      // Token update tetiklendiyse (client-side update()) veya
-      // 10 dakikadan eski ise DB'den tazele
-      const refreshedAt = Number(token.refreshedAt ?? 0);
-      const isStale = Date.now() - refreshedAt > JWT_REFRESH_INTERVAL_MS;
-
-      if (trigger === "update" || isStale) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: {
-            isSuperAdmin: true,
-            plan: true,
-            suspended: true,
-            role: true,
-          },
-        });
-        if (dbUser) {
-          token.isSuperAdmin = dbUser.isSuperAdmin;
-          token.plan = dbUser.plan;
-          token.suspended = dbUser.suspended;
-          token.role = dbUser.role;
-          token.refreshedAt = Date.now();
-        }
+      // Security-sensitive account state is refreshed for every session read.
+      // This immediately revokes suspended/deleted/password-reset sessions and
+      // prevents stale super-admin claims from surviving a demotion.
+      const dbUser = await prisma.user.findUnique({
+        where: { id },
+        select: {
+          isSuperAdmin: true,
+          plan: true,
+          suspended: true,
+          deletedAt: true,
+          emailVerifiedAt: true,
+          role: true,
+          hashedPassword: true,
+        },
+      });
+      const currentFingerprint = dbUser
+        ? passwordFingerprint(dbUser.hashedPassword)
+        : "";
+      if (!dbUser || shouldInvalidateSession(dbUser, token.passwordFingerprint)) {
+        token.invalidated = true;
+        token.isSuperAdmin = false;
+        token.suspended = true;
+        return token;
       }
+
+      token.isSuperAdmin = dbUser.isSuperAdmin;
+      token.plan = dbUser.plan;
+      token.suspended = false;
+      token.role = dbUser.role;
+      token.passwordFingerprint = currentFingerprint;
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         const u = session.user as SessionUser;
-        u.id = token.id as string;
-        u.isSuperAdmin = Boolean(token.isSuperAdmin);
+        const invalidated = Boolean(token.invalidated);
+        u.id = invalidated ? "" : (token.id as string);
+        u.isSuperAdmin = invalidated ? false : Boolean(token.isSuperAdmin);
         u.plan = (token.plan as string) ?? "STARTER";
         u.role = (token.role as string) ?? "OWNER";
-        u.suspended = Boolean(token.suspended);
+        u.suspended = invalidated || Boolean(token.suspended);
       }
       return session;
     },
