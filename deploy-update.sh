@@ -61,11 +61,26 @@ if [[ -n "$ADMIN_LIST" ]]; then
   log "ADMIN_EMAILS işleniyor: $ADMIN_LIST"
   PG_PW=$(cat /etc/wasend_pg_password 2>/dev/null || true)
   if [[ -n "$PG_PW" ]]; then
+    IFS=$'\t' read -r PG_HOST PG_PORT PG_USER PG_DB < <(
+      DATABASE_URL="$DB_URL" node -e '
+        const url = new URL(process.env.DATABASE_URL);
+        const database = decodeURIComponent(url.pathname.replace(/^\/+/, ""));
+        process.stdout.write([
+          url.hostname,
+          url.port || "5432",
+          decodeURIComponent(url.username),
+          database,
+        ].join("\t"));
+      '
+    )
+    if [[ -z "$PG_HOST" || -z "$PG_PORT" || -z "$PG_USER" || -z "$PG_DB" ]]; then
+      err "DATABASE_URL PostgreSQL bağlantı bilgilerine ayrıştırılamadı"
+    fi
     IFS=',' read -ra EMAILS <<< "$ADMIN_LIST"
     for EMAIL in "${EMAILS[@]}"; do
       CLEAN=$(echo "$EMAIL" | xargs)
       [[ -z "$CLEAN" ]] && continue
-      PGPASSWORD="$PG_PW" psql -h 127.0.0.1 -p 5432 -U wasend -d wasend \
+      PGPASSWORD="$PG_PW" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" \
         -v admin_email="$CLEAN" -c \
         "UPDATE \"User\" SET \"isSuperAdmin\" = true WHERE email = :'admin_email' AND \"emailVerifiedAt\" IS NOT NULL AND suspended = false AND \"deletedAt\" IS NULL RETURNING email;" \
         2>/dev/null || warn "  $CLEAN: doğrulanmış aktif kullanıcı bulunamadı"
