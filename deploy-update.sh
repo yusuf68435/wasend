@@ -59,14 +59,20 @@ sudo -u "$APP_USER" bash -lc "cd $APP_DIR && NODE_ENV=production npm run build"
 ADMIN_LIST=$(grep ^ADMIN_EMAILS "$APP_DIR/.env" | cut -d= -f2- | tr -d '"' || true)
 if [[ -n "$ADMIN_LIST" ]]; then
   log "ADMIN_EMAILS işleniyor: $ADMIN_LIST"
-  IFS=',' read -ra EMAILS <<< "$ADMIN_LIST"
-  for EMAIL in "${EMAILS[@]}"; do
-    CLEAN=$(echo "$EMAIL" | xargs)
-    [[ -z "$CLEAN" ]] && continue
-    psql "$DB_URL" -v admin_email="$CLEAN" -c \
-      "UPDATE \"User\" SET \"isSuperAdmin\" = true WHERE email = :'admin_email' AND \"emailVerifiedAt\" IS NOT NULL AND suspended = false AND \"deletedAt\" IS NULL RETURNING email;" \
-      2>/dev/null || warn "  $CLEAN: doğrulanmış aktif kullanıcı bulunamadı"
-  done
+  PG_PW=$(cat /etc/wasend_pg_password 2>/dev/null || true)
+  if [[ -n "$PG_PW" ]]; then
+    IFS=',' read -ra EMAILS <<< "$ADMIN_LIST"
+    for EMAIL in "${EMAILS[@]}"; do
+      CLEAN=$(echo "$EMAIL" | xargs)
+      [[ -z "$CLEAN" ]] && continue
+      PGPASSWORD="$PG_PW" psql -h 127.0.0.1 -p 5432 -U wasend -d wasend \
+        -v admin_email="$CLEAN" -c \
+        "UPDATE \"User\" SET \"isSuperAdmin\" = true WHERE email = :'admin_email' AND \"emailVerifiedAt\" IS NOT NULL AND suspended = false AND \"deletedAt\" IS NULL RETURNING email;" \
+        2>/dev/null || warn "  $CLEAN: doğrulanmış aktif kullanıcı bulunamadı"
+    done
+  else
+    warn "/etc/wasend_pg_password bulunamadı; ADMIN_EMAILS atlandı"
+  fi
 fi
 
 # 7) Servis restart
